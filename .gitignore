@@ -1,0 +1,33 @@
+# Node.js Dependency directories
+node_modules/
+package-lock.json
+
+
+
+
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# macOS
+.DS_Store
+
+# Build output
+out/
+
+
+# VS Code Extension Package
+.vsix/
+.vscode-test-web/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
