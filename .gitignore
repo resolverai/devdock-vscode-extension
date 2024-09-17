@@ -1,0 +1,11 @@
+.env
+node_modules
+*/**/node_modules
+*/**/.env
+docker/.*
+!docker/.env
+uploads
+.venv
+chroma.db
+app/.DS_Store
+.DS_Store
