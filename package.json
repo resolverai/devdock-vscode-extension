@@ -1,0 +1,529 @@
+{
+  "name": "devdock",
+  "displayName": "devdock - AI Code Completion and Chat",
+  "description": "Locally hosted AI code completion plugin for vscode",
+  "version": "3.15.6",
+  "icon": "assets/icon.png",
+  "keywords": [
+    "code-inference",
+    "code-suggestion",
+    "copilot",
+    "localhost",
+    "no-leaks",
+    "private",
+    "devdock",
+    "ai",
+    "ollama",
+    "llama",
+    "development",
+    "extension",
+    "llama-code",
+    "snippets",
+    "chat",
+    "code-snippets",
+    "autocomplete",
+    "intellisense",
+    "llama-ai",
+    "vscode-extension"
+  ],
+  "repository": {
+    "url": "https://github.com/devdockdotdev/devdock"
+  },
+  "license": "MIT",
+  "publisher": "taran",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "bugs": {
+    "url": "https://github.com/devdockdotdev/devdock/issues"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Debuggers",
+    "Formatters",
+    "Machine Learning",
+    "Education",
+    "Testing",
+    "Data Science",
+    "Extension Packs",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:devdock.listenTerminal"
+  ],
+  "author": {
+    "name": "rjmacarthy"
+  },
+  "main": "./out/index.js",
+  "browser": "./out/index.js",
+  "contributes": {
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorTextFocus",
+          "command": "devdock.explain"
+        },
+        {
+          "when": "editorTextFocus",
+          "command": "devdock.refactor"
+        },
+        {
+          "when": "editorTextFocus",
+          "command": "devdock.addTypes"
+        },
+        {
+          "when": "editorTextFocus",
+          "command": "devdock.addTests"
+        },
+        {
+          "when": "editorTextFocus",
+          "command": "devdock.generateDocs"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "devdock.openChat",
+          "group": "navigation@0",
+          "when": "view == devdock.sidebar && devdockManageTemplates || view == devdock.sidebar && devdockManageProviders || view == devdock.sidebar && devdockConversationHistory || view == devdock.sidebar && devdockSymmetryTab || view == devdock.sidebar && devdockSocialLogin"
+        },
+        {
+          "command": "devdock.githubLogin",
+          "group": "navigation@1",
+          "when": "view == devdock.sidebar"
+        },
+        {
+          "command": "devdock.symmetry",
+          "group": "navigation@2",
+          "when": "view == devdock.sidebar"
+        },
+        {
+          "command": "devdock.manageProviders",
+          "group": "navigation@3",
+          "when": "view == devdock.sidebar"
+        },
+        {
+          "command": "devdock.manageTemplates",
+          "group": "navigation@4",
+          "when": "view == devdock.sidebar"
+        },
+        {
+          "command": "devdock.templates",
+          "when": "view == devdock.sidebar",
+          "group": "navigation@5"
+        },
+        {
+          "command": "devdock.conversationHistory",
+          "when": "view == devdock.sidebar",
+          "group": "navigation@6"
+        },
+        {
+          "command": "devdock.newConversation",
+          "when": "view == devdock.sidebar",
+          "group": "navigation@7"
+        },
+        {
+          "command": "devdock.settings",
+          "when": "view == devdock.sidebar",
+          "group": "navigation@8"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "devdock.explain",
+        "title": "Devdock - Explain"
+      },
+      {
+        "command": "devdock.refactor",
+        "title": "Devdock - Refactor"
+      },
+      {
+        "command": "devdock.addTypes",
+        "title": "Devdock - Add types"
+      },
+      {
+        "command": "devdock.addTests",
+        "title": "Devdock - Write tests"
+      },
+      {
+        "command": "devdock.generateDocs",
+        "title": "Devdock - Generate docs"
+      },
+      {
+        "command": "devdock.enable",
+        "shortTitle": "Enable devdock",
+        "title": "Enable devdock"
+      },
+      {
+        "command": "devdock.stopGeneration",
+        "title": "Stop generation"
+      },
+      {
+        "command": "devdock.getGitCommitMessage",
+        "title": "Generate git commit message"
+      },
+      {
+        "command": "devdock.disable",
+        "title": "Disable devdock",
+        "shortTitle": "Disable devdock"
+      },
+      {
+        "command": "devdock.sidebar.focus",
+        "shortTitle": "Enable devdock sidebar",
+        "title": "Enable devdock sidebar"
+      },
+      {
+        "command": "devdock.settings",
+        "shortTitle": "devdock settings",
+        "title": "Open devdock settings",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "devdock.symmetry",
+        "shortTitle": "devdock symmetry network",
+        "title": "Symmetry network settings",
+        "icon": "$(mirror-public)"
+      },
+      {
+        "command": "devdock.conversationHistory",
+        "shortTitle": "devdock conversation history",
+        "title": "Open devdock conversation history",
+        "icon": "$(history)"
+      },
+      {
+        "command": "devdock.newConversation",
+        "shortTitle": "New chat",
+        "title": "Start a new chat",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "devdock.templates",
+        "shortTitle": "Edit devdock templates",
+        "title": "Edit devdock templates",
+        "icon": "$(pencil)"
+      },
+      {
+        "command": "devdock.manageTemplates",
+        "shortTitle": "Manage devdock templates",
+        "title": "Manage devdock templates",
+        "icon": "$(files)"
+      },
+      {
+        "command": "devdock.manageProviders",
+        "shortTitle": "Manage devdock providers",
+        "title": "Manage devdock providers",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "devdock.openChat",
+        "shortTitle": "Back to chat view",
+        "title": "Back to chat view",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "devdock.githubLogin",
+        "shortTitle": "Login with GitHub",
+        "title": "Login with GitHub",
+        "icon": "$(github)"
+      },
+      {
+        "command": "devdock.listenTerminal",
+        "title": "Start Listening to Terminal"
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "Alt+\\",
+        "command": "editor.action.inlineSuggest.trigger",
+        "when": "editorTextFocus && !editorReadonly"
+      },
+      {
+        "key": "CTRL+SHIFT+/",
+        "command": "devdock.stopGeneration",
+        "when": "devdockGeneratingText"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "devdock-sidebar-view",
+          "title": "devdock",
+          "icon": "assets/devdock_white.svg"
+        }
+      ]
+    },
+    "views": {
+      "devdock-sidebar-view": [
+        {
+          "type": "webview",
+          "id": "devdock.sidebar",
+          "name": "devdock",
+          "icon": "assets/devdock.svg",
+          "contextualTitle": "devdock"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "devdock",
+      "properties": {
+        "devdock.enabled": {
+          "order": 0,
+          "type": "boolean",
+          "default": true,
+          "description": "Activates or deactivates the Devdock extension."
+        },
+        "devdock.autoSuggestEnabled": {
+          "order": 1,
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic completion suggestions, manual trigger (default shortcut Alt+\\)."
+        },
+        "devdock.contextLength": {
+          "order": 2,
+          "type": "number",
+          "default": 100,
+          "description": "Defines the number of lines before and after the current line to include in FIM prompts.",
+          "required": true
+        },
+        "devdock.debounceWait": {
+          "order": 3,
+          "type": "number",
+          "default": 300,
+          "description": "Delay in milliseconds before triggering the next completion.",
+          "required": true
+        },
+        "devdock.temperature": {
+          "order": 4,
+          "type": "number",
+          "default": 0.2,
+          "description": "Sets the model's creativity level (temperature) for generating completions.",
+          "required": true
+        },
+        "devdock.multilineCompletionsEnabled": {
+          "order": 5,
+          "type": "boolean",
+          "default": true,
+          "description": "Experimental feature: enables the generation of multi-line completions."
+        },
+        "devdock.maxLines": {
+          "dependencies": {
+            "devdock.multilineCompletionsEnabled": true
+          },
+          "order": 6,
+          "type": "number",
+          "default": 30,
+          "description": "Maximum number of lines to use for multi line completions. Applicable only when multilineCompletionsEnabled is enabled."
+        },
+        "devdock.fileContextEnabled": {
+          "order": 8,
+          "type": "boolean",
+          "default": false,
+          "description": "Enables scanning of neighbouring documents to enhance completion prompts. (Experimental)"
+        },
+        "devdock.completionCacheEnabled": {
+          "order": 9,
+          "type": "boolean",
+          "default": false,
+          "description": "Caches FIM completions for identical prompts to enhance performance."
+        },
+        "devdock.numPredictChat": {
+          "order": 10,
+          "type": "number",
+          "default": 512,
+          "description": "Maximum token limit for chat completions.",
+          "required": true
+        },
+        "devdock.numPredictFim": {
+          "order": 11,
+          "type": "number",
+          "default": 512,
+          "description": "Maximum token limit for FIM completions. Set to -1 for no limit. Devdock should stop at logical line breaks.",
+          "required": true
+        },
+        "devdock.enableSubsequentCompletions": {
+          "order": 12,
+          "type": "boolean",
+          "default": true,
+          "description": "Enable this setting to allow devdock to keep making subsequent completion requests to the API after the last completion request was accepted."
+        },
+        "devdock.ollamaHostname": {
+          "order": 13,
+          "type": "string",
+          "default": "0.0.0.0",
+          "description": "Hostname for Ollama API.",
+          "required": true
+        },
+        "devdock.ollamaApiPort": {
+          "order": 14,
+          "type": "number",
+          "default": 11434,
+          "description": "The API port usually `11434`",
+          "required": false
+        },
+        "devdock.embeddingModel": {
+          "order": 15,
+          "type": "string",
+          "default": "nomic-embed-text",
+          "description": "The embedding model to use (Ollama only)",
+          "required": false
+        },
+        "devdock.keepAlive": {
+          "order": 16,
+          "type": "string",
+          "default": "5m",
+          "description": "Keep models in memory by making requests with keep_alive=-1. Applicable only for Ollama API."
+        },
+        "devdock.ollamaUseTls": {
+          "order": 17,
+          "type": "boolean",
+          "default": false,
+          "description": "Enables TLS encryption Ollama API connections."
+        },
+        "devdock.enableLogging": {
+          "order": 18,
+          "type": "boolean",
+          "default": true,
+          "description": "Enable devdock debug mode"
+        },
+        "devdock.symmetryModelName": {
+          "order": 19,
+          "type": "string",
+          "default": "llama3.1:latest",
+          "description": "The symmetry model name for chat."
+        },
+        "devdock.symmetryProvider": {
+          "order": 20,
+          "type": "string",
+          "description": "The symmetry provider type.",
+          "enum": [
+            "litellm",
+            "llamacpp",
+            "lmstudio",
+            "ollama",
+            "oobabooga",
+            "openwebui"
+          ],
+          "default": "ollama"
+        },
+        "devdock.symmetryServerKey": {
+          "order": 21,
+          "type": "string",
+          "description": "The symmetry master server key.",
+          "default": "4b4a9cc325d134dee6679e9407420023531fd7e96c563f6c5d00fd5549b77435"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build-tests": "tsc -p . --outDir out",
+    "lint": "eslint src --ext ts",
+    "package": "node scripts/build.mjs",
+    "pretest": "npm run build-tests && npm run build && npm run lint",
+    "test": "node ./out/test/runTest.js",
+    "vscode:package": "npm exec vsce package",
+    "vscode:prepublish": "npm run package",
+    "vscode:publish": "npm exec vsce publish",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "watch": "node scripts/build.mjs --watch"
+  },
+  "devDependencies": {
+    "@hyrious/esbuild-plugin-commonjs": "^0.2.4",
+    "@types/async-lock": "^1.4.2",
+    "@types/auth0-js": "^9.21.6",
+    "@types/js-yaml": "^4.0.9",
+    "@types/minimatch": "^5.1.2",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^16.18.106",
+    "@types/react-dom": "^18.2.18",
+    "@types/react-syntax-highlighter": "^15.5.11",
+    "@types/string_score": "^0.1.31",
+    "@types/uuid": "^9.0.8",
+    "@types/vscode": "^1.70.0",
+    "@typescript-eslint/eslint-plugin": "^5.31.0",
+    "@typescript-eslint/parser": "^5.31.0",
+    "@vscode/test-cli": "^0.0.6",
+    "@vscode/test-electron": "^2.3.10",
+    "@vscode/vsce": "^2.18.0",
+    "copy-webpack-plugin": "^12.0.2",
+    "css-loader": "^6.8.1",
+    "esbuild": "^0.21.4",
+    "esbuild-css-modules-plugin": "^3.1.2",
+    "esbuild-plugin-copy": "^2.1.1",
+    "jest": "^29.7.0",
+    "mocha": "^10.3.0",
+    "ncp": "^2.0.0",
+    "rimraf": "^5.0.5",
+    "style-loader": "^3.3.3",
+    "tree-sitter-wasms": "^0.1.7",
+    "ts-loader": "^9.5.1",
+    "tslib": "^2.7.0",
+    "typescript": "^5.5.4",
+    "web-tree-sitter": "^0.22.1",
+    "webpack": "^5.94.0"
+  },
+  "dependencies": {
+    "@lancedb/lancedb": "^0.9.0",
+    "@tiptap/extension-mention": "^2.5.9",
+    "@tiptap/extension-placeholder": "^2.5.9",
+    "@tiptap/pm": "^2.5.9",
+    "@tiptap/react": "^2.5.9",
+    "@tiptap/starter-kit": "^2.5.9",
+    "@tiptap/suggestion": "^2.5.9",
+    "@types/react": "^18.2.46",
+    "@vscode/codicons": "^0.0.35",
+    "@vscode/vsce": "^2.31.1",
+    "@vscode/webview-ui-toolkit": "^1.4.0",
+    "@wasm-tool/wasm-pack-plugin": "^1.7.0",
+    "@web3auth/base": "^8.12.4",
+    "@web3auth/ethereum-provider": "^8.12.4",
+    "@web3auth/modal": "^8.12.4",
+    "@zerodev/ecdsa-validator": "^5.3.1",
+    "@zerodev/sdk": "^5.3.11",
+    "apache-arrow": "^17.0.0",
+    "async-lock": "^1.4.1",
+    "auth0": "^4.9.0",
+    "auth0-js": "^9.26.1",
+    "b4a": "^1.6.6",
+    "classnames": "^2.5.1",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.2",
+    "handlebars": "^4.7.8",
+    "handlebars-loader": "^1.7.3",
+    "hypercore-crypto": "^3.4.2",
+    "hyperswarm": "^4.7.15",
+    "js-yaml": "^4.1.0",
+    "minimatch": "^9.0.4",
+    "node-polyfill-webpack-plugin": "^3.0.0",
+    "onnxruntime-web": "^1.18.0",
+    "pear-stdio": "^1.0.1",
+    "permissionless": "^0.1.45",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.1",
+    "react-syntax-highlighter": "^15.5.0",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.0",
+    "stream-http": "^3.2.0",
+    "string_score": "^0.1.22",
+    "symmetry-client": "^1.0.2",
+    "tippy.js": "^6.3.7",
+    "tiptap-markdown": "^0.8.10",
+    "toxe": "^1.1.0",
+    "uuid": "^9.0.1",
+    "viem": "2.17.x",
+    "vscode-uri": "^3.0.8",
+    "zerog-da-sdk": "^0.2.2"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}
