@@ -47,6 +47,8 @@ import { EmbeddingOptions } from './embedding-options'
 import ChatLoader from './chat-loader'
 import { suggestion } from './suggestion'
 import styles from './index.module.css'
+import EventSender from './EventSender'
+import { AnalyticsEvents } from '../common/analyticsEventKeys'
 
 const CustomKeyMap = Extension.create({
   name: 'chatKeyMap',
@@ -327,6 +329,14 @@ export const Chat = () => {
 
       return !prev
     })
+    
+    const toggleData = {autoScrollEnabled: false};
+    if(!autoScrollContext){
+      toggleData.autoScrollEnabled = true;
+    }else{
+      toggleData.autoScrollEnabled = false;
+    }
+    EventSender.sendEvent(AnalyticsEvents.CPToggleButtonClicked, toggleData);
   }
 
   const handleToggleProviderSelection = () => {
@@ -338,6 +348,13 @@ export const Chat = () => {
       } as ClientMessage)
       return !prev
     })
+    const toggleProvider = {activeProvideEnabled: false};
+    if(!showProvidersContext){
+      toggleProvider.activeProvideEnabled = true;
+    }else{
+      toggleProvider.activeProvideEnabled = false;
+    }
+    EventSender.sendEvent(AnalyticsEvents.CPSelectActiveProvidersClicked, toggleProvider);
   }
 
   const handleToggleEmbeddingOptions = () => {
@@ -349,18 +366,30 @@ export const Chat = () => {
       } as ClientMessage)
       return !prev
     })
+    
+
+    const toggleEmbeddedOptions = {isEmbeddedOptionsEnabled: false};
+    if(!showEmbeddingOptionsContext){
+      toggleEmbeddedOptions.isEmbeddedOptionsEnabled = true;
+    }else{
+      toggleEmbeddedOptions.isEmbeddedOptionsEnabled = false;
+    }
+    EventSender.sendEvent(AnalyticsEvents.CPEmbeddingOptionsClicked, toggleEmbeddedOptions);
   }
 
   const handleGetGitChanges = () => {
     global.vscode.postMessage({
       type: EVENT_NAME.devdockGetGitChanges
     } as ClientMessage)
+
+    EventSender.sendEvent(AnalyticsEvents.CPGenerateCommitClicked);
   }
 
   const handleScrollBottom = () => {
     if (markdownRef.current) {
       markdownRef.current.scrollTop = markdownRef.current.scrollHeight
     }
+    EventSender.sendEvent(AnalyticsEvents.CPScrollDownClicked);
   }
 
   const handleToggleRag = (): void => {
@@ -372,6 +401,14 @@ export const Chat = () => {
       } as ClientMessage)
       return !prev
     })
+    const isRagEnabledObject = {isEnabled:false}
+
+    if(!enableRagContext){
+      isRagEnabledObject.isEnabled = true;
+    }else{
+      isRagEnabledObject.isEnabled = false;
+    }
+    EventSender.sendEvent(AnalyticsEvents.CPisRAGContextClickedEnabled,isRagEnabledObject);
   }
 
   useEffect(() => {

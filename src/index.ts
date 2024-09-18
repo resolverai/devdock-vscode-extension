@@ -142,6 +142,13 @@ export async function activate(context: ExtensionContext) {
       { pattern: "**" },
       completionProvider
     ),
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.devdockAnalyticsCommand,
+      (eventName, data?: Record<string, any> | boolean) => {
+        Analytics.trackEvent(eventName, data);
+      }
+    ),
+
     commands.registerCommand(DEVDOCK_COMMAND_NAME.enable, () => {
       statusBar.show();
       createAndShowTerminal();

@@ -1,4 +1,4 @@
-import * as vscode from 'vscode'
+import * as vscode from "vscode";
 
 import {
   createSymmetryMessage,
@@ -6,8 +6,8 @@ import {
   getLanguage,
   getTextSelection,
   getTheme,
-  updateLoadingMessage
-} from '../utils'
+  updateLoadingMessage,
+} from "../utils";
 import {
   WORKSPACE_STORAGE_KEY,
   EXTENSION_SESSION_NAME,
@@ -16,40 +16,41 @@ import {
   SYMMETRY_DATA_MESSAGE,
   SYMMETRY_EMITTER_KEY,
   SYSTEM,
-  LOGIN_EVENT_NAME
-} from '../../common/constants'
-import { ChatService } from '../chat-service'
+  LOGIN_EVENT_NAME,
+} from "../../common/constants";
+import { ChatService } from "../chat-service";
 import {
   ClientMessage,
   Message,
   ApiModel,
   ServerMessage,
   InferenceRequest,
-} from '../../common/types'
-import { TemplateProvider } from '../template-provider'
-import { OllamaService } from '../ollama-service'
-import { ProviderManager } from '../provider-manager'
-import { ConversationHistory } from '../conversation-history'
-import { EmbeddingDatabase } from '../embeddings'
-import { SymmetryService } from '../symmetry-service'
-import { SessionManager } from '../session-manager'
-import { Logger } from '../../common/logger'
+} from "../../common/types";
+import { TemplateProvider } from "../template-provider";
+import { OllamaService } from "../ollama-service";
+import { ProviderManager } from "../provider-manager";
+import { ConversationHistory } from "../conversation-history";
+import { EmbeddingDatabase } from "../embeddings";
+import { SymmetryService } from "../symmetry-service";
+import { SessionManager } from "../session-manager";
+import { Logger } from "../../common/logger";
+import analytics from "../../common/analytics";
 
-const logger = new Logger()
+const logger = new Logger();
 
 export class SidebarProvider implements vscode.WebviewViewProvider {
-  private _config = vscode.workspace.getConfiguration('devdock')
-  private _context: vscode.ExtensionContext
-  private _statusBar: vscode.StatusBarItem
-  private _templateDir: string
-  private _templateProvider: TemplateProvider
-  private _ollamaService: OllamaService | undefined = undefined
-  public conversationHistory: ConversationHistory | undefined = undefined
-  public chatService: ChatService | undefined = undefined
-  public view?: vscode.WebviewView
-  private _db: EmbeddingDatabase | undefined
-  public symmetryService?: SymmetryService | undefined
-  private _sessionManager: SessionManager
+  private _config = vscode.workspace.getConfiguration("devdock");
+  private _context: vscode.ExtensionContext;
+  private _statusBar: vscode.StatusBarItem;
+  private _templateDir: string;
+  private _templateProvider: TemplateProvider;
+  private _ollamaService: OllamaService | undefined = undefined;
+  public conversationHistory: ConversationHistory | undefined = undefined;
+  public chatService: ChatService | undefined = undefined;
+  public view?: vscode.WebviewView;
+  private _db: EmbeddingDatabase | undefined;
+  public symmetryService?: SymmetryService | undefined;
+  private _sessionManager: SessionManager;
 
   constructor(
     statusBar: vscode.StatusBarItem,
@@ -58,26 +59,26 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     db: EmbeddingDatabase | undefined,
     sessionManager: SessionManager
   ) {
-    this._statusBar = statusBar
-    this._context = context
-    this._templateDir = templateDir
-    this._sessionManager = sessionManager
-    this._templateProvider = new TemplateProvider(templateDir)
-    this._ollamaService = new OllamaService()
+    this._statusBar = statusBar;
+    this._context = context;
+    this._templateDir = templateDir;
+    this._sessionManager = sessionManager;
+    this._templateProvider = new TemplateProvider(templateDir);
+    this._ollamaService = new OllamaService();
     if (db) {
-      this._db = db
+      this._db = db;
     }
-    return this
+    return this;
   }
 
   public resolveWebviewView(webviewView: vscode.WebviewView) {
-    this.view = webviewView
+    this.view = webviewView;
 
     this.symmetryService = new SymmetryService(
       this.view,
       this._sessionManager,
       this._context
-    )
+    );
 
     this.chatService = new ChatService(
       this._statusBar,
@@ -87,218 +88,217 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       this._db,
       this._sessionManager,
       this.symmetryService
-    )
+    );
 
     this.conversationHistory = new ConversationHistory(
       this._context,
       this.view,
       this._sessionManager,
       this.symmetryService
-    )
+    );
 
-    new ProviderManager(this._context, this.view)
+    new ProviderManager(this._context, this.view);
 
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [this._context?.extensionUri]
-    }
+      localResourceRoots: [this._context?.extensionUri],
+    };
 
-    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview)
+    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
     vscode.window.onDidChangeTextEditorSelection(
       (event: vscode.TextEditorSelectionChangeEvent) => {
-        const text = event.textEditor.document.getText(event.selections[0])
+        const text = event.textEditor.document.getText(event.selections[0]);
         webviewView.webview.postMessage({
           type: EVENT_NAME.devdockTextSelection,
           value: {
             type: WORKSPACE_STORAGE_KEY.selection,
-            completion: text
-          }
-        })
+            completion: text,
+          },
+        });
       }
-    )
+    );
 
     vscode.window.onDidChangeActiveColorTheme(() => {
       webviewView.webview.postMessage({
         type: EVENT_NAME.devdockSendTheme,
         value: {
-          data: getTheme()
-        }
-      })
-    })
+          data: getTheme(),
+        },
+      });
+    });
 
-    webviewView.webview.onDidReceiveMessage(
-      (message) => {
-        const eventHandlers = {
-          [EVENT_NAME.devdockAcceptSolution]: this.acceptSolution,
-          [EVENT_NAME.devdockChatMessage]: this.streamChatCompletion,
-          [EVENT_NAME.devdockClickSuggestion]: this.clickSuggestion,
-          [EVENT_NAME.devdockFetchOllamaModels]: this.fetchOllamaModels,
-          [EVENT_NAME.devdockGlobalContext]: this.getGlobalContext,
-          [EVENT_NAME.devdockListTemplates]: this.listTemplates,
-          [EVENT_NAME.devdockSetTab]: this.setTab,
-          [DEVDOCK_COMMAND_NAME.settings]: this.openSettings,
-          [EVENT_NAME.devdockNewDocument]: this.createNewUntitledDocument,
-          [EVENT_NAME.devdockNotification]: this.sendNotification,
-          [EVENT_NAME.devdockSendLanguage]: this.getCurrentLanguage,
-          [EVENT_NAME.devdockSendTheme]: this.getTheme,
-          [EVENT_NAME.devdockSetGlobalContext]: this.setGlobalContext,
-          [EVENT_NAME.devdockSetWorkspaceContext]: this.setWorkspaceContext,
-          [EVENT_NAME.devdockTextSelection]: this.getSelectedText,
-          [EVENT_NAME.devdockWorkspaceContext]: this.getDevdockWorkspaceContext,
-          [EVENT_NAME.devdockSetConfigValue]: this.setConfigurationValue,
-          [EVENT_NAME.devdockGetConfigValue]: this.getConfigurationValue,
-          [EVENT_NAME.devdockGetGitChanges]: this.getGitCommitMessage,
-          [EVENT_NAME.devdockHideBackButton]: this.devdockHideBackButton,
-          [EVENT_NAME.devdockEmbedDocuments]: this.embedDocuments,
-          [EVENT_NAME.devdockConnectSymmetry]: this.connectToSymmetry,
-          [EVENT_NAME.devdockDisconnectSymmetry]: this.disconnectSymmetry,
-          [EVENT_NAME.devdockSessionContext]: this.getSessionContext,
-          [EVENT_NAME.devdockStartSymmetryProvider]: this.createSymmetryProvider,
-          [EVENT_NAME.devdockStopSymmetryProvider]: this.stopSymmetryProvider,
-          [LOGIN_EVENT_NAME.initiateSocialLogin]: this.initiateSocialLogin
-        }
-        eventHandlers[message.type as string]?.(message)
-      }
-    )
+    webviewView.webview.onDidReceiveMessage((message) => {
+      const eventHandlers = {
+        [EVENT_NAME.devdockAcceptSolution]: this.acceptSolution,
+        [EVENT_NAME.devdockChatMessage]: this.streamChatCompletion,
+        [EVENT_NAME.devdockClickSuggestion]: this.clickSuggestion,
+        [EVENT_NAME.devdockFetchOllamaModels]: this.fetchOllamaModels,
+        [EVENT_NAME.devdockGlobalContext]: this.getGlobalContext,
+        [EVENT_NAME.devdockListTemplates]: this.listTemplates,
+        [EVENT_NAME.devdockSetTab]: this.setTab,
+        [DEVDOCK_COMMAND_NAME.settings]: this.openSettings,
+        [EVENT_NAME.devdockNewDocument]: this.createNewUntitledDocument,
+        [EVENT_NAME.devdockNotification]: this.sendNotification,
+        [EVENT_NAME.devdockSendLanguage]: this.getCurrentLanguage,
+        [EVENT_NAME.devdockSendTheme]: this.getTheme,
+        [EVENT_NAME.devdockSetGlobalContext]: this.setGlobalContext,
+        [EVENT_NAME.devdockSetWorkspaceContext]: this.setWorkspaceContext,
+        [EVENT_NAME.devdockTextSelection]: this.getSelectedText,
+        [EVENT_NAME.devdockWorkspaceContext]: this.getDevdockWorkspaceContext,
+        [EVENT_NAME.devdockSetConfigValue]: this.setConfigurationValue,
+        [EVENT_NAME.devdockGetConfigValue]: this.getConfigurationValue,
+        [EVENT_NAME.devdockGetGitChanges]: this.getGitCommitMessage,
+        [EVENT_NAME.devdockHideBackButton]: this.devdockHideBackButton,
+        [EVENT_NAME.devdockEmbedDocuments]: this.embedDocuments,
+        [EVENT_NAME.devdockConnectSymmetry]: this.connectToSymmetry,
+        [EVENT_NAME.devdockDisconnectSymmetry]: this.disconnectSymmetry,
+        [EVENT_NAME.devdockSessionContext]: this.getSessionContext,
+        [EVENT_NAME.devdockStartSymmetryProvider]: this.createSymmetryProvider,
+        [EVENT_NAME.devdockStopSymmetryProvider]: this.stopSymmetryProvider,
+        [LOGIN_EVENT_NAME.initiateSocialLogin]: this.initiateSocialLogin,
+        [EVENT_NAME.devdockAnalyticsEvent]: this.eventSenderFromUI,
+      };
+      eventHandlers[message.type as string]?.(message);
+    });
   }
 
   public openSettings() {
-    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.settings)
+    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.settings);
   }
 
   public setTab(tab: ClientMessage) {
     this.view?.webview.postMessage({
       type: EVENT_NAME.devdockSetTab,
       value: {
-        data: tab as string
-      }
-    } as ServerMessage<string>)
+        data: tab as string,
+      },
+    } as ServerMessage<string>);
   }
 
   public embedDocuments = async () => {
-    const dirs = vscode.workspace.workspaceFolders
+    const dirs = vscode.workspace.workspaceFolders;
     if (!dirs?.length) {
-      vscode.window.showErrorMessage('No workspace loaded.')
-      return
+      vscode.window.showErrorMessage("No workspace loaded.");
+      return;
     }
-    if (!this._db) return
+    if (!this._db) return;
     for (const dir of dirs) {
-      (await this._db.injestDocuments(dir.uri.fsPath)).populateDatabase()
+      (await this._db.injestDocuments(dir.uri.fsPath)).populateDatabase();
     }
-  }
+  };
 
   public getConfigurationValue = (message: ClientMessage) => {
-    if (!message.key) return
-    const config = vscode.workspace.getConfiguration('devdock')
+    if (!message.key) return;
+    const config = vscode.workspace.getConfiguration("devdock");
     this.view?.webview.postMessage({
       type: EVENT_NAME.devdockGetConfigValue,
       value: {
         data: config.get(message.key as string),
-        type: message.key
-      }
-    } as ServerMessage<string>)
-  }
+        type: message.key,
+      },
+    } as ServerMessage<string>);
+  };
 
   public setConfigurationValue = (message: ClientMessage) => {
-    if (!message.key) return
-    const config = vscode.workspace.getConfiguration('devdock')
-    config.update(message.key, message.data, vscode.ConfigurationTarget.Global)
-  }
+    if (!message.key) return;
+    const config = vscode.workspace.getConfiguration("devdock");
+    config.update(message.key, message.data, vscode.ConfigurationTarget.Global);
+  };
 
   public fetchOllamaModels = async () => {
     try {
-      const models = await this._ollamaService?.fetchModels()
+      const models = await this._ollamaService?.fetchModels();
       if (!models?.length) {
-        return
+        return;
       }
       this.view?.webview.postMessage({
         type: EVENT_NAME.devdockFetchOllamaModels,
         value: {
-          data: models
-        }
-      } as ServerMessage<ApiModel[]>)
+          data: models,
+        },
+      } as ServerMessage<ApiModel[]>);
     } catch (e) {
-      return
+      return;
     }
-  }
+  };
 
   public listTemplates = () => {
-    const templates = this._templateProvider.listTemplates()
+    const templates = this._templateProvider.listTemplates();
     this.view?.webview.postMessage({
       type: EVENT_NAME.devdockListTemplates,
       value: {
-        data: templates
-      }
-    } as ServerMessage<string[]>)
-  }
+        data: templates,
+      },
+    } as ServerMessage<string[]>);
+  };
 
   public sendNotification = (message: ClientMessage) => {
-    vscode.window.showInformationMessage(message.data as string)
-  }
+    vscode.window.showInformationMessage(message.data as string);
+  };
 
   public clickSuggestion = (message: ClientMessage) => {
     vscode.commands.executeCommand(
-      'devdock.templateCompletion',
+      "devdock.templateCompletion",
       message.data as string
-    )
-  }
+    );
+  };
 
   public streamChatCompletion = async (data: ClientMessage<Message[]>) => {
     const symmetryConnected = this._sessionManager?.get(
       EXTENSION_SESSION_NAME.devdockSymmetryConnection
-    )
+    );
     if (symmetryConnected) {
       const systemMessage = {
         role: SYSTEM,
-        content: await this._templateProvider?.readSystemMessageTemplate()
-      }
+        content: await this._templateProvider?.readSystemMessageTemplate(),
+      };
 
-      const messages = [systemMessage, ...(data.data as Message[])]
+      const messages = [systemMessage, ...(data.data as Message[])];
 
-      updateLoadingMessage(this.view, 'Using symmetry for inference')
+      updateLoadingMessage(this.view, "Using symmetry for inference");
 
       logger.log(`
         Using symmetry for inference
         Messages: ${JSON.stringify(messages)}
-      `)
+      `);
 
       return this.symmetryService?.write(
         createSymmetryMessage<InferenceRequest>(
           SYMMETRY_DATA_MESSAGE.inference,
           {
             messages,
-            key: SYMMETRY_EMITTER_KEY.inference
+            key: SYMMETRY_EMITTER_KEY.inference,
           }
         )
-      )
+      );
     }
 
-    this.chatService?.streamChatCompletion(data.data || [])
-  }
+    this.chatService?.streamChatCompletion(data.data || []);
+  };
 
   public async streamTemplateCompletion(template: string) {
     const symmetryConnected = this._sessionManager?.get(
       EXTENSION_SESSION_NAME.devdockSymmetryConnection
-    )
+    );
     if (symmetryConnected && this.chatService) {
-      const messages = await this.chatService.getTemplateMessages(template)
+      const messages = await this.chatService.getTemplateMessages(template);
 
       logger.log(`
         Using symmetry for inference
         Messages: ${JSON.stringify(messages)}
-      `)
+      `);
       return this.symmetryService?.write(
         createSymmetryMessage<InferenceRequest>(
           SYMMETRY_DATA_MESSAGE.inference,
           {
             messages,
-            key: SYMMETRY_EMITTER_KEY.inference
+            key: SYMMETRY_EMITTER_KEY.inference,
           }
         )
-      )
+      );
     }
-    this.chatService?.streamTemplateCompletion(template)
+    this.chatService?.streamTemplateCompletion(template);
   }
 
   public getSelectedText = () => {
@@ -306,172 +306,178 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       type: EVENT_NAME.devdockTextSelection,
       value: {
         type: WORKSPACE_STORAGE_KEY.selection,
-        completion: getTextSelection()
-      }
-    })
-  }
+        completion: getTextSelection(),
+      },
+    });
+  };
 
   public acceptSolution = (message: ClientMessage) => {
-    const editor = vscode.window.activeTextEditor
-    const selection = editor?.selection
-    if (!selection) return
+    const editor = vscode.window.activeTextEditor;
+    const selection = editor?.selection;
+    if (!selection) return;
     vscode.window.activeTextEditor?.edit((editBuilder) => {
-      editBuilder.replace(selection, message.data as string)
-    })
-  }
+      editBuilder.replace(selection, message.data as string);
+    });
+  };
 
   public createNewUntitledDocument = async (message: ClientMessage) => {
-    const lang = getLanguage()
+    const lang = getLanguage();
     const document = await vscode.workspace.openTextDocument({
       content: message.data as string,
-      language: lang.languageId
-    })
-    await vscode.window.showTextDocument(document)
-  }
+      language: lang.languageId,
+    });
+    await vscode.window.showTextDocument(document);
+  };
 
   public getGlobalContext = (message: ClientMessage) => {
     const storedData = this._context?.globalState.get(
       `${EVENT_NAME.devdockGlobalContext}-${message.key}`
-    )
+    );
     this.view?.webview.postMessage({
       type: `${EVENT_NAME.devdockGlobalContext}-${message.key}`,
-      value: storedData
-    })
-  }
+      value: storedData,
+    });
+  };
 
   public getTheme = () => {
     this.view?.webview.postMessage({
       type: EVENT_NAME.devdockSendTheme,
       value: {
-        data: getTheme()
-      }
-    })
-  }
+        data: getTheme(),
+      },
+    });
+  };
 
   public getCurrentLanguage = () => {
     this.view?.webview.postMessage({
       type: EVENT_NAME.devdockSendLanguage,
       value: {
-        data: getLanguage()
-      }
-    } as ServerMessage)
-  }
+        data: getLanguage(),
+      },
+    } as ServerMessage);
+  };
 
   public getGitCommitMessage = async () => {
-    const diff = await getGitChanges()
+    const diff = await getGitChanges();
     if (!diff.length) {
       vscode.window.showInformationMessage(
-        'No changes found in the current workspace.'
-      )
-      return
+        "No changes found in the current workspace."
+      );
+      return;
     }
-    this.conversationHistory?.resetConversation()
+    this.conversationHistory?.resetConversation();
     this.chatService?.streamTemplateCompletion(
-      'commit-message',
+      "commit-message",
       diff,
       (completion: string) => {
-        vscode.commands.executeCommand('devdock.sendTerminalText', completion)
+        vscode.commands.executeCommand("devdock.sendTerminalText", completion);
       },
       true
-    )
-  }
+    );
+  };
 
   public getSessionContext = (data: ClientMessage) => {
-    if (!data.key) return undefined
+    if (!data.key) return undefined;
     this.view?.webview.postMessage({
       type: `${EVENT_NAME.devdockSessionContext}-${data.key}`,
-      value: this._sessionManager.get(data.key)
-    })
-  }
+      value: this._sessionManager.get(data.key),
+    });
+  };
 
   public setGlobalContext = (message: ClientMessage) => {
     this._context?.globalState.update(
       `${EVENT_NAME.devdockGlobalContext}-${message.key}`,
       message.data
-    )
-  }
+    );
+  };
 
   public getDevdockWorkspaceContext = (message: ClientMessage) => {
     const storedData = this._context?.workspaceState.get(
       `${EVENT_NAME.devdockWorkspaceContext}-${message.key}`
-    )
+    );
     this.view?.webview.postMessage({
       type: `${EVENT_NAME.devdockWorkspaceContext}-${message.key}`,
-      value: storedData
-    } as ServerMessage)
-  }
+      value: storedData,
+    } as ServerMessage);
+  };
 
   public setWorkspaceContext = <T>(message: ClientMessage<T>) => {
-    const value = message.data
+    const value = message.data;
     this._context.workspaceState.update(
       `${EVENT_NAME.devdockWorkspaceContext}-${message.key}`,
       value
-    )
+    );
     this.view?.webview.postMessage({
       type: `${EVENT_NAME.devdockWorkspaceContext}-${message.key}`,
-      value
-    })
-  }
+      value,
+    });
+  };
 
   public newConversation() {
     this.symmetryService?.write(
       createSymmetryMessage(SYMMETRY_DATA_MESSAGE.newConversation)
-    )
+    );
   }
 
   public destroyStream = () => {
-    this.chatService?.destroyStream()
+    this.chatService?.destroyStream();
     this.view?.webview.postMessage({
-      type: EVENT_NAME.devdockStopGeneration
-    })
-  }
+      type: EVENT_NAME.devdockStopGeneration,
+    });
+  };
 
   private connectToSymmetry = () => {
     if (this._config.symmetryServerKey) {
-      this.symmetryService?.connect(this._config.symmetryServerKey)
+      this.symmetryService?.connect(this._config.symmetryServerKey);
     }
-  }
+  };
 
   private disconnectSymmetry = async () => {
     if (this._config.symmetryServerKey) {
-      await this.symmetryService?.disconnect()
+      await this.symmetryService?.disconnect();
     }
-  }
+  };
 
   public createSymmetryProvider = () => {
-    this.symmetryService?.startSymmetryProvider()
-  }
+    this.symmetryService?.startSymmetryProvider();
+  };
 
   public stopSymmetryProvider = () => {
-    this.symmetryService?.stopSymmetryProvider()
-  }
+    this.symmetryService?.stopSymmetryProvider();
+  };
 
   private devdockHideBackButton() {
-    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.hideBackButton)
+    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.hideBackButton);
   }
 
-  private initiateSocialLogin(){
-    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.githubConnect)
+  private initiateSocialLogin() {
+    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.githubConnect);
+  }
+  private eventSenderFromUI(message: ClientMessage) {
+    console.log("eventSenderFromUI", message);
+    const eventName = message.key as string;
+    const data = message?.data as Record<string, any> | boolean;
+    analytics.trackEvent(eventName, data);
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, 'out', 'sidebar.js')
-    )
+      vscode.Uri.joinPath(this._context.extensionUri, "out", "sidebar.js")
+    );
 
     const codiconCssUri = vscode.Uri.joinPath(
       this._context.extensionUri,
-      'assets',
-      'codicon.css'
-    )
+      "assets",
+      "codicon.css"
+    );
 
     const css = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._context.extensionUri, 'out', 'sidebar.css')
-    )
+      vscode.Uri.joinPath(this._context.extensionUri, "out", "sidebar.css")
+    );
 
-    const codiconCssWebviewUri = webview.asWebviewUri(codiconCssUri)
+    const codiconCssWebviewUri = webview.asWebviewUri(codiconCssUri);
 
-    const nonce = getNonce()
+    const nonce = getNonce();
 
     return `<!DOCTYPE html>
     <html lang="en">
@@ -496,16 +502,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         <div id="root"></div>
         <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
     </body>
-    </html>`
+    </html>`;
   }
 }
 
 function getNonce() {
-  let text = ''
+  let text = "";
   const possible =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length))
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
-  return text
+  return text;
 }
