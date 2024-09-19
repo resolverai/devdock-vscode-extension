@@ -1,6 +1,7 @@
 import React from 'react';
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { LOGIN_EVENT_NAME } from '../common/constants';
+import ExpandableCardList from './expandableCardList';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any;
@@ -19,7 +20,10 @@ export const SocialLogin: React.FC = () => {
       <VSCodeButton appearance="primary" onClick={handleSocialLogin}>
         Github Login
       </VSCodeButton>
+      <ExpandableCardList/>
     </div>
+    
+   
   );
 };
 

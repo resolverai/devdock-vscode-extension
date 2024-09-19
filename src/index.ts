@@ -45,8 +45,8 @@ import { AnalyticsEvents } from "./common/analyticsEventKeys";
 
 export async function activate(context: ExtensionContext) {
   setContext(context);
-  Analytics.init();
-  Analytics.trackEvent(AnalyticsEvents.Activated);
+  const enabApiForTrackingEvents = true;
+  Analytics.init(enabApiForTrackingEvents);
   const config = workspace.getConfiguration("devdock");
   const statusBar = window.createStatusBarItem(StatusBarAlignment.Right);
   const templateDir = path.join(os.homedir(), ".devdock/templates") as string;
