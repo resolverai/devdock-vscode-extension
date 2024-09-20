@@ -1,0 +1,57 @@
+/* Scrollable container */
+.scrollable-container {
+    display: flex;
+    flex-direction: column;
+    height: 90vh; 
+    overflow-y: inherit; /* Scrollable vertically */
+    padding: 16px;
+    margin-top: 20px;
+    background-color: #0a0909;
+  }
+  
+  /* Each vertical item added will be placed one after the other */
+  .vertical-item {
+    margin-bottom: 16px;
+  }
+  
+  /* Horizontal container for nested elements aligned horizontally */
+  .horizontal-container {
+    display: flex;
+    flex-direction: row; /* Align items horizontally */
+    gap: 10px;
+    justify-content: space-between;
+
+  }
+  .horizontal-container-equal-spacing {
+    display: flex;
+    flex-direction: row; /* Align items horizontally */
+    gap: 10px;
+    justify-content: space-between;
+
+
+  }
+  
+  /* Vertical container for nested elements aligned vertically */
+  .vertical-container {
+    display: flex;
+    flex-direction: column; /* Align items vertically */
+    gap: 10px;
+    
+  }
+  
+  /* Style for each nested item */
+  .nested-item {
+    padding: 2px;
+    /* background-color: #fff; */
+    /* border: 1px solid #ccc; */
+    border-radius: 4px;
+    
+  }
+  .nested-item-horizontal {
+    padding: 8px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex-direction: row;
+  }
+  
