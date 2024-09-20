@@ -20,7 +20,7 @@ export const SocialLogin: React.FC = () => {
       <VSCodeButton appearance="primary" onClick={handleSocialLogin}>
         Github Login
       </VSCodeButton>
-      <ExpandableCardList/>
+      
     </div>
     
    
