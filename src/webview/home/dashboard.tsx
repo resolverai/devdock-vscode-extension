@@ -21,18 +21,28 @@ const Dashboard: React.FC = () => {
                         <div className="nested-item">DEVDOCK</div>
                         <div style={{ height: 10 }}></div>
                         <div className="horizontal-container-equal-spacing">
-                            <ChatHistorySVG />
+                            <div style={{ cursor: 'pointer', }} >
+                                <ChatHistorySVG />
+                            </div>
 
-                            <PlugSVG />
+                            <div style={{ cursor: 'pointer', }} >
+                                <PlugSVG />
+                            </div>
+
 
                         </div>
                     </div>
 
                     <div style={{ height: 20, width: '100%' }}></div>
                     <div className="horizontal-container">
-                        <HamberIcon />
+                        <div style={{ cursor: 'pointer', }} >
+                            <HamberIcon />
+                        </div>
                         <DevDockLogoSVG />
-                        <ProfileIcon />
+                        <div style={{ cursor: 'pointer', }}>
+                            <ProfileIcon />
+                        </div>
+
                     </div>
                     <div style={{ height: 10, width: '100%' }}></div>
                     <div style={{ height: 1, width: '100%', backgroundColor: "#212121" }}></div>
@@ -70,8 +80,8 @@ const Dashboard: React.FC = () => {
                     <div style={{ height: 10 }}></div>
                     <ExpandableCardList />
                     <Main />
-                </div>
-            </div>
+                </div >
+            </div >
 
         )
     }

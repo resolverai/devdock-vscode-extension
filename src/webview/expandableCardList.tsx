@@ -31,12 +31,13 @@ const ExpandableCardList: React.FC = () => {
           <div style={styles.cardHeader} onClick={() => toggleCard(card.id)}>
             {card.title}
           </div>
-
+          <div style={{ height: 1, width: '100%', backgroundColor: "#212121" }}></div>
           {expandedCardId === card.id && (
             <div style={styles.cardBody}>
               {card.bulletsArray.map((bullet, index) => (
                 <li key={index}>{bullet}</li> // Display each bullet as a list item
               ))}
+              <div style={{ height: '20px' }} />
               {card.description}
               <div style={{ height: '10px' }} />
               {card.bottomHeading}
