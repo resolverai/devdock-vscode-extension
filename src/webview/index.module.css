@@ -178,12 +178,18 @@ pre code {
 }
 
 .chatBox {
-  margin-top: 7px;
+  /* margin-top: 7px; */
   position: relative;
+  /* height: 110px; */
+  width: 100%;
+  color: var(--input-foreground);
 }
 
 .tiptap {
-  border-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   box-sizing: border-box;
   position: relative;
   color: var(--input-foreground);
@@ -200,6 +206,9 @@ pre code {
   overflow: hidden;
   outline: none;
   padding-right: 30px;
+  height: 70px;
+  
+
 }
 
 .chatSubmit {
@@ -214,6 +223,8 @@ pre code {
 .chatOptions {
   display: flex;
   justify-content: space-between;
+  background-color: #292929;
+
 }
 
 .chatOptions > div {
@@ -221,6 +232,9 @@ pre code {
   gap: 3px;
   align-items: center;
   justify-content: space-between;
+  /* color: var(--input-foreground); */
+  background-color: #292929;
+  
 }
 
 .chatOptions vscode-badge {

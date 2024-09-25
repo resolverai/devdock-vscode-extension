@@ -50,6 +50,10 @@ import styles from './index.module.css'
 import EventSender from './EventSender'
 import { AnalyticsEvents } from '../common/analyticsEventKeys'
 
+interface ChatProps {
+  onDevChatClick: () => void; // This is the function passed from Dashboard
+}
+
 const CustomKeyMap = Extension.create({
   name: 'chatKeyMap',
 
@@ -78,7 +82,7 @@ const CustomKeyMap = Extension.create({
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any
-export const Chat = () => {
+export const Chat: React.FC<ChatProps> = ({ onDevChatClick }) => {
   const generatingRef = useRef(false)
   const editorRef = useRef<Editor | null>(null)
   const stopRef = useRef(false)
@@ -289,6 +293,7 @@ export const Chat = () => {
   }
 
   const handleSubmitForm = () => {
+    onDevChatClick();
     const input = editor?.getText()
     if (input) {
       setIsLoading(true)
@@ -329,11 +334,11 @@ export const Chat = () => {
 
       return !prev
     })
-    
-    const toggleData = {autoScrollEnabled: false};
-    if(!autoScrollContext){
+
+    const toggleData = { autoScrollEnabled: false };
+    if (!autoScrollContext) {
       toggleData.autoScrollEnabled = true;
-    }else{
+    } else {
       toggleData.autoScrollEnabled = false;
     }
     EventSender.sendEvent(AnalyticsEvents.CPToggleButtonClicked, toggleData);
@@ -348,10 +353,10 @@ export const Chat = () => {
       } as ClientMessage)
       return !prev
     })
-    const toggleProvider = {activeProvideEnabled: false};
-    if(!showProvidersContext){
+    const toggleProvider = { activeProvideEnabled: false };
+    if (!showProvidersContext) {
       toggleProvider.activeProvideEnabled = true;
-    }else{
+    } else {
       toggleProvider.activeProvideEnabled = false;
     }
     EventSender.sendEvent(AnalyticsEvents.CPSelectActiveProvidersClicked, toggleProvider);
@@ -366,12 +371,12 @@ export const Chat = () => {
       } as ClientMessage)
       return !prev
     })
-    
 
-    const toggleEmbeddedOptions = {isEmbeddedOptionsEnabled: false};
-    if(!showEmbeddingOptionsContext){
+
+    const toggleEmbeddedOptions = { isEmbeddedOptionsEnabled: false };
+    if (!showEmbeddingOptionsContext) {
       toggleEmbeddedOptions.isEmbeddedOptionsEnabled = true;
-    }else{
+    } else {
       toggleEmbeddedOptions.isEmbeddedOptionsEnabled = false;
     }
     EventSender.sendEvent(AnalyticsEvents.CPEmbeddingOptionsClicked, toggleEmbeddedOptions);
@@ -401,14 +406,14 @@ export const Chat = () => {
       } as ClientMessage)
       return !prev
     })
-    const isRagEnabledObject = {isEnabled:false}
+    const isRagEnabledObject = { isEnabled: false }
 
-    if(!enableRagContext){
+    if (!enableRagContext) {
       isRagEnabledObject.isEnabled = true;
-    }else{
+    } else {
       isRagEnabledObject.isEnabled = false;
     }
-    EventSender.sendEvent(AnalyticsEvents.CPisRAGContextClickedEnabled,isRagEnabledObject);
+    EventSender.sendEvent(AnalyticsEvents.CPisRAGContextClickedEnabled, isRagEnabledObject);
   }
 
   useEffect(() => {
@@ -452,9 +457,28 @@ export const Chat = () => {
   }
 
   return (
-    <VSCodePanelView>
-      <div className={styles.container}>
-        <h4 className={styles.title}>
+    <VSCodePanelView >
+      <div style={
+        {
+          display: 'flex',
+          flexDirection: 'column',
+          height: 'auto',
+          width: '90%',
+          margin: '4px',
+          position: 'fixed',
+          // flexGrow: 1, // Allow this container to grow and push container 3 to the bottom
+          overflowY: 'auto',
+          bottom: 0,
+          alignContent: 'center'
+
+        }
+      }>
+        <h4
+          // className={styles.title}
+          style={{
+
+          }}
+        >
           {conversation?.title
             ? conversation?.title
             : generatingRef.current && <span>New conversation</span>}
@@ -592,6 +616,6 @@ export const Chat = () => {
           </div>
         </form>
       </div>
-    </VSCodePanelView>
+    </VSCodePanelView >
   )
 }

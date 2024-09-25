@@ -1,5 +1,4 @@
-import React from 'react'
-import { Main } from '../main'
+import React, { useState } from 'react'
 import './container.css'
 import ExpandableCardList from '../expandableCardList';
 import PlugSVG from './svgs/plug_btn_svg';
@@ -7,101 +6,105 @@ import ChatHistorySVG from './svgs/chat_history_svg';
 import HamberIcon from './svgs/hanberger_icon';
 import DevDockLogoSVG from './svgs/devdock_logo';
 import ProfileIcon from './svgs/profile_icon';
+import { Main } from '../main';
+import { Chat } from '../chat';
 
 
 const Dashboard: React.FC = () => {
-    const plugImage = getImagePath('plug_btn.svg');
+
+    const [bountiesClicked, setBountiesClicked] = useState<boolean>(true);
+
+    const handleBountiesClick = () => {
+        console.log('Bounties clicked!');
+        // Set both bounties and devdockChat opacity to 0.5 when bounties is clicked
+        setBountiesClicked(true);
+
+
+    };
+
+    const devdockChatButtonClicked = () => {
+        console.log('Devdock chat clicked!');
+        // Set both bounties and devdockChat opacity to 0.5 when devdockChat is clicked
+        setBountiesClicked(false);
+
+
+    };
+
     {
         return (
+            <div
+                style={{
+                    display: 'flex',
+                    backgroundColor: '#181818',
+                    height: 'auto',
+                    flexDirection: 'column',
+                    flexGrow: 1, // Allow this container to grow and push container 3 to the bottom
+                    overflowY: 'auto',
+                }} >
 
-            <div className="scrollable-container">
-                <div className="vertical-item">
-                    <div style={{ height: 10 }}></div>
-                    <div className="horizontal-container-equal-spacing">
-                        <div className="nested-item">DEVDOCK</div>
-                        <div style={{ height: 10 }}></div>
-                        <div className="horizontal-container-equal-spacing">
-                            <div style={{ cursor: 'pointer', }} >
-                                <ChatHistorySVG />
-                            </div>
-
-                            <div style={{ cursor: 'pointer', }} >
-                                <PlugSVG />
-                            </div>
+                <div style={{ height: 10, width: '100%' }}></div>
+                <div className="horizontal-container">
 
 
-                        </div>
+                    <div style={{ height: '18px' }}>
+                        <HamberIcon />
                     </div>
-
-                    <div style={{ height: 20, width: '100%' }}></div>
-                    <div className="horizontal-container">
-                        <div style={{ cursor: 'pointer', }} >
-                            <HamberIcon />
-                        </div>
+                    <div style={{ height: '18px' }}>
                         <DevDockLogoSVG />
-                        <div style={{ cursor: 'pointer', }}>
-                            <ProfileIcon />
-                        </div>
-
                     </div>
-                    <div style={{ height: 10, width: '100%' }}></div>
-                    <div style={{ height: 1, width: '100%', backgroundColor: "#212121" }}></div>
-                    <div style={{ height: 10, width: '100%' }}></div>
-                    <div>
-                        <div style={{ display: 'flex', flexDirection: 'row', alignContent: "start", }}>
-                            <div
-                                style={{
-                                    border: '1px solid white',
-                                    borderRadius: '8px',
-                                    padding: '8px 12px',
-                                    backgroundColor: '#252527',
-                                    cursor: 'pointer' // Change cursor to pointer to indicate clickability
-                                }}
-                                onClick={handleBountiesClick} // Add onClick handler
-                            >
-                                Bounties
-                            </div>
-                            <div style={{ width: 10 }}></div>
-                            <div
-                                style={{
-                                    border: '1px solid white',
-                                    borderRadius: '8px',
-                                    padding: '8px 12px',
-                                    backgroundColor: '#252527',
-                                    cursor: 'pointer' // Change cursor to pointer to indicate clickability
-                                }}
-                                onClick={devdockChatButtonClicked} // Add onClick handler
-                            >
-                                Devdock chat
-                            </div>
-                        </div>
-
+                    <div style={{ height: '18px' }}>
+                        <ProfileIcon />
                     </div>
-                    <div style={{ height: 10 }}></div>
-                    <ExpandableCardList />
-                    <Main />
-                </div >
+
+
+                </div>
+                <div style={{ height: 10, width: '100%' }}></div>
+                <div style={{ height: 1, width: '100%', backgroundColor: "#212121" }}></div>
+                <div style={{ height: 10, width: '100%' }}></div>
+                <div>
+                    <div style={{ display: 'flex', flexDirection: 'row', alignContent: "start", }}>
+                        <div
+                            style={{
+                                border: '1px solid white',
+                                borderRadius: '8px',
+                                padding: '8px 12px',
+                                backgroundColor: '#252527',
+                                cursor: 'pointer', // Change cursor to pointer to indicate clickability
+                                opacity: bountiesClicked ? 1 : 0.5
+                            }}
+                            onClick={handleBountiesClick} // Add onClick handler
+                        >
+                            Bounties
+                        </div>
+                        <div style={{ width: 10 }}></div>
+                        <div
+                            style={{
+                                border: '1px solid white',
+                                borderRadius: '8px',
+                                padding: '8px 12px',
+                                backgroundColor: '#252527',
+                                cursor: 'pointer', // Change cursor to pointer to indicate clickability
+                                opacity: bountiesClicked ? 0.5 : 1
+
+                            }}
+                            onClick={devdockChatButtonClicked} // Add onClick handler
+                        >
+                            Devdock chat
+                        </div>
+                    </div>
+
+                </div>
+                <div style={{ height: 5 }}></div>
+                {bountiesClicked ? <ExpandableCardList /> : <></>}
+                <Chat onDevChatClick={devdockChatButtonClicked} />
+
             </div >
 
         )
     }
 };
 
-const handleBountiesClick = () => {
-    // Handle the click event here
-    console.log("Bounties clicked!");
-};
-
-const devdockChatButtonClicked = () => {
-    // Handle the click event here
-    console.log("Devdock chat clicked!");
-};
 
 
-// Function to get the image path dynamically
-const getImagePath = (imageName: string) => {
-    // Use VS Code extension's API to get the image path from the extension directory
-    return `/../../../assets/${imageName}`; // Relative path to the 'media' folder
-};
 
 export default Dashboard;

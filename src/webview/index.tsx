@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client'
 
-import { Main } from './main'
+
 import Dashboard from './home/dashboard'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
