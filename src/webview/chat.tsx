@@ -52,6 +52,8 @@ import { AnalyticsEvents } from '../common/analyticsEventKeys'
 
 interface ChatProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
+  onBountiesClicked: () => void; // This is the function passed from Dashboard
+  isDashboardInView: boolean;
 }
 
 const CustomKeyMap = Extension.create({
@@ -82,7 +84,7 @@ const CustomKeyMap = Extension.create({
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any
-export const Chat: React.FC<ChatProps> = ({ onDevChatClick }) => {
+export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, isDashboardInView }) => {
   const generatingRef = useRef(false)
   const editorRef = useRef<Editor | null>(null)
   const stopRef = useRef(false)
@@ -317,6 +319,10 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick }) => {
       }, 200)
     }
   }
+  const handleAddFocusButton = () => {
+    onBountiesClicked();
+    onDevChatClick();
+  }
 
   const clearEditor = useCallback(() => {
     editorRef.current?.commands.clearContent()
@@ -484,7 +490,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick }) => {
             : generatingRef.current && <span>New conversation</span>}
         </h4>
         <div className={styles.markdown} ref={markdownRef}>
-          {messages?.map((message, index) => (
+          {!isDashboardInView && messages?.map((message, index) => (
             <Message
               key={index}
               onRegenerate={handleRegenerateMessage}
@@ -498,7 +504,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick }) => {
               index={index}
             />
           ))}
-          {isLoading && !generatingRef.current && <ChatLoader />}
+          {!isDashboardInView && isLoading && !generatingRef.current && <ChatLoader />}
           {!!completion && (
             <Message
               isLoading={false}
@@ -606,16 +612,82 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick }) => {
               className={styles.tiptap}
               editor={editor}
             />
-            <div
-              role="button"
-              onClick={handleSubmitForm}
-              className={styles.chatSubmit}
-            >
-              <span className="codicon codicon-send"></span>
+
+            <div style={{ display: 'flex', flexDirection: 'row', alignContent: 'space-between' }}>
+              <div
+                role="button"
+                onClick={handleAddFocusButton}
+                className={styles.chatSubmit}
+                style={{
+
+                  height: '24px',
+                  display: 'flex',
+                  width: '75px',
+                  flexDirection: 'row',
+
+                  background: 'linear-gradient(90deg, #292929 0%, #292929 100%)',
+                  borderRadius: '30px',
+                  fontSize: '10px',
+                  paddingTop: '5px',
+                  paddingLeft: '10px',
+                  left: '5px',
+                  position: 'absolute',
+                  cursor: 'pointer',
+                  bottom: '2px'
+
+
+                }}
+              >
+
+                <div>
+                  @ Add Focus
+                </div>
+
+
+
+              </div>
+              <div
+                role="button"
+                onClick={handleSubmitForm}
+                className={styles.chatSubmit}
+                style={{
+
+                  height: '24px',
+                  display: 'flex',
+                  width: '64px',
+                  flexDirection: 'row',
+
+                  background: 'linear-gradient(90deg, #3172FC 0%, #5738BE 100%)',
+                  borderRadius: '30px',
+                  paddingTop: '5px',
+                  paddingLeft: '20px',
+                  right: '5px',
+                  position: 'absolute',
+                  cursor: 'pointer',
+                  bottom: '2px'
+
+
+                }}
+              >
+
+                <div>
+                  Ask
+                </div>
+                <div style={{ width: '5px' }}>
+
+                </div>
+                <div>
+                  <span className="codicon codicon-send"></span>
+                </div>
+
+              </div>
             </div>
+
+
           </div>
         </form>
       </div>
     </VSCodePanelView >
   )
 }
+

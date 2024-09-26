@@ -212,12 +212,12 @@ pre code {
 }
 
 .chatSubmit {
-  position: absolute;
-  bottom: 1px;
-  right: 5px;
-  cursor: pointer;
-  padding: 5px;
-  background-color: var(--input-background);
+  /* position: absolute; */
+  /* bottom: 1px; */
+  /* right: 5px; */
+  /* cursor: pointer; */
+  /* padding: 5px; */
+  /* background-color: var(--input-background); */
 }
 
 .chatOptions {

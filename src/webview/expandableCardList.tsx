@@ -60,9 +60,16 @@ const ExpandableCardList: React.FC = () => {
         <div key={card.id} style={styles.card}>
           <div style={styles.cardHeader} onClick={() => toggleCard(card.id)}>
 
-            <span style={{ color: '#ffffff', fontSize: '12px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal' }}>{card.title}</span>
+            <span style={
+              {
+                color: '#ffffff',
+                fontSize: '12px', alignContent: 'center',
+                fontStyle: 'normal', fontWeight: 'normal'
+              }}>
+              {card.title}
+            </span>
 
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '70%' }}>
               <div style={
                 {
                   display: 'flex',
@@ -82,7 +89,7 @@ const ExpandableCardList: React.FC = () => {
                 <span style={{ color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal' }}>{card.bountyPrice}</span>
 
               </div>
-
+              <div style={{ width: '30px' }}></div>
               <div style={
                 {
                   display: 'flex',
