@@ -101,6 +101,11 @@ const Dashboard: React.FC = () => {
                     isDashboardInView={bountiesClicked}
                 />
 
+                <Main onDevChatClick={devdockChatButtonClicked}
+                    onBountiesClicked={handleBountiesClick}
+                    isDashboardInView={bountiesClicked}
+                ></Main>
+                <div style={{ height: '125px' }}></div>
             </div >
 
         )

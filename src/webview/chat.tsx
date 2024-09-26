@@ -49,6 +49,7 @@ import { suggestion } from './suggestion'
 import styles from './index.module.css'
 import EventSender from './EventSender'
 import { AnalyticsEvents } from '../common/analyticsEventKeys'
+import CurrentFileSvg from './home/svgs/current_file_svg'
 
 interface ChatProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
@@ -110,6 +111,30 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     useWorkSpaceContext<boolean>(EXTENSION_CONTEXT_NAME.devdockEnableRag)
 
   const chatRef = useRef<HTMLTextAreaElement>(null)
+  const [isAddFocusPopupVisible, setIsAddFocusPopupVisible] = useState(false);
+
+
+  // Handle clicks outside the popup
+  const handleClickOutside = (event: MouseEvent) => {
+    console.log("handleClickOutside clicked");
+    setIsAddFocusPopupVisible(false); // Close the popup
+  };
+
+  useEffect(() => {
+    if (isAddFocusPopupVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+
+    }
+    else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    // Cleanup the event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isAddFocusPopupVisible]);
+
 
   const scrollToBottom = () => {
     if (!autoScrollContext) return
@@ -320,8 +345,9 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     }
   }
   const handleAddFocusButton = () => {
-    onBountiesClicked();
+    // onBountiesClicked();
     onDevChatClick();
+    setIsAddFocusPopupVisible(!isAddFocusPopupVisible);
   }
 
   const clearEditor = useCallback(() => {
@@ -605,6 +631,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             )}
           </div>
         </div>
+
         <form>
           <div className={styles.chatBox}>
             <EditorContent
@@ -687,6 +714,34 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           </div>
         </form>
       </div>
+      {isAddFocusPopupVisible && (
+        <div style={
+          {
+            position: 'absolute' as 'absolute',
+            bottom: '30px', // Position it at the bottom
+            left: '30px',   // Position it at the left
+            width: '155px', // Customize width
+            height: '150px',
+            backgroundColor: '#252527', // Custom background color
+            color: 'white', // Text color
+            padding: '12px 0px 0px 0px', // Padding inside the popup
+            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)', // Optional: Add a shadow for better visibility
+            borderRadius: '8px',
+            zIndex: 1000, // Ensure it appears on top of other elements
+            border: '1px 0px 0px 0px',
+            opacity: '0px'
+
+          }
+        }>
+          <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Focus on</span>
+          <div style={{ marginTop: '10px' }}></div>
+          <div style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px' }}>
+            <CurrentFileSvg></CurrentFileSvg>
+            <div style={{ marginLeft: '5px' }}></div>
+            <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Current File</span>
+          </div>
+        </div>
+      )}
     </VSCodePanelView >
   )
 }
