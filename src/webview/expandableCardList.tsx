@@ -69,7 +69,7 @@ const ExpandableCardList: React.FC = () => {
               {card.title}
             </span>
 
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '70%' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '90%' }}>
               <div style={
                 {
                   display: 'flex',
@@ -109,6 +109,7 @@ const ExpandableCardList: React.FC = () => {
                 <span style={{ opacity: '0.8', color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: '400' }}>{card.bountiesLeft}</span>
 
               </div>
+
             </div>
 
           </div>
@@ -143,7 +144,8 @@ const ExpandableCardList: React.FC = () => {
               </span>
               <div style={{ height: '10px' }} />
               <div style={{
-                width: '80%',
+
+                width: '258px',
                 height: '25px',
                 borderRadius: '30px',
                 padding: "8px 16px",
@@ -159,7 +161,17 @@ const ExpandableCardList: React.FC = () => {
                 {/* <span style={{ color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal' }}>Submit Entry</span> */}
 
 
-                <span style={{ color: '#000000', fontSize: '12px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal', opacity: '0.8' }}>Claim {card.bountyPrice}</span>
+                <span
+                  style={{
+                    color: '#000000',
+                    fontSize: '12px',
+                    alignContent: 'center',
+                    fontStyle: 'normal',
+                    fontWeight: 'normal',
+                    opacity: '0.8'
+                  }}>
+                  Claim {card.bountyPrice}
+                </span>
 
 
               </div>

@@ -50,6 +50,9 @@ import styles from './index.module.css'
 import EventSender from './EventSender'
 import { AnalyticsEvents } from '../common/analyticsEventKeys'
 import CurrentFileSvg from './home/svgs/current_file_svg'
+import GitDiffSVG from './home/svgs/git_diff_svg'
+import AddFileFolderSVG from './home/svgs/filefolder_svg'
+import AttachmentSVG from './home/svgs/filefolder_svg'
 
 interface ChatProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
@@ -429,6 +432,22 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     EventSender.sendEvent(AnalyticsEvents.CPScrollDownClicked);
   }
 
+  const handleAttachmentClick = () => {
+
+    console.log("handleAttachmentClick");
+  }
+
+  const handleGitDiffClick = () => {
+
+    console.log("handleGitDiffClick");
+  }
+
+  const handleCurrentFileClick = () => {
+
+    console.log("handleCurrentFileClick");
+  }
+
+
   const handleToggleRag = (): void => {
     setEnableRagContext((prev) => {
       global.vscode.postMessage({
@@ -735,11 +754,33 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         }>
           <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Focus on</span>
           <div style={{ marginTop: '10px' }}></div>
-          <div style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px' }}>
+          <div
+            onClick={handleCurrentFileClick}
+            style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer' }}>
             <CurrentFileSvg></CurrentFileSvg>
             <div style={{ marginLeft: '5px' }}></div>
             <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Current File</span>
           </div>
+
+          <div style={{ marginTop: '10px' }}></div>
+          <div
+            onClick={handleGitDiffClick}
+            style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer' }}>
+            <GitDiffSVG></GitDiffSVG>
+            <div style={{ marginLeft: '5px' }}></div>
+            <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Current File</span>
+          </div>
+          <div style={{ marginTop: '10px' }}></div>
+          <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Extra context</span>
+          <div style={{ marginTop: '10px' }}></div>
+          <div
+            onClick={handleAttachmentClick}
+            style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer', }}>
+            <AttachmentSVG></AttachmentSVG>
+            <div style={{ marginLeft: '5px' }}></div>
+            <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px', }}>Add a file or folder</span>
+          </div>
+
         </div>
       )}
     </VSCodePanelView >
