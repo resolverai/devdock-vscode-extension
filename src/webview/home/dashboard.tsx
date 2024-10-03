@@ -95,7 +95,7 @@ const Dashboard: React.FC = () => {
 
                 </div>
                 <div style={{ height: 5 }}></div>
-                {bountiesClicked ? <ExpandableCardList /> : <></>}
+                {bountiesClicked ? <ExpandableCardList isUserLoggedIn={false} /> : <></>}
                 <Chat onDevChatClick={devdockChatButtonClicked}
                     onBountiesClicked={handleBountiesClick}
                     isDashboardInView={bountiesClicked}

@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import DevCashSVG from './home/svgs/dev_cash';
 import BountiesLeftIcon from './home/svgs/bounties_left_icon';
 
+import GitHubLoginPopup from './login/github_login_popup';
+
 interface CardItem {
   id: number;
   title: string;
@@ -46,13 +48,44 @@ const cardData: CardItem[] = [
 
 
 ];
+interface CardProps {
+  isUserLoggedIn?: boolean;
+}
 
-const ExpandableCardList: React.FC = () => {
+const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn }) => {
   const [expandedCardId, setExpandedCardId] = useState<number | null>(1);
+  const [claimBountyclicked, setClaimBountyClicked] = useState<boolean>(false);
+  const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
+
+
 
   const toggleCard = (id: number) => {
     setExpandedCardId(prevId => (prevId === id ? null : id));
   };
+
+  function handleClaimBountyClick(id: number): void {
+    console.log("clicked bounty id:" + id);
+    setClaimBountyClicked(true);
+
+    if (!isUserLoggedIn) {
+      setGitHubPopupVisible(true);
+    }
+    else {
+      //start bounty process
+    }
+
+  }
+
+  // Function to show the popup
+  const showPopup = () => {
+    setGitHubPopupVisible(true);
+  };
+
+  // Function to close the popup
+  const closePopup = () => {
+    setGitHubPopupVisible(false);
+  };
+
 
   return (
     <div style={styles.parentCard}>
@@ -69,7 +102,7 @@ const ExpandableCardList: React.FC = () => {
               {card.title}
             </span>
 
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '90%' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '258px' }}>
               <div style={
                 {
                   display: 'flex',
@@ -143,21 +176,26 @@ const ExpandableCardList: React.FC = () => {
                 {card.bottomDescription}
               </span>
               <div style={{ height: '10px' }} />
-              <div style={{
+              <div
+                onClick={() => {
+                  handleClaimBountyClick(card.id);
+                }}
+                style={{
 
-                width: '258px',
-                height: '25px',
-                borderRadius: '30px',
-                padding: "8px 16px",
-                // background: 'linear-gradient(90deg, #3172FC 0%, #5738BE 100%)', // Gradient background
-                background: "white",
-                color: 'white', // Optional: Set text color if needed for contrast
-                display: 'flex', // To center the text
-                alignItems: 'center', // Vertically center the text
-                justifyContent: 'center', // Horizontally center the text
-                cursor: 'pointer',
+                  width: '258px',
+                  height: '25px',
+                  borderRadius: '30px',
+                  padding: "8px 16px",
+                  // background: 'linear-gradient(90deg, #3172FC 0%, #5738BE 100%)', // Gradient background
+                  background: "white",
+                  color: 'white', // Optional: Set text color if needed for contrast
+                  display: 'flex', // To center the text
+                  flexDirection: 'column',
+                  alignItems: 'center', // Vertically center the text
+                  justifyContent: 'center', // Horizontally center the text
+                  cursor: 'pointer',
 
-              }}>
+                }}>
                 {/* <span style={{ color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal' }}>Submit Entry</span> */}
 
 
@@ -168,21 +206,27 @@ const ExpandableCardList: React.FC = () => {
                     alignContent: 'center',
                     fontStyle: 'normal',
                     fontWeight: 'normal',
-                    opacity: '0.8'
+                    opacity: '0.8',
+                    cursor: 'pointer',
                   }}>
                   Claim {card.bountyPrice}
                 </span>
 
 
               </div>
+
             </div>
 
           )}
         </div>
       ))}
-    </div>
+      {isGitHubPopupVisible && <GitHubLoginPopup onClose={closePopup}></GitHubLoginPopup>}
+    </div >
   );
 };
+
+
+
 
 const styles = {
   parentCard: {

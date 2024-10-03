@@ -67,7 +67,7 @@ class Analytics {
     if (this.postViaApi) {
       //api enabled
       //hit post api to post Event
-      console.log("api enabled for post event", eventName, data);
+      console.log("api enabled for post event", eventName, data ? data : "");
       let myApiPostData = { name: eventName, data: {} };
       if (data) {
         if (typeof data === "boolean") {

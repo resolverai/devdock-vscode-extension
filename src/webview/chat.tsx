@@ -89,6 +89,7 @@ const CustomKeyMap = Extension.create({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any
 export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, isDashboardInView }) => {
+  console.log("ChatProps received onBountiesClicked::", onBountiesClicked);
   const generatingRef = useRef(false)
   const editorRef = useRef<Editor | null>(null)
   const stopRef = useRef(false)
@@ -119,7 +120,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
   // Handle clicks outside the popup
   const handleClickOutside = (event: MouseEvent) => {
-    console.log("handleClickOutside clicked");
+    console.log("handleClickOutside clicked", event);
     setIsAddFocusPopupVisible(false); // Close the popup
   };
 
