@@ -81,7 +81,9 @@ const CustomKeyMap = Extension.create({
         return true
       },
       'Shift-Enter': ({ editor }) => {
-        editor.commands.insertContent('\n')
+        // editor.commands.insertContent('\n')
+        editor.chain().insertContent('<br>').focus().run(); // Insert new line (or hard break)
+
         return true
       }
     }
@@ -508,7 +510,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       }),
       CustomKeyMap.configure({
         handleSubmitForm,
-        clearEditor
+        clearEditor,
+
       })
     ]
   })
@@ -532,32 +535,35 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           // flexGrow: 1, // Allow this container to grow and push container 3 to the bottom
           overflowY: 'auto',
           bottom: 0,
-          alignContent: 'center'
+          alignContent: 'center',
+          background: (messages && messages?.length > 0) ? 'black' : 'transparent'
+
 
         }
       }>
-
-        <div className={styles.markdown} ref={markdownRef}>
+        {!isDashboardInView && <div className={styles.markdown} ref={markdownRef}>
           <div style={{
 
-            maxHeight: '70vh', // Maximum height for the scroll area
+            maxHeight: '68vh', // Maximum height for the scroll area
             overflowY: 'auto', // Enable vertical scrolling when content exceeds maxHeight
-            padding: '10px',
+            padding: (messages && messages?.length > 0) ? '10px' : 0,
             // border: '1px solid #ccc',
-            borderRadius: '5px',
-            backgroundColor: 'black'
+            borderRadius: (messages && messages?.length > 0) ? '5px' : '0px',
+            backgroundColor: (messages && messages?.length > 0) ? 'black' : 'transparent'
 
           }}>
-            <h4
-              // className={styles.title}
-              style={{
-
-              }}
-            >
-              {conversation?.title
-                ? conversation?.title
-                : generatingRef.current && <span>New conversation</span>}
-            </h4>
+            {/* {!isDashboardInView &&
+              <h4
+                // className={styles.title}
+                style={{
+                  background: 'blue',
+                  height: '10px'
+                }}
+              >
+                {conversation?.title
+                  ? conversation?.title
+                  : generatingRef.current && <span>New conversation</span>}
+              </h4>} */}
 
             {!isDashboardInView && messages?.map((message, index) => (
 
@@ -588,7 +594,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
               }}
             />
           )}
-        </div>
+        </div>}
+
         {!!selection.length && (
 
           <Suggestions isDisabled={!!generatingRef.current} />

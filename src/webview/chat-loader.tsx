@@ -28,15 +28,27 @@ export const ChatLoader = () => {
   }, [])
 
   return (
-    <Message
-      isLoading
-      isAssistant
-      theme={theme}
-      message={{
-        content: `${loader || 'Thinking'}${dots}`,
-        role: ASSISTANT
-      }}
-    ></Message>
+
+    <div style={{
+
+      maxHeight: '68vh', // Maximum height for the scroll area
+      overflowY: 'auto', // Enable vertical scrolling when content exceeds maxHeight
+      padding: '10px',
+      // border: '1px solid #ccc',
+      borderRadius: '5px',
+      backgroundColor: 'black'
+
+    }}>
+      <Message
+        isLoading
+        isAssistant
+        theme={theme}
+        message={{
+          content: `${loader || 'Thinking'}${dots}`,
+          role: ASSISTANT
+        }}
+      ></Message>
+    </div>
   )
 }
 
