@@ -17,7 +17,8 @@ import {
   EVENT_NAME,
   USER,
   SYMMETRY_EMITTER_KEY,
-  EXTENSION_CONTEXT_NAME
+  EXTENSION_CONTEXT_NAME,
+  DEVDOCK_COMMAND_NAME
 } from '../common/constants'
 
 import useAutosizeTextArea, {
@@ -53,6 +54,7 @@ import CurrentFileSvg from './home/svgs/current_file_svg'
 import GitDiffSVG from './home/svgs/git_diff_svg'
 import AddFileFolderSVG from './home/svgs/filefolder_svg'
 import AttachmentSVG from './home/svgs/filefolder_svg'
+import * as vscode from 'vscode';
 
 interface ChatProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
@@ -89,7 +91,7 @@ const CustomKeyMap = Extension.create({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any
 export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, isDashboardInView }) => {
-  console.log("ChatProps received onBountiesClicked::", onBountiesClicked);
+  // console.log("ChatProps received onBountiesClicked::", onBountiesClicked);
   const generatingRef = useRef(false)
   const editorRef = useRef<Editor | null>(null)
   const stopRef = useRef(false)
@@ -120,24 +122,25 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
   // Handle clicks outside the popup
   const handleClickOutside = (event: MouseEvent) => {
-    console.log("handleClickOutside clicked", event);
+    console.log("handleClickOutside clicked");
     setIsAddFocusPopupVisible(false); // Close the popup
   };
 
   useEffect(() => {
-    if (isAddFocusPopupVisible) {
-      document.addEventListener('mousedown', handleClickOutside);
+    // if (isAddFocusPopupVisible) {
+    //   document.addEventListener('mousedown', handleClickOutside);
 
-    }
-    else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
+    // }
+    // else {
+    //   document.removeEventListener('mousedown', handleClickOutside);
+    // }
 
     // Cleanup the event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isAddFocusPopupVisible]);
+
 
 
   const scrollToBottom = () => {
@@ -239,6 +242,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         handleCompletionEnd(message)
         break
       }
+
       case EVENT_NAME.devdockStopGeneration: {
         setCompletion(null)
         generatingRef.current = false
@@ -250,6 +254,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           stopRef.current = false
         }, 1000)
       }
+
+
     }
   }
 
@@ -434,19 +440,24 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   }
 
   const handleAttachmentClick = () => {
-
+    setIsAddFocusPopupVisible(false); // Close the popup
     console.log("handleAttachmentClick");
   }
 
   const handleGitDiffClick = () => {
-
+    setIsAddFocusPopupVisible(false); // Close the popup
     console.log("handleGitDiffClick");
   }
 
+  // i want to get the file name opened in the vscode editor on a div click, handleCurrentFileClick method is called on div click and the command to get the file name is registered as DEVDOCK_COMMAND_NAME.focusOnCurrentFileCommand, this is a vs code extension development codebase 
   const handleCurrentFileClick = () => {
 
     console.log("handleCurrentFileClick");
+    setIsAddFocusPopupVisible(false); // Close the popup
+
   }
+
+
 
 
   const handleToggleRag = (): void => {
@@ -525,31 +536,46 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
         }
       }>
-        <h4
-          // className={styles.title}
-          style={{
 
-          }}
-        >
-          {conversation?.title
-            ? conversation?.title
-            : generatingRef.current && <span>New conversation</span>}
-        </h4>
         <div className={styles.markdown} ref={markdownRef}>
-          {!isDashboardInView && messages?.map((message, index) => (
-            <Message
-              key={index}
-              onRegenerate={handleRegenerateMessage}
-              onUpdate={handleEditMessage}
-              onDelete={handleDeleteMessage}
-              isLoading={isLoading || generatingRef.current}
-              isAssistant={index % 2 !== 0}
-              conversationLength={messages?.length}
-              message={message}
-              theme={theme}
-              index={index}
-            />
-          ))}
+          <div style={{
+
+            maxHeight: '70vh', // Maximum height for the scroll area
+            overflowY: 'auto', // Enable vertical scrolling when content exceeds maxHeight
+            padding: '10px',
+            // border: '1px solid #ccc',
+            borderRadius: '5px',
+            backgroundColor: 'black'
+
+          }}>
+            <h4
+              // className={styles.title}
+              style={{
+
+              }}
+            >
+              {conversation?.title
+                ? conversation?.title
+                : generatingRef.current && <span>New conversation</span>}
+            </h4>
+
+            {!isDashboardInView && messages?.map((message, index) => (
+
+              <Message
+                key={index}
+                onRegenerate={handleRegenerateMessage}
+                onUpdate={handleEditMessage}
+                onDelete={handleDeleteMessage}
+                isLoading={isLoading || generatingRef.current}
+                isAssistant={index % 2 !== 0}
+                conversationLength={messages?.length}
+                message={message}
+                theme={theme}
+                index={index}
+              />
+
+            ))}
+          </div>
           {!isDashboardInView && isLoading && !generatingRef.current && <ChatLoader />}
           {!!completion && (
             <Message
@@ -564,7 +590,10 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           )}
         </div>
         {!!selection.length && (
+
           <Suggestions isDisabled={!!generatingRef.current} />
+
+
         )}
         {showProvidersContext && !symmetryConnection && <ProviderSelect />}
         {showProvidersContext && showEmbeddingOptionsContext && (
@@ -769,7 +798,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer' }}>
             <GitDiffSVG></GitDiffSVG>
             <div style={{ marginLeft: '5px' }}></div>
-            <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Current File</span>
+            <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Git diff</span>
           </div>
           <div style={{ marginTop: '10px' }}></div>
           <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Extra context</span>
