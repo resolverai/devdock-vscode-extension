@@ -159,6 +159,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         [LOGIN_EVENT_NAME.initiateSocialLogin]: this.initiateSocialLogin,
         [EVENT_NAME.devdockAnalyticsEvent]: this.eventSenderFromUI,
         [EVENT_NAME.devdockGenerateFilesEvent]: this.generateFilesForSource,
+        [EVENT_NAME.devdockGetCurrentFocusFileNameEvent]:
+          this.getCurrentFocusFileName,
       };
       eventHandlers[message.type as string]?.(message);
     });
@@ -463,6 +465,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private generateFilesForSource(message: ClientMessage) {
     vscode.commands.executeCommand(
       DEVDOCK_COMMAND_NAME.devdockGenerateFilesCommand,
+      message
+    );
+  }
+  private getCurrentFocusFileName(message: ClientMessage) {
+    vscode.commands.executeCommand(
+      DEVDOCK_COMMAND_NAME.devdockGetCurrentFocusFileNameCommand,
       message
     );
   }

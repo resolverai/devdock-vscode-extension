@@ -101,6 +101,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   const [completion, setCompletion] = useState<MessageType | null>()
   const markdownRef = useRef<HTMLDivElement>(null)
   const { symmetryConnection } = useSymmetryConnection()
+  const [fileName, setFileName] = useState<string | null>('');
 
   const { context: autoScrollContext, setContext: setAutoScrollContext } =
     useWorkSpaceContext<boolean>(WORKSPACE_STORAGE_KEY.autoScroll)
@@ -142,6 +143,47 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   }, [isAddFocusPopupVisible]);
 
 
+  useEffect(() => {
+    console.log("FileName state updated:", fileName);
+    console.log('fileName received in chat.tsx', fileName)
+  }, [fileName]); // This will log whenever fileName is updated
+
+  useEffect(() => {
+    // Set up the event listener for messages coming from the extension
+    const handleMessage = (event: MessageEvent) => {
+      const message = event.data;
+      if (message.type === 'devdock-getCurrentFocusFileName') {
+        // Update state with the received file name
+        console.log("Message received from server in chat.tsx: ", message)
+        const fileNameRecieved = message?.value.data ?? null;
+        console.log("fileNameRecieved in chat.tsx: ", fileNameRecieved, typeof fileNameRecieved);
+        setFileName(fileNameRecieved);
+      }
+    };
+
+    // Add the event listener to receive messages from the extension
+    window.addEventListener('message', handleMessage);
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   window.addEventListener('message', handler)
+  // }, [])
+
+  // const handler = (event: MessageEvent) => {
+  //   const message: ServerMessage<string | undefined> = event.data
+  //   console.log("Message received from server: ", message)
+  //   if (message.type === 'devdockGetCurrentFocusFileNameEvent') {
+  //     // Update state with the received file name
+  //     const fileNameRecieved = message?.value.data ?? null;
+  //     setFileName(fileNameRecieved);
+  //   }
+  //   return () => window.removeEventListener('message', handler)
+  // }
 
   const scrollToBottom = () => {
     if (!autoScrollContext) return
@@ -455,6 +497,10 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     console.log("handleCurrentFileClick");
     setIsAddFocusPopupVisible(false); // Close the popup
 
+    global.vscode.postMessage({
+      type: EVENT_NAME.devdockGetCurrentFocusFileNameEvent,
+    });
+
   }
 
   const handleToggleRag = (): void => {
@@ -720,10 +766,43 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
                 <div>
                   @ Add Focus
                 </div>
-
-
-
               </div>
+              {fileName && <div
+                role="button"
+                onClick={() => {
+                  console.log(`${fileName} clicked`);
+                  setFileName('')
+                }}
+                className={styles.chatSubmit}
+                style={{
+
+                  height: '24px',
+                  display: 'flex',
+                  // width: '85px',
+                  flexDirection: 'row',
+
+                  background: 'linear-gradient(90deg, #3172FC 0%, #5738BE 100%)',
+                  borderRadius: '30px',
+                  fontSize: '10px',
+                  paddingTop: '5px',
+                  paddingLeft: '10px',
+                  left: '95px',
+                  position: 'absolute',
+                  cursor: 'pointer',
+                  bottom: '2px'
+                }}
+              >
+
+                <div style={{ display: 'flex', flexDirection: 'row' }}>
+                  {fileName}
+                  <div style={{ width: '10px' }}></div>
+
+                  <span style={{ color: 'black', fontSize: '12px', }}>X </span>
+                  <div style={{ width: '5px' }}></div>
+
+                </div>
+              </div>}
+
               <div
                 role="button"
                 onClick={handleSubmitForm}

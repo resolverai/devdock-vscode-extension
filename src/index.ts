@@ -128,6 +128,30 @@ export async function activate(context: ExtensionContext) {
     });
     context.subscriptions.push(watcher);
   }
+  function getCurrentFileOpenedName() {
+    console.log("getCurrentFileOpenedName called");
+
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      // Get the full path of the file
+      const fullPath = editor.document.fileName;
+      // Extract only the file name using path.basename
+      const fileName = path.basename(fullPath);
+      // Show the file name in a message
+      vscode.window.showInformationMessage(`File name: ${fileName}`);
+      console.log(`File name: ${fileName}`);
+
+      sidebarProvider.view?.webview.postMessage({
+        type: EVENT_NAME.devdockGetCurrentFocusFileNameEvent,
+        value: {
+          data: fileName,
+        },
+      } as ServerMessage<string>);
+    } else {
+      vscode.window.showInformationMessage("No active editor");
+      console.log("No active editor");
+    }
+  }
 
   createAndShowTerminal();
 
@@ -255,6 +279,12 @@ export async function activate(context: ExtensionContext) {
       DEVDOCK_COMMAND_NAME.devdockGenerateFilesCommand,
       (response: string) => {
         generateFilesFromResponse(response, true);
+      }
+    ),
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.devdockGetCurrentFocusFileNameCommand,
+      () => {
+        getCurrentFileOpenedName();
       }
     ),
 

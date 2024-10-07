@@ -78,6 +78,7 @@ export const EVENT_NAME = {
   devdockWorkspaceContext: "devdock-workspace-context",
   devdockAnalyticsEvent: "devdock-analyticsEvent",
   devdockGenerateFilesEvent: "devdock-generateFiles",
+  devdockGetCurrentFocusFileNameEvent: "devdock-getCurrentFocusFileName",
 };
 
 export const DEVDOCK_COMMAND_NAME = {
@@ -107,6 +108,7 @@ export const DEVDOCK_COMMAND_NAME = {
   devdockSymmetryTab: "devdock.symmetry",
   devdockAnalyticsCommand: "devdock.analyticsCommand",
   devdockGenerateFilesCommand: "devdock.generateFiles",
+  devdockGetCurrentFocusFileNameCommand: "devdock.getCurrentFocusFileName",
 };
 
 export const CONVERSATION_EVENT_NAME = {
