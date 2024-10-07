@@ -77,6 +77,7 @@ export const EVENT_NAME = {
   devdockTextSelection: "devdock-text-selection",
   devdockWorkspaceContext: "devdock-workspace-context",
   devdockAnalyticsEvent: "devdock-analyticsEvent",
+  devdockGenerateFilesEvent: "devdock-generateFiles",
 };
 
 export const DEVDOCK_COMMAND_NAME = {
@@ -105,6 +106,7 @@ export const DEVDOCK_COMMAND_NAME = {
   templates: "devdock.templates",
   devdockSymmetryTab: "devdock.symmetry",
   devdockAnalyticsCommand: "devdock.analyticsCommand",
+  devdockGenerateFilesCommand: "devdock.generateFiles",
 };
 
 export const CONVERSATION_EVENT_NAME = {

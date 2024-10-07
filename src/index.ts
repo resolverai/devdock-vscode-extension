@@ -131,6 +131,114 @@ export async function activate(context: ExtensionContext) {
 
   createAndShowTerminal();
 
+  async function generateFilesFromResponse(
+    response: string,
+    createInCurrentWorkspace: boolean
+  ) {
+    console.log(
+      "generateFilesFromResponse called with createInCurrentWorkspace =",
+      createInCurrentWorkspace
+    );
+    const fileData = parseResponse(response);
+
+    let workspaceUri: vscode.Uri;
+
+    // Logic for where to create the devcash folder
+    if (createInCurrentWorkspace) {
+      // Ensure workspace folders are available
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+      console.log("workspaceFolders", workspaceFolders);
+      if (!workspaceFolders) {
+        vscode.window.showErrorMessage(
+          "No workspace folder is open. Please open a workspace and try again."
+        );
+        return;
+      }
+
+      // Use the current workspace's first folder
+      workspaceUri = vscode.Uri.joinPath(workspaceFolders[0].uri, "devcash");
+    } else {
+      // Create a new folder in the user's home directory (or other location)
+      const homeDir = require("os").homedir();
+      const newWorkspacePath = path.join(homeDir, "newWorkspaceForDevcash");
+
+      // Ensure the new folder exists
+      if (!fs.existsSync(newWorkspacePath)) {
+        fs.mkdirSync(newWorkspacePath, { recursive: true });
+      }
+
+      // Set the workspaceUri to the new workspace folder
+      workspaceUri = vscode.Uri.file(newWorkspacePath);
+      console.log(
+        "Creating files in new workspace folder:",
+        workspaceUri.fsPath
+      );
+    }
+
+    // Create the 'devcash' folder
+    const devcashFolderUri = vscode.Uri.joinPath(workspaceUri, "devcash");
+    try {
+      await vscode.workspace.fs.createDirectory(devcashFolderUri);
+      vscode.window.showInformationMessage(
+        "Folder 'devcash' created in the specified location."
+      );
+    } catch (err) {
+      vscode.window.showErrorMessage(`Error creating folder 'devcash': ${err}`);
+      return;
+    }
+
+    // Loop through file data and create files inside the 'devcash' folder
+    for (const file of fileData) {
+      const filePath = vscode.Uri.joinPath(devcashFolderUri, file.name);
+      const fileContent = Buffer.from(file.content, "utf8");
+
+      try {
+        // Create or overwrite the file with the content
+        await vscode.workspace.fs.writeFile(filePath, fileContent);
+        vscode.window.showInformationMessage(
+          `File ${file.name} created successfully in 'devcash' folder`
+        );
+
+        // Open the newly created file in the editor, without closing previous ones
+        const document = await vscode.workspace.openTextDocument(filePath);
+        await vscode.window.showTextDocument(document, { preview: false });
+      } catch (err) {
+        vscode.window.showErrorMessage(
+          `Error creating or opening file ${file.name}: ${err}`
+        );
+      }
+    }
+  }
+
+  function parseResponse(response: any) {
+    // Ensure the response is an object with the expected structure
+    if (typeof response !== "object" || !response.response) {
+      console.error("The response is not in the expected format:", response);
+      return [];
+    }
+
+    console.log("parseResponse called", response);
+
+    // Parse the response string into a JSON array of file objects
+    let fileDataArray;
+    try {
+      fileDataArray = JSON.parse(response.response);
+    } catch (error) {
+      console.error("Failed to parse the response JSON:", error);
+      return [];
+    }
+
+    // Now extract the files (each having 'filename' and 'content')
+    const files = fileDataArray.map(
+      (file: { filename: string; content: string }) => ({
+        name: file.filename,
+        content: file.content,
+      })
+    );
+
+    return files;
+  }
+
   function readLastLine(filePath: string): string | undefined {
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const lines = fileContent.trim().split("\n");
@@ -142,6 +250,14 @@ export async function activate(context: ExtensionContext) {
       { pattern: "**" },
       completionProvider
     ),
+
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.devdockGenerateFilesCommand,
+      (response: string) => {
+        generateFilesFromResponse(response, true);
+      }
+    ),
+
     commands.registerCommand(
       DEVDOCK_COMMAND_NAME.devdockAnalyticsCommand,
       (eventName, data?: Record<string, any> | boolean) => {

@@ -8,8 +8,8 @@ import { Markdown as TiptapMarkdown } from 'tiptap-markdown'
 
 import CodeBlock from './code-block'
 import styles from './index.module.css'
-import { Message as MessageType, ThemeType } from '../common/types'
-import { ASSISTANT, TWINNY, YOU } from '../common/constants'
+import { Message as MessageType, ServerMessage, ThemeType } from '../common/types'
+import { ASSISTANT, DEVDOCK_COMMAND_NAME, EVENT_NAME, TWINNY, YOU } from '../common/constants'
 
 interface MessageProps {
   conversationLength?: number | undefined
@@ -22,6 +22,7 @@ interface MessageProps {
   onUpdate?: (message: string, index: number) => void
   theme: ThemeType | undefined
 }
+const global = globalThis as any
 
 const CustomKeyMap = Extension.create({
   name: 'messageKeyMap',
@@ -44,6 +45,8 @@ const CustomKeyMap = Extension.create({
     }
   }
 })
+
+
 
 export const Message = ({
   conversationLength = 0,
@@ -79,6 +82,23 @@ export const Message = ({
     onUpdate?.(content || '', index)
     setEditing(false)
   }
+  function handleGenerateSourceFilesClick(): void {
+    console.log("handleGenerateSourceFilesClick");
+
+    const chatGPTResponseForSrcFiles = [{
+      filename: 'File1.js',
+      content: 'console.log(\"Hello World\");'
+    },
+    {
+      filename: 'File2.js',
+      content: 'console.log(\"Goodbye World\");'
+    }]
+
+    global.vscode.postMessage({
+      type: EVENT_NAME.devdockGenerateFilesEvent,
+      response: JSON.stringify(chatGPTResponseForSrcFiles),
+    });
+  }
 
   const editor = useEditor(
     {
@@ -103,11 +123,10 @@ export const Message = ({
   return (
     <>
       <div
-        className={`${styles.message} ${
-          message?.role === ASSISTANT
-            ? styles.assistantMessage
-            : styles.userMessage
-        }`}
+        className={`${styles.message} ${message?.role === ASSISTANT
+          ? styles.assistantMessage
+          : styles.userMessage
+          }`}
       >
         <div className={styles.messageRole}>
           <span>{message.role === ASSISTANT ? TWINNY : YOU}</span>
@@ -151,14 +170,21 @@ export const Message = ({
               </>
             )}
             {!editing && isAssistant && (
-              <VSCodeButton
-                disabled={isLoading}
-                title="Regenerate from here"
-                appearance="icon"
-                onClick={handleRegenerate}
-              >
-                <span className="codicon codicon-sync"></span>
-              </VSCodeButton>
+              <div style={{ display: 'flex', flexDirection: 'row' }}>
+                <div style={{ cursor: 'pointer' }} onClick={handleGenerateSourceFilesClick}>
+                  Generate files
+                </div>
+                <div style={{ width: '10px' }}></div>
+                <VSCodeButton
+                  disabled={isLoading}
+                  title="Regenerate from here"
+                  appearance="icon"
+                  onClick={handleRegenerate}
+                >
+                  <span className="codicon codicon-sync"></span>
+                </VSCodeButton>
+              </div>
+
             )}
           </div>
         </div>

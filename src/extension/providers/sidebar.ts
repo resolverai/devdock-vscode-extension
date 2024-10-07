@@ -158,6 +158,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         [EVENT_NAME.devdockStopSymmetryProvider]: this.stopSymmetryProvider,
         [LOGIN_EVENT_NAME.initiateSocialLogin]: this.initiateSocialLogin,
         [EVENT_NAME.devdockAnalyticsEvent]: this.eventSenderFromUI,
+        [EVENT_NAME.devdockGenerateFilesEvent]: this.generateFilesForSource,
       };
       eventHandlers[message.type as string]?.(message);
     });
@@ -458,6 +459,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const eventName = message.key as string;
     const data = message?.data as Record<string, any> | boolean;
     analytics.trackEvent(eventName, data);
+  }
+  private generateFilesForSource(message: ClientMessage) {
+    vscode.commands.executeCommand(
+      DEVDOCK_COMMAND_NAME.devdockGenerateFilesCommand,
+      message
+    );
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {

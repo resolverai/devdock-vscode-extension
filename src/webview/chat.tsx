@@ -52,9 +52,7 @@ import EventSender from './EventSender'
 import { AnalyticsEvents } from '../common/analyticsEventKeys'
 import CurrentFileSvg from './home/svgs/current_file_svg'
 import GitDiffSVG from './home/svgs/git_diff_svg'
-import AddFileFolderSVG from './home/svgs/filefolder_svg'
 import AttachmentSVG from './home/svgs/filefolder_svg'
-import * as vscode from 'vscode';
 
 interface ChatProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
@@ -458,9 +456,6 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     setIsAddFocusPopupVisible(false); // Close the popup
 
   }
-
-
-
 
   const handleToggleRag = (): void => {
     setEnableRagContext((prev) => {
