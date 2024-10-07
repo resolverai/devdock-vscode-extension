@@ -1,4 +1,8 @@
-import axios, { AxiosInstance, AxiosResponse } from "axios";
+import axios, {
+  AxiosInstance,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from "axios";
 
 class ApiService {
   private apiClient: AxiosInstance;
@@ -8,9 +12,33 @@ class ApiService {
       baseURL,
       headers: {
         "Content-Type": "application/json",
-        // You can add Authorization headers or other common headers here if needed
       },
     });
+
+    // Adding interceptors to log requests and responses for both apiClient and analyticsClient
+    this.addInterceptors(this.apiClient);
+  }
+  // Function to add interceptors
+  private addInterceptors(client: AxiosInstance) {
+    client.interceptors.request.use(
+      (config: InternalAxiosRequestConfig) => {
+        console.log("Request Sent: ", config);
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    client.interceptors.response.use(
+      (response: AxiosResponse) => {
+        console.log("Response Received: ", response);
+        return response;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
   }
 
   // GET request
@@ -26,7 +54,7 @@ class ApiService {
     }
   }
 
-  // POST request
+  // POST request for general APIs
   async post<T>(endpoint: string, data: Record<string, any>): Promise<T> {
     try {
       const response: AxiosResponse<T> = await this.apiClient.post(
@@ -57,17 +85,11 @@ class ApiService {
   // Error handling method
   private handleError(error: any): void {
     console.error("API call failed:", error);
-    // Optionally, handle specific error types (e.g., 400, 500, etc.)
   }
 }
 
 // Example usage:
 const BASE_URL = "https://api.devdock.ai";
-export const eventsTrackingEndPont = "/trackEvents";
 const apiService = new ApiService(BASE_URL);
 
 export default apiService;
-
-//trackEvents post data
-//POST https://api.devdock.ai/trackEvents
-//{"eventName":"someValue", "data":"someData"}

@@ -1,7 +1,7 @@
 // src/Analytics.ts
 import mixpanel, { Mixpanel } from "mixpanel-browser";
 import { AnalyticsEvents } from "./analyticsEventKeys";
-import apiService, { eventsTrackingEndPont } from "../services/apiService";
+import axios, { AxiosRequestConfig } from "axios";
 
 class Analytics {
   private static instance: Analytics;
@@ -40,6 +40,7 @@ class Analytics {
         persistence: "cookie",
         loaded: (mixp) => {
           mixp.track(AnalyticsEvents.Activated);
+          mixp.identify("42ouf");
         },
       });
 
@@ -64,52 +65,75 @@ class Analytics {
     }
   }
   private postEvent(eventName: string, data?: Record<string, any>): void {
+    // If API posting is enabled
     if (this.postViaApi) {
-      //api enabled
-      //hit post api to post Event
-      console.log("api enabled for post event", eventName, data ? data : "");
-      let myApiPostData = { name: eventName, data: {} };
-      if (data) {
-        if (typeof data === "boolean") {
-          const tempData = { value: data };
-          myApiPostData.data = tempData.value;
-        } else {
-          myApiPostData.data = data;
-        }
-      }
+      console.log(
+        "API enabled for posting event:",
+        eventName,
+        data ? data : ""
+      );
 
       try {
-        apiService
-          .post(eventsTrackingEndPont, myApiPostData)
-          .then((response) => {
-            console.log("POST Response:", response);
-          });
+        const axiosData = [
+          {
+            properties: {
+              token: process.env.MIXPANEL_TOKEN, // Replace with your Mixpanel project token
+              data: data,
+            },
+            event: eventName,
+          },
+        ];
+
+        this.postEventViaApi(axiosData);
       } catch (error) {
-        console.error("Failed to post data for event tracking:", error);
+        console.error("Error while posting event to API:", error);
       }
     } else {
+      // Mixpanel tracking block (when API posting is disabled)
       if (!this.isInitialized) {
         console.warn("Analytics is not initialized. Call init() first.");
         return;
       }
-      console.log("MixPanel even to post", eventName, data);
+
+      console.log("Mixpanel event to post:", eventName, data);
+
       if (typeof mixpanel === "undefined") {
         console.error("Mixpanel failed to load");
       } else {
+        // Track event with Mixpanel
         if (data) {
           if (typeof data === "boolean") {
             const myData = { value: data };
             mixpanel.track(eventName, myData);
-            // console.log(`Event tracked: ${eventName} with value: ${data}`);
           } else {
             mixpanel.track(eventName, data);
           }
         } else {
-          //event without any data
+          // Track event without data
           mixpanel.track(eventName);
         }
       }
     }
+  }
+
+  private postEventViaApi(data: object) {
+    // Define the axios request configuration
+    const options: AxiosRequestConfig = {
+      method: "POST",
+      url: "https://api.mixpanel.com/track",
+      headers: {
+        Accept: "text/plain",
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify(data), // Convert the data to a JSON string
+    };
+    axios(options)
+      .then((response) => {
+        console.log("Response:", response.data); // Handle the successful response
+      })
+      .catch((error) => {
+        console.error("Error:", error); // Handle any errors
+      });
   }
 }
 
