@@ -161,6 +161,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         [EVENT_NAME.devdockGenerateFilesEvent]: this.generateFilesForSource,
         [EVENT_NAME.devdockGetCurrentFocusFileNameEvent]:
           this.getCurrentFocusFileName,
+        [EVENT_NAME.hideCenterBlankUIFromChatEvent]:
+          this.hideCenterUIFromChatScreen,
       };
       eventHandlers[message.type as string]?.(message);
     });
@@ -455,7 +457,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private initiateSocialLogin() {
     vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.githubConnect);
+    
   }
+  private hideCenterUIFromChatScreen() {
+    vscode.commands.executeCommand(
+      DEVDOCK_COMMAND_NAME.hideCenterBlankUIFromChat
+    );
+  }
+
   private eventSenderFromUI(message: ClientMessage) {
     console.log("eventSenderFromUI", message);
     const eventName = message.key as string;

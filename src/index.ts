@@ -152,6 +152,11 @@ export async function activate(context: ExtensionContext) {
       console.log("No active editor");
     }
   }
+  function hideCenterUiFromChatScreen() {
+    sidebarProvider.view?.webview.postMessage({
+      type: EVENT_NAME.hideCenterBlankUIFromChatEvent,
+    } as ServerMessage<string>);
+  }
 
   createAndShowTerminal();
 
@@ -365,7 +370,7 @@ export async function activate(context: ExtensionContext) {
           data: WEBUI_TABS.login,
         },
       } as ServerMessage<string>);
-
+      hideCenterUiFromChatScreen();
       Analytics.trackEvent(AnalyticsEvents.GithubIconClicked);
     }),
 
@@ -382,6 +387,7 @@ export async function activate(context: ExtensionContext) {
         },
       } as ServerMessage<string>);
       Analytics.trackEvent(AnalyticsEvents.ManageProvidersClicked);
+      hideCenterUiFromChatScreen();
     }),
     commands.registerCommand(
       DEVDOCK_COMMAND_NAME.devdockSymmetryTab,
@@ -397,6 +403,7 @@ export async function activate(context: ExtensionContext) {
             data: WEBUI_TABS.symmetry,
           },
         } as ServerMessage<string>);
+        hideCenterUiFromChatScreen();
         Analytics.trackEvent(AnalyticsEvents.SymmetryNetworkSettingsClicked);
       }
     ),
@@ -414,6 +421,7 @@ export async function activate(context: ExtensionContext) {
             data: WEBUI_TABS.history,
           },
         } as ServerMessage<string>);
+        hideCenterUiFromChatScreen();
         Analytics.trackEvent(AnalyticsEvents.ConversationHistoryClicked);
       }
     ),
@@ -501,6 +509,13 @@ export async function activate(context: ExtensionContext) {
       // await web3Auth?.initModal();
       socialLogin(context);
     }),
+
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.hideCenterBlankUIFromChat,
+      async () => {
+        hideCenterUiFromChatScreen();
+      }
+    ),
 
     /**
      * Creates a custom terminal. Wraps a shell script around this terminal

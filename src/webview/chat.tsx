@@ -53,6 +53,9 @@ import { AnalyticsEvents } from '../common/analyticsEventKeys'
 import CurrentFileSvg from './home/svgs/current_file_svg'
 import GitDiffSVG from './home/svgs/git_diff_svg'
 import AttachmentSVG from './home/svgs/filefolder_svg'
+import CenterLogoOnBlankScreen from './home/svgs/center_log_blank_screen'
+import GreenRoundWithTick from './home/svgs/green_tick'
+
 
 interface ChatProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
@@ -119,6 +122,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
   const chatRef = useRef<HTMLTextAreaElement>(null)
   const [isAddFocusPopupVisible, setIsAddFocusPopupVisible] = useState(false);
+  const [hideCenterUIFromChatScreen, setHideCenterUIFromChatScreen] = useState(false);
 
 
   // Handle clicks outside the popup
@@ -149,16 +153,28 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   }, [fileName]); // This will log whenever fileName is updated
 
   useEffect(() => {
+    console.log("hideCenterUIFromChatScreen:", hideCenterUIFromChatScreen);
+  }, [hideCenterUIFromChatScreen]);
+
+  useEffect(() => {
     // Set up the event listener for messages coming from the extension
     const handleMessage = (event: MessageEvent) => {
       const message = event.data;
-      if (message.type === 'devdock-getCurrentFocusFileName') {
+      if (message.type === EVENT_NAME.devdockGetCurrentFocusFileNameEvent) {
         // Update state with the received file name
         console.log("Message received from server in chat.tsx: ", message)
         const fileNameRecieved = message?.value.data ?? null;
         console.log("fileNameRecieved in chat.tsx: ", fileNameRecieved, typeof fileNameRecieved);
         setFileName(fileNameRecieved);
       }
+      if (message.type === EVENT_NAME.hideCenterBlankUIFromChatEvent) {
+        setHideCenterUIFromChatScreen(true);
+
+        console.log("Message received from server in chat.tsx setHideCenterUIFromChatScreen", hideCenterUIFromChatScreen)
+
+
+      }
+
     };
 
     // Add the event listener to receive messages from the extension
@@ -169,21 +185,6 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       window.removeEventListener('message', handleMessage);
     };
   }, []);
-
-  // useEffect(() => {
-  //   window.addEventListener('message', handler)
-  // }, [])
-
-  // const handler = (event: MessageEvent) => {
-  //   const message: ServerMessage<string | undefined> = event.data
-  //   console.log("Message received from server: ", message)
-  //   if (message.type === 'devdockGetCurrentFocusFileNameEvent') {
-  //     // Update state with the received file name
-  //     const fileNameRecieved = message?.value.data ?? null;
-  //     setFileName(fileNameRecieved);
-  //   }
-  //   return () => window.removeEventListener('message', handler)
-  // }
 
   const scrollToBottom = () => {
     if (!autoScrollContext) return
@@ -563,8 +564,66 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     editorRef.current = editor
   }
 
+
+
+  const renderEmptyChatBlock = () => {
+    const items = ['Auto-completes code', 'Answers queries', 'Deploy contracts'];
+
+    if (hideCenterUIFromChatScreen) return (<></>);
+    else
+      return (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '70vh', // Full height of the viewport
+          backgroundColor: 'transparent', // Just for visual contrast
+          flexDirection: 'column'
+        }}>
+          <CenterLogoOnBlankScreen></CenterLogoOnBlankScreen>
+          <div style={{ height: '32px' }}> </div>
+          {items.map((item, index) => (
+            <div key={index} style={{
+              display: 'flex',
+              flexDirection: 'row',
+              backgroundColor: '#292929',
+              padding: '5px',
+              margin: '4px',
+              borderRadius: '50px',
+              width: '226px',
+              height: '32px',
+              textAlign: 'center',
+              alignItems: 'center'
+            }}>
+              <GreenRoundWithTick></GreenRoundWithTick>
+              <div style={{ width: '10px' }}> </div>
+              <span style={{
+                fontSize: '12px', color: 'white', opacity: '0.7'
+              }}>{item}</span >
+
+            </div>
+          ))}
+        </div>
+      );
+  };
+
+  const canShowCenterUi = () => {
+
+    if (!isDashboardInView && (!messages || (messages && messages?.length < 1))) {
+      //this will show the ui
+      return true;
+    }
+
+
+
+    return false;
+  }
+
+
+
   return (
     <VSCodePanelView >
+
       <div style={
         {
           display: 'flex',
@@ -582,6 +641,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
         }
       }>
+
+
         {!isDashboardInView && <div className={styles.markdown} ref={markdownRef}>
           <div style={{
 
@@ -650,6 +711,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         {showEmbeddingOptionsContext && !symmetryConnection && (
           <EmbeddingOptions />
         )}
+        {canShowCenterUi() && renderEmptyChatBlock()}
         <div className={styles.chatOptions}>
           <div>
             <VSCodeButton
@@ -844,6 +906,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           </div>
         </form>
       </div>
+
       {isAddFocusPopupVisible && (
         <div style={
           {

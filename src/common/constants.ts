@@ -79,6 +79,7 @@ export const EVENT_NAME = {
   devdockAnalyticsEvent: "devdock-analyticsEvent",
   devdockGenerateFilesEvent: "devdock-generateFiles",
   devdockGetCurrentFocusFileNameEvent: "devdock-getCurrentFocusFileName",
+  hideCenterBlankUIFromChatEvent: "devdock-hideCenterBlankUIFromChatEvent",
 };
 
 export const DEVDOCK_COMMAND_NAME = {
@@ -109,6 +110,7 @@ export const DEVDOCK_COMMAND_NAME = {
   devdockAnalyticsCommand: "devdock.analyticsCommand",
   devdockGenerateFilesCommand: "devdock.generateFiles",
   devdockGetCurrentFocusFileNameCommand: "devdock.getCurrentFocusFileName",
+  hideCenterBlankUIFromChat: "devdock.hideCenterUIFromChat",
 };
 
 export const CONVERSATION_EVENT_NAME = {
