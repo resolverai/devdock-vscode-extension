@@ -595,6 +595,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
               textAlign: 'center',
               alignItems: 'center'
             }}>
+              <div style={{ width: '5px' }}> </div>
               <GreenRoundWithTick></GreenRoundWithTick>
               <div style={{ width: '10px' }}> </div>
               <span style={{
@@ -654,18 +655,6 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             backgroundColor: (messages && messages?.length > 0) ? 'black' : 'transparent'
 
           }}>
-            {/* {!isDashboardInView &&
-              <h4
-                // className={styles.title}
-                style={{
-                  background: 'blue',
-                  height: '10px'
-                }}
-              >
-                {conversation?.title
-                  ? conversation?.title
-                  : generatingRef.current && <span>New conversation</span>}
-              </h4>} */}
 
             {!isDashboardInView && messages?.map((message, index) => (
 
@@ -855,11 +844,13 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
                 }}
               >
 
-                <div style={{ display: 'flex', flexDirection: 'row' }}>
-                  {fileName}
-                  <div style={{ width: '10px' }}></div>
+                <div style={{ display: 'flex', flexDirection: 'row', height: '10px' }}>
+                  <span style={{ color: 'white', fontSize: '10px', opacity: 0.7 }}>{fileName} </span>
 
-                  <span style={{ color: 'black', fontSize: '12px', }}>X </span>
+                  <div style={{ width: '5px' }}></div>
+
+
+                  <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', opacity: 0.7 }}>X </span>
                   <div style={{ width: '5px' }}></div>
 
                 </div>
