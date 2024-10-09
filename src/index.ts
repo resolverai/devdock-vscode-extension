@@ -507,6 +507,7 @@ export async function activate(context: ExtensionContext) {
     commands.registerCommand(DEVDOCK_COMMAND_NAME.githubConnect, async () => {
       // const web3Auth = initWeb3Auth();
       // await web3Auth?.initModal();
+      console.log("near social login")
       socialLogin(context);
     }),
 

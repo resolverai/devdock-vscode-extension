@@ -8,6 +8,7 @@ import DevDockLogoSVG from './svgs/devdock_logo';
 import ProfileIcon from './svgs/profile_icon';
 import { Main } from '../main';
 import { Chat } from '../chat';
+import MyTestButton from '../test/test_button';
 
 
 const Dashboard: React.FC = () => {
@@ -41,6 +42,8 @@ const Dashboard: React.FC = () => {
                     flexGrow: 1, // Allow this container to grow and push container 3 to the bottom
                     overflowY: 'auto',
                 }} >
+                    
+                    <MyTestButton/>
 
                 <div style={{ height: 10, width: '100%' }}></div>
                 <div className="horizontal-container">

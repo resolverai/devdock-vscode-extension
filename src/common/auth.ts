@@ -27,8 +27,10 @@ import { sepolia } from "viem/chains"
 import { ENTRYPOINT_ADDRESS_V07, bundlerActions } from "permissionless"
 import { NHFile, NHProvider } from 'zerog-da-sdk';
 import axios from 'axios';
+import { getMagic } from '../webview/test/magic';
 // import { pinFileToIPFS } from './ipfs';
 
+const magic=getMagic()
 
 type AuthCallback = (error: auth0.Auth0ParseHashError | null, result?: auth0.Auth0DecodedHash) => void;
 let webViewPanel: vscode.WebviewPanel | undefined = undefined;
@@ -86,16 +88,37 @@ const generateNonce = () => {
   return encodeURIComponent(random);
 }
 
-const socialLogin = (context: ExtensionContext) => {
+const socialLogin = async(context: ExtensionContext) => {
   extensionContext = context
   //webAuth.authorize();
   const nonce = generateNonce()
-  const authUrl = `https://${auth0Config.domain}/authorize?client_id=${auth0Config.clientId}&redirect_uri=${encodeURIComponent(auth0Config.redirectUri)}&response_type=token id_token&scope=openid profile email&nonce=${nonce}`
-  vscode.env.openExternal(vscode.Uri.parse(authUrl))
-              .then(undefined, error => {
-                console.error('Failed to open Auth0 login URL:', error);
-                vscode.window.showErrorMessage('Failed to initiate login. Please try again later.');
-            })
+  // const authUrl = `https://${auth0Config.domain}/authorize?client_id=${auth0Config.clientId}&redirect_uri=${encodeURIComponent(auth0Config.redirectUri)}&response_type=token id_token&scope=openid profile email&nonce=${nonce}`
+
+
+  // vscode.env.openExternal(vscode.Uri.parse(authUrl))
+  //             .then(undefined, error => {
+  //               console.error('Failed to open Auth0 login URL:', error);
+  //               vscode.window.showErrorMessage('Failed to initiate login. Please try again later.');
+  //           })
+  console.log("Inside  social login")
+  console.log(magic)
+  try {
+     magic?.oauth2.loginWithRedirect({
+      provider:"github",
+      redirectURI: new URL("/dashboard", window.location.origin).href,
+    }).then((redirectURI)=>{
+      console.log("inside then")
+      console.log(redirectURI);
+      // vscode.env.openExternal(vscode.Uri.parse(redirectURI))
+      // .then(undefined, error => {
+      //   console.error('Failed to open Auth0 login URL:', error);
+      //   vscode.window.showErrorMessage('Failed to initiate login. Please try again later.');
+    // })
+    })
+  } catch (err) {
+    console.error(err);
+  }
+
 }
 
 const handleAuthentication = async (uri: vscode.Uri) => {
