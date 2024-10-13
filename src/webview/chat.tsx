@@ -395,15 +395,14 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       setIsLoading(true)
       clearEditor()
       if (fileName) {
-        console.log('Ask button clicked with file name in focus but empty input box');
+        console.log('Ask button clicked with file name in focus with some user message');
         //in this case add context about the file content
 
         setMessages((prevMessages) => {
           const updatedMessages = [
             ...(prevMessages || []),
-            { role: USER, content: input + '\n' + currentfileData },
-
-
+            // { isInFocusFile: true, role: USER, content: input + '\n' + currentfileData, },
+            { isInFocusFile: true, role: USER, content: input },
           ]
           global.vscode.postMessage({
             type: EVENT_NAME.devdockChatMessage,
@@ -424,8 +423,6 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           return updatedMessages
         })
       }
-
-
 
       setTimeout(() => {
         if (markdownRef.current) {
