@@ -1,9 +1,9 @@
 import React from 'react';
-import GithubLoginSVG from '../home/svgs/github_login_btn';
-import WhiteCrossSvg from './white_cross_svg';
-import { LOGIN_EVENT_NAME } from '../../common/constants';
 
-interface GitHubLoginPopupProps {
+import { LOGIN_EVENT_NAME } from '../../common/constants';
+import WhiteCrossSvg from '../login/white_cross_svg';
+
+interface UserGitHubLoggedInPopupProps {
     onClose: () => void;
     loginData?: UserLoginData;
 }
@@ -28,8 +28,10 @@ type UserLoginData = {
     logout_label: string,
 };
 
-const GitHubLoginPopup: React.FC<GitHubLoginPopupProps> = ({ onClose, loginData }) => {
-    console.log("GitHubLoginPopup called", loginData);
+
+
+const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClose, loginData }) => {
+    console.log("UserGitHubLoggedInPopup called", loginData);
 
     const global = globalThis as any;
     function handleGithubLogin(): void {
@@ -63,8 +65,6 @@ const GitHubLoginPopup: React.FC<GitHubLoginPopupProps> = ({ onClose, loginData 
                     alignContent: 'flex-end',
                     backgroundColor: 'transparent',
                     padding: '15px 5px 5px 15px',
-                    // marginRight: '45px',
-                    // opacity: '0.1'
 
                 }}>
 
@@ -88,7 +88,6 @@ const GitHubLoginPopup: React.FC<GitHubLoginPopupProps> = ({ onClose, loginData 
                     display: 'flex',
                     flexDirection: 'column',
                     backgroundColor: '#252527',
-                    height: '125px',
                     width: '290px',
                     alignContent: 'center',
                     padding: '10px',
@@ -97,12 +96,16 @@ const GitHubLoginPopup: React.FC<GitHubLoginPopupProps> = ({ onClose, loginData 
                 }
             }>
                 <div style={{ height: '10px' }}></div>
-                <span style={{ color: 'white', fontSize: '12px', fontFamily: 'Inter' }}>CODE · DEPLOY · EARN</span>
+                <div style={{ display: 'flex', flexDirection: 'row', height: '36px', width: '36px', borderRadius: '18px', background: 'linear-gradient(90deg, #A380FD 0%, #784CDB 100%)', }}>
+                    <img src={loginData?.profilePic} ></img>
+                </div>
+
+
                 <div style={{ height: '10px' }}></div>
                 <span style={{ color: 'white', fontSize: '12px', opacity: 0.7, fontFamily: 'inherit' }}>Get protocol specific dev support. Earn as you deploy contracts</span>
                 <div style={{ height: '20px' }}></div>
                 <div style={{ width: '100%', alignContent: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={handleGithubLogin} >
-                    <GithubLoginSVG ></GithubLoginSVG>
+
                 </div>
 
             </div>
@@ -112,4 +115,4 @@ const GitHubLoginPopup: React.FC<GitHubLoginPopupProps> = ({ onClose, loginData 
     );
 };
 
-export default GitHubLoginPopup;
+export default UserGitHubLoggedInPopup;

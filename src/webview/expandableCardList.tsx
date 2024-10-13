@@ -5,6 +5,7 @@ import DevCashSVG from './home/svgs/dev_cash';
 import BountiesLeftIcon from './home/svgs/bounties_left_icon';
 
 import GitHubLoginPopup from './login/github_login_popup';
+import UserGitHubLoggedInPopup from './user/github_user_loggedin_popup';
 
 interface CardItem {
   id: number;
@@ -53,9 +54,11 @@ interface CardProps {
 }
 
 const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn }) => {
+  console.log('ExpandableCardList isUserLoggedIn', isUserLoggedIn);
   const [expandedCardId, setExpandedCardId] = useState<number | null>(1);
   const [claimBountyclicked, setClaimBountyClicked] = useState<boolean>(false);
   const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
+  const [isLoggedInPopupVisible, setLoggedInUserPopupVisible] = useState(false);
 
 
 
@@ -69,22 +72,27 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn }) => {
 
     if (!isUserLoggedIn) {
       setGitHubPopupVisible(true);
+      console.log("user not loggedin and claim button clicked");
     }
     else {
       //start bounty process
+      setLoggedInUserPopupVisible(true);
+      console.log("user loggedin and claim button clicked");
+
     }
 
   }
-
-  // Function to show the popup
-  const showPopup = () => {
-    setGitHubPopupVisible(true);
-  };
 
   // Function to close the popup
   const closePopup = () => {
     setGitHubPopupVisible(false);
   };
+
+  // Function to close the popup
+  const closeLoggedinPopup = () => {
+    setLoggedInUserPopupVisible(false);
+  };
+
 
 
   return (
@@ -221,6 +229,9 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn }) => {
         </div>
       ))}
       {isGitHubPopupVisible && <GitHubLoginPopup onClose={closePopup}></GitHubLoginPopup>}
+      {isLoggedInPopupVisible && <UserGitHubLoggedInPopup onClose={closeLoggedinPopup}></UserGitHubLoggedInPopup>}
+
+
     </div >
   );
 };

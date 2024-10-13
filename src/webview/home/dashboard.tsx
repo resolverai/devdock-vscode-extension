@@ -1,18 +1,89 @@
 import React, { useState } from 'react'
 import './container.css'
 import ExpandableCardList from '../expandableCardList';
-import PlugSVG from './svgs/plug_btn_svg';
-import ChatHistorySVG from './svgs/chat_history_svg';
 import HamberIcon from './svgs/hanberger_icon';
 import DevDockLogoSVG from './svgs/devdock_logo';
 import ProfileIcon from './svgs/profile_icon';
 import { Main } from '../main';
 import { Chat } from '../chat';
+import GitHubLoginPopup from '../login/github_login_popup';
+import UserGitHubLoggedInPopup from '../user/github_user_loggedin_popup';
 
 
 const Dashboard: React.FC = () => {
 
     const [bountiesClicked, setBountiesClicked] = useState<boolean>(true);
+    const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(false);
+    const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
+    const [showLoggedInUserPopup, setLoggedInPoupVisibile] = useState(false);
+
+
+    type UserLoginData = {
+        profilePic: string,
+        profileLabel: string,
+        topWalletAddress: string,
+        balance_lable: string,
+        balance: number,
+        unclaimed_cash_label: string,
+        unclaimed_cash: number,
+        claim_now_cta_text: string,
+        other_Wallets_label: string,
+        wallets: string[],
+        my_contribution_icon_path: string,
+        my_contribution_label: string,
+        my_contribution_web_link: string,
+        settings_icon_path: string,
+        settings_label: string,
+        logout_icon_path: string,
+        logout_label: string,
+    };
+
+    const userLoginData: UserLoginData = {
+        profilePic: '',
+        profileLabel: 'Github_id',
+        topWalletAddress: '0x5852...8Fe1',
+        balance_lable: 'Devcash balance',
+        balance: 375,
+        unclaimed_cash_label: 'Unclaimed Devcash',
+        unclaimed_cash: 4432,
+        claim_now_cta_text: 'Claim now',
+        other_Wallets_label: 'Other wallets connected',
+        wallets: ['EVM: 0x83s5...d89s', 'Starknet: 0cujsw...98da'],
+        my_contribution_icon_path: '',
+        my_contribution_label: 'My contributions',
+        my_contribution_web_link: '',
+        settings_icon_path: '',
+        settings_label: 'Settings',
+        logout_icon_path: '',
+        logout_label: 'Logout',
+    };
+
+
+    const showPopupForUser = () => {
+
+
+        if (isUserLoggedIn && showLoggedInUserPopup) {
+            console.log('isUserLoggedIn', isUserLoggedIn, userLoginData);
+            return (
+                <UserGitHubLoggedInPopup onClose={closeUserGithubPopup} loginData={userLoginData}></UserGitHubLoggedInPopup>
+            );
+        }
+        if (!isUserLoggedIn && isGitHubPopupVisible) {
+            console.log('!isUserLoggedIn', isUserLoggedIn);
+            return (
+                <GitHubLoginPopup onClose={closeGithubLoginPopup}></GitHubLoginPopup>
+            );
+
+        }
+        // <UserInfo onClose={closeGithubLoginPopup} loginData={userLoginData}></UserInfo>
+
+
+
+        return <></>;
+    }
+
+
+
 
     const handleBountiesClick = () => {
         console.log('Bounties clicked!');
@@ -30,7 +101,27 @@ const Dashboard: React.FC = () => {
 
     };
 
+    const handleProfileIconClick = () => {
+        console.log('profile icon clicked');
+        if (isUserLoggedIn) {
+            //show Github login
+            setLoggedInPoupVisibile(true)
+        } else {
+            setGitHubPopupVisible(true);
+        }
+    }
+
+    // Function to close the popup
+    const closeGithubLoginPopup = () => {
+        setGitHubPopupVisible(false);
+    };
+    const closeUserGithubPopup = () => {
+        setLoggedInPoupVisibile(false);
+
+    };
+
     {
+
         return (
             <div
                 style={{
@@ -42,6 +133,7 @@ const Dashboard: React.FC = () => {
                     overflowY: 'auto',
                 }} >
 
+                {showPopupForUser()}
                 <div style={{ height: 10, width: '100%' }}></div>
                 <div className="horizontal-container">
 
@@ -52,7 +144,7 @@ const Dashboard: React.FC = () => {
                     <div style={{ height: '18px' }}>
                         <DevDockLogoSVG />
                     </div>
-                    <div style={{ height: '18px' }}>
+                    <div style={{ height: '18px' }} onClick={handleProfileIconClick}>
                         <ProfileIcon />
                     </div>
 
@@ -95,7 +187,7 @@ const Dashboard: React.FC = () => {
 
                 </div>
                 <div style={{ height: 5 }}></div>
-                {bountiesClicked ? <ExpandableCardList isUserLoggedIn={false} /> : <></>}
+                {bountiesClicked ? <ExpandableCardList isUserLoggedIn={isUserLoggedIn} /> : <></>}
                 <Chat onDevChatClick={devdockChatButtonClicked}
                     onBountiesClicked={handleBountiesClick}
                     isDashboardInView={bountiesClicked}
@@ -116,3 +208,5 @@ const Dashboard: React.FC = () => {
 
 
 export default Dashboard;
+
+

@@ -55,6 +55,7 @@ import GitDiffSVG from './home/svgs/git_diff_svg'
 import AttachmentSVG from './home/svgs/filefolder_svg'
 import CenterLogoOnBlankScreen from './home/svgs/center_log_blank_screen'
 import GreenRoundWithTick from './home/svgs/green_tick'
+import CurrentFileSymbol from './home/svgs/current_file_symbol'
 
 
 interface ChatProps {
@@ -831,11 +832,11 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
                   display: 'flex',
                   // width: '85px',
                   flexDirection: 'row',
-
-                  background: 'linear-gradient(90deg, #3172FC 0%, #5738BE 100%)',
+                  alignItems: 'center',
+                  background: 'linear-gradient(90deg, #294B10 0%, #294B10 100%)',
                   borderRadius: '30px',
                   fontSize: '10px',
-                  paddingTop: '5px',
+                  // paddingTop: '5px',
                   paddingLeft: '10px',
                   left: '95px',
                   position: 'absolute',
@@ -844,13 +845,15 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
                 }}
               >
 
-                <div style={{ display: 'flex', flexDirection: 'row', height: '10px' }}>
-                  <span style={{ color: 'white', fontSize: '10px', opacity: 0.7 }}>{fileName} </span>
+                <div style={{ display: 'flex', flexDirection: 'row', height: '10px', alignItems: "center" }}>
+                  <CurrentFileSymbol></CurrentFileSymbol>
+                  <div style={{ width: '5px' }}></div>
+                  <span style={{ color: '#94FB48', fontSize: '10px', opacity: 0.7 }}>{fileName} </span>
 
                   <div style={{ width: '5px' }}></div>
 
 
-                  <span style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', opacity: 0.7 }}>X </span>
+                  <span style={{ color: '#94FB48', fontSize: '12px', fontWeight: 'bold', opacity: 0.7 }}>X </span>
                   <div style={{ width: '5px' }}></div>
 
                 </div>
