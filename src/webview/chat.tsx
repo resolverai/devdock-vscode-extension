@@ -106,6 +106,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   const markdownRef = useRef<HTMLDivElement>(null)
   const { symmetryConnection } = useSymmetryConnection()
   const [fileName, setFileName] = useState<string | null>('');
+  const [currentfileData, setCurrentFileData] = useState<string | null>('');
 
   const { context: autoScrollContext, setContext: setAutoScrollContext } =
     useWorkSpaceContext<boolean>(WORKSPACE_STORAGE_KEY.autoScroll)
@@ -151,11 +152,15 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   useEffect(() => {
     console.log("FileName state updated:", fileName);
     console.log('fileName received in chat.tsx', fileName)
+    console.log('fielData received in chat.tsx', currentfileData)
+
   }, [fileName]); // This will log whenever fileName is updated
 
   useEffect(() => {
     console.log("hideCenterUIFromChatScreen:", hideCenterUIFromChatScreen);
   }, [hideCenterUIFromChatScreen]);
+
+
 
   useEffect(() => {
     // Set up the event listener for messages coming from the extension
@@ -163,10 +168,20 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       const message = event.data;
       if (message.type === EVENT_NAME.devdockGetCurrentFocusFileNameEvent) {
         // Update state with the received file name
-        console.log("Message received from server in chat.tsx: ", message)
-        const fileNameRecieved = message?.value.data ?? null;
-        console.log("fileNameRecieved in chat.tsx: ", fileNameRecieved, typeof fileNameRecieved);
-        setFileName(fileNameRecieved);
+
+        const fileNameRecieved = JSON.parse(message?.value.data) ?? null;
+
+
+        const fileInfo = {
+          fileName: fileNameRecieved.fileName,
+          fileData: fileNameRecieved.fileData,
+        };
+
+
+        console.log("fileNameRecieved in chat.tsx: ", fileInfo.fileName);
+
+        setFileName(fileInfo.fileName);
+        setCurrentFileData(fileInfo.fileData);
       }
       if (message.type === EVENT_NAME.hideCenterBlankUIFromChatEvent) {
         setHideCenterUIFromChatScreen(true);
@@ -379,23 +394,54 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     if (input) {
       setIsLoading(true)
       clearEditor()
-      setMessages((prevMessages) => {
-        const updatedMessages = [
-          ...(prevMessages || []),
-          { role: USER, content: input }
-        ]
-        global.vscode.postMessage({
-          type: EVENT_NAME.devdockChatMessage,
-          data: updatedMessages
-        } as ClientMessage)
-        return updatedMessages
-      })
+      if (fileName) {
+        console.log('Ask button clicked with file name in focus but empty input box');
+        //in this case add context about the file content
+
+        setMessages((prevMessages) => {
+          const updatedMessages = [
+            ...(prevMessages || []),
+            { role: USER, content: input + '\n' + currentfileData },
+
+
+          ]
+          global.vscode.postMessage({
+            type: EVENT_NAME.devdockChatMessage,
+            data: updatedMessages
+          } as ClientMessage)
+          return updatedMessages
+        })
+      } else {
+        setMessages((prevMessages) => {
+          const updatedMessages = [
+            ...(prevMessages || []),
+            { role: USER, content: input }
+          ]
+          global.vscode.postMessage({
+            type: EVENT_NAME.devdockChatMessage,
+            data: updatedMessages
+          } as ClientMessage)
+          return updatedMessages
+        })
+      }
+
+
 
       setTimeout(() => {
         if (markdownRef.current) {
           markdownRef.current.scrollTop = markdownRef.current.scrollHeight
         }
       }, 200)
+    }
+    else {
+      console.log('input is empty, fileName val', fileName)
+      if (fileName) {
+        console.log('Ask button clicked with file name in focus but empty input box');
+        //in this case add context about the file content
+      }
+      else {
+        console.log('Ask button clicked with file name not in focus but empty input box');
+      }
     }
   }
   const handleAddFocusButton = () => {
@@ -824,6 +870,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
                 onClick={() => {
                   console.log(`${fileName} clicked`);
                   setFileName('')
+                  setCurrentFileData('')
                 }}
                 className={styles.chatSubmit}
                 style={{

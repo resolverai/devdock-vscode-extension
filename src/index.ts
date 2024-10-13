@@ -137,14 +137,24 @@ export async function activate(context: ExtensionContext) {
       const fullPath = editor.document.fileName;
       // Extract only the file name using path.basename
       const fileName = path.basename(fullPath);
+      const fileContent = editor.document.getText();
       // Show the file name in a message
       vscode.window.showInformationMessage(`File name: ${fileName}`);
       console.log(`File name: ${fileName}`);
+      // console.log(`File content: ${fileContent}`);
+
+      const fileInfo = {
+        fileName: fileName,
+        fileData: fileContent,
+      };
+      const fileInfoString = JSON.stringify(fileInfo);
+
+      console.log(fileInfoString);
 
       sidebarProvider.view?.webview.postMessage({
         type: EVENT_NAME.devdockGetCurrentFocusFileNameEvent,
         value: {
-          data: fileName,
+          data: fileInfoString,
         },
       } as ServerMessage<string>);
     } else {
