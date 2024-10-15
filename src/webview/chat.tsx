@@ -182,7 +182,6 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         console.log("fileNameRecieved in chat.tsx: ", fileInfo.fileName);
 
         setFileName(fileInfo.fileName);
-        setCurrentFileData(fileInfo.fileData);
       }
       if (message.type === EVENT_NAME.hideCenterBlankUIFromChatEvent) {
         setHideCenterUIFromChatScreen(true);
