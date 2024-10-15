@@ -80,6 +80,7 @@ export const EVENT_NAME = {
   devdockGenerateFilesEvent: "devdock-generateFiles",
   devdockGetCurrentFocusFileNameEvent: "devdock-getCurrentFocusFileName",
   hideCenterBlankUIFromChatEvent: "devdock-hideCenterBlankUIFromChatEvent",
+  devdockBountyRequest: "devdock-bounty-request",
 };
 
 export const DEVDOCK_COMMAND_NAME = {
@@ -111,6 +112,7 @@ export const DEVDOCK_COMMAND_NAME = {
   devdockGenerateFilesCommand: "devdock.generateFiles",
   devdockGetCurrentFocusFileNameCommand: "devdock.getCurrentFocusFileName",
   hideCenterBlankUIFromChat: "devdock.hideCenterUIFromChat",
+  devdockBountyFilesResponse: "devdock.sendBountyFilesResponse",
 };
 
 export const CONVERSATION_EVENT_NAME = {

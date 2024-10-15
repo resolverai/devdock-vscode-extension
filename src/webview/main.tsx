@@ -10,7 +10,7 @@ import { SocialLogin } from './social-login'
 
 interface MainProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
-  onBountiesClicked: () => void; // This is the function passed from Dashboard
+  onBountiesClicked: number | null; // This is the function passed from Dashboard
   isDashboardInView: boolean;
 
 }

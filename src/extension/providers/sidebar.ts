@@ -132,6 +132,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       const eventHandlers = {
         [EVENT_NAME.devdockAcceptSolution]: this.acceptSolution,
         [EVENT_NAME.devdockChatMessage]: this.streamChatCompletion,
+        [EVENT_NAME.devdockBountyRequest]: this.streamBountyRequestCompletion,
+
         [EVENT_NAME.devdockClickSuggestion]: this.clickSuggestion,
         [EVENT_NAME.devdockFetchOllamaModels]: this.fetchOllamaModels,
         [EVENT_NAME.devdockGlobalContext]: this.getGlobalContext,
@@ -248,6 +250,79 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       message.data as string
     );
   };
+
+  public streamBountyRequestCompletion = async (
+    data: ClientMessage<Message[]>
+  ) => {
+    const symmetryConnected = this._sessionManager?.get(
+      EXTENSION_SESSION_NAME.devdockSymmetryConnection
+    );
+    if (symmetryConnected) {
+      const systemMessage = {
+        role: SYSTEM,
+        content: await this._templateProvider?.readSystemMessageTemplate(),
+      };
+
+      const messages = [systemMessage, ...(data.data as Message[])];
+
+      updateLoadingMessage(this.view, "Using symmetry for inference");
+
+      logger.log(`
+        Using symmetry for inference
+        Messages: ${JSON.stringify(messages)}
+      `);
+
+      return this.symmetryService?.write(
+        createSymmetryMessage<InferenceRequest>(
+          SYMMETRY_DATA_MESSAGE.inference,
+          {
+            messages,
+            key: SYMMETRY_EMITTER_KEY.inference,
+          }
+        )
+      );
+    }
+
+    this.chatService?.streamBountyCompletion(
+      data.data || [],
+      (completion: string) => {
+        console.log("this.chatService?.streamBountyCompletion", completion);
+        const val = this.parseFilesFromString(completion);
+        console.log(
+          "this.chatService?.streamBountyCompletion parseFilesFromString",
+          val
+        );
+        vscode.commands.executeCommand(
+          DEVDOCK_COMMAND_NAME.devdockBountyFilesResponse,
+          val
+        );
+      }
+    );
+  };
+
+  public parseFilesFromString(
+    inputString: string
+  ): Array<{ fileName: string; content: string }> {
+    const fileObjects: Array<{ fileName: string; content: string }> = [];
+
+    // Regular expression to match filename and content
+    const regex = /{\s*"filename":\s*"([^"]+)",\s*"content":\s*"([^"]+)"\s*}/g;
+    let match: RegExpExecArray | null;
+
+    // Iterate through each match in the input string
+    while ((match = regex.exec(inputString)) !== null) {
+      const fileName = match[1]; // Capture filename
+      const fileContent = match[2]; // Capture content
+
+      // Push the result as an object
+      fileObjects.push({
+        fileName: fileName,
+        content: fileContent,
+      });
+    }
+
+    return fileObjects;
+  }
 
   public streamChatCompletion = async (data: ClientMessage<Message[]>) => {
     const symmetryConnected = this._sessionManager?.get(
@@ -457,7 +532,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
   private initiateSocialLogin() {
     vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.githubConnect);
-    
   }
   private hideCenterUIFromChatScreen() {
     vscode.commands.executeCommand(

@@ -181,9 +181,12 @@ pre code {
   /* margin-top: 7px; */
   position: relative;
   width: 100%;
-
   color: var(--input-foreground);
-  /* background-color: red; */
+
+   /* height: 150px;Set a fixed height based on your design */
+  overflow-y: auto; /* Enable vertical scrolling */
+  display: flex;
+  flex-direction: column-reverse; /* Make the content appear from the bottom and push upwards */  
 }
 
 .tiptap {

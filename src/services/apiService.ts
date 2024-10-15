@@ -82,6 +82,22 @@ class ApiService {
     }
   }
 
+  // NEW: Dynamic request method to support full URLs
+  async postWithFullUrl<T>(url: string, data: Record<string, any>): Promise<T> {
+    try {
+      const response: AxiosResponse<T> = await axios.post(url, data, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer YOUR_API_KEY`, // You can make this dynamic based on provider
+        },
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
   // Error handling method
   private handleError(error: any): void {
     console.error("API call failed:", error);

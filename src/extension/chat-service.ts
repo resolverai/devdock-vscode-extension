@@ -620,6 +620,73 @@ export class ChatService {
     return this.streamResponse({ requestBody, requestOptions });
   }
 
+  public async streamBountyCompletion(
+    messages: Message[],
+    onEnd?: (completion: string) => void
+  ) {
+    this._completion = "";
+
+    const lastMessage = messages[messages.length - 1];
+    // console.log("streamChatCompletion isFileInFocus", isFileInFocus);
+
+    const text = lastMessage.content;
+
+    const systemMessage = {
+      role: SYSTEM,
+      content: await this._templateProvider?.readSystemMessageTemplate(
+        this._promptTemplate
+      ),
+    };
+
+    const chatGPTResponseForSrcFiles = [
+      {
+        filename: "File1.js",
+        content: 'console.log("Hello World");',
+      },
+      {
+        filename: "File2.js",
+        content: 'console.log("Goodbye World");',
+      },
+    ];
+    const expectedJsonResponseString = JSON.stringify(
+      chatGPTResponseForSrcFiles
+    );
+
+    let additionalContext =
+      "Provide me a response in a key named fileCodeJsonString in a way where if in your response there is any code snippet is available for any file then provide me a json response like this - " +
+      expectedJsonResponseString +
+      "\n\n" +
+      "\n Generate response as short as possible so that I can get response in only first stream of the response if stream is set to true for the request";
+
+    const ragContext = await this.getRagContext(text);
+
+    const cleanedText = text?.replace(/@workspace/g, "").trim();
+
+    if (ragContext) {
+      additionalContext += `Additional Context:\n${ragContext}\n\n`;
+    }
+
+    const updatedMessages = [systemMessage, ...messages.slice(0, -1)];
+
+    if (additionalContext) {
+      const lastMessageContent = `${cleanedText}\n\n${additionalContext.trim()}`;
+      updatedMessages.push({
+        role: USER,
+        content: lastMessageContent,
+      });
+    } else {
+      updatedMessages.push({
+        ...lastMessage,
+        content: cleanedText,
+      });
+    }
+    updateLoadingMessage(this._view, "Thinking"); //this is view for showing loader
+    const request = this.buildStreamRequest(updatedMessages);
+    if (!request) return;
+    const { requestBody, requestOptions } = request;
+    return this.streamResponse({ requestBody, requestOptions, onEnd });
+  }
+
   public async getTemplateMessages(
     template: string,
     context?: string,

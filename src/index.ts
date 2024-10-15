@@ -171,14 +171,25 @@ export async function activate(context: ExtensionContext) {
   createAndShowTerminal();
 
   async function generateFilesFromResponse(
-    response: string,
+    response: string, // Assuming response is a JSON string
     createInCurrentWorkspace: boolean
   ) {
     console.log(
       "generateFilesFromResponse called with createInCurrentWorkspace =",
       createInCurrentWorkspace
     );
-    const fileData = parseResponse(response);
+
+    // Parse the response string to JSON (if it is not already an object)
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(response);
+    } catch (error) {
+      console.error("Failed to parse response JSON:", error);
+      vscode.window.showErrorMessage("Invalid response format");
+      return;
+    }
+
+    const fileData = parseResponse(parsedResponse);
 
     let workspaceUri: vscode.Uri;
 
@@ -250,32 +261,32 @@ export async function activate(context: ExtensionContext) {
   }
 
   function parseResponse(response: any) {
-    // Ensure the response is an object with the expected structure
-    if (typeof response !== "object" || !response.response) {
+    // Check if response is an array
+    if (!Array.isArray(response)) {
       console.error("The response is not in the expected format:", response);
       return [];
     }
 
     console.log("parseResponse called", response);
 
-    // Parse the response string into a JSON array of file objects
-    let fileDataArray;
-    try {
-      fileDataArray = JSON.parse(response.response);
-    } catch (error) {
-      console.error("Failed to parse the response JSON:", error);
-      return [];
-    }
-
-    // Now extract the files (each having 'filename' and 'content')
-    const files = fileDataArray.map(
-      (file: { filename: string; content: string }) => ({
-        name: file.filename,
-        content: file.content,
+    // Clean the content of each file by removing unwanted characters
+    const files = response.map(
+      (file: { fileName: string; content: string }) => ({
+        name: file.fileName,
+        content: cleanContent(file.content), // Clean the content here
       })
     );
 
     return files;
+  }
+
+  // Utility function to clean the content by removing unwanted characters
+  function cleanContent(content: string) {
+    return content
+      .replace(/\\n/g, "\n") // Replace escaped newlines with actual newlines
+      .replace(/\\t/g, "\t") // Replace escaped tabs with actual tabs
+      .replace(/\s+$/g, "") // Remove trailing spaces
+      .trim(); // Trim leading and trailing spaces
   }
 
   function readLastLine(filePath: string): string | undefined {
@@ -296,6 +307,18 @@ export async function activate(context: ExtensionContext) {
         generateFilesFromResponse(response, true);
       }
     ),
+
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.devdockBountyFilesResponse,
+      (response: string) => {
+        console.log(
+          "DEVDOCK_COMMAND_NAME.devdockBountyFilesResponse generate files",
+          response
+        );
+        generateFilesFromResponse(JSON.stringify(response), true);
+      }
+    ),
+
     commands.registerCommand(
       DEVDOCK_COMMAND_NAME.devdockGetCurrentFocusFileNameCommand,
       () => {

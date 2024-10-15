@@ -6,6 +6,8 @@ import BountiesLeftIcon from './home/svgs/bounties_left_icon';
 
 import GitHubLoginPopup from './login/github_login_popup';
 import UserGitHubLoggedInPopup from './user/github_user_loggedin_popup';
+import { setCardDataById } from '../extension/store';
+
 
 interface CardItem {
   id: number;
@@ -24,7 +26,7 @@ const cardData: CardItem[] = [
     bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
     bottomDescription: 'You can make multiple submissions',
     bottomHeading: 'Top 10 Submissions will be approved',
-    description: 'Mr Bitcoin Beast wants to entertain Bitcoin followers What are the most entertaining things about Bitcoin? How can we make Bitcoin even more entertaining? Provide either an amazing idea, or an idea with lots of details, if you want your submission to get approved.',
+    description: 'Mission\nWrite a Javascript program to scrape each bounty (e.g. https://devcash.dev/bountyplatform/bounty/192)\nShould get\n\nBounty amount\nBounty Description\npublic/private bounty\nbounty smart contract addresss\nCreated By\nBounties left and deadline\n\nThen we need an API to serve all this info.\n',
     bountyPrice: '1000 Devcash',
     bountiesLeft: '8 Bounties left'
   },
@@ -33,7 +35,13 @@ const cardData: CardItem[] = [
     bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
     bottomDescription: 'You can make multiple submissions',
     bottomHeading: 'Top 10 Submissions will be approved',
-    description: 'Mr Bitcoin Beast wants to entertain Bitcoin followers What are the most entertaining things about Bitcoin? How can we make Bitcoin even more entertaining? Provide either an amazing idea, or an idea with lots of details, if you want your submission to get approved.',
+    description:
+      "1. Install Metamask and set up your wallet (metamask.io)\n" +
+      "2. Connect your Metamask to Gnosis Chain using chainlist.org \n" +
+      "3. Receive a small amount of xDAI. You can either join the Dev Discord and request a small amount, or purchase it yourself \n" +
+      "4. Make a submission on this bounty. Add a constructive or humorous comment \n" +
+      "5. Wait for review and acceptance \n" +
+      "6. Check your Devcash Balance \n",
     bountyPrice: '900 Devcash',
     bountiesLeft: '3 Bounties left'
   },
@@ -42,7 +50,7 @@ const cardData: CardItem[] = [
     bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
     bottomDescription: 'You can make multiple submissions',
     bottomHeading: 'Top 10 Submissions will be approved',
-    description: 'Mr Bitcoin Beast wants to entertain Bitcoin followers What are the most entertaining things about Bitcoin? How can we make Bitcoin even more entertaining? Provide either an amazing idea, or an idea with lots of details, if you want your submission to get approved.',
+    description: 'Mission\nWrite a Javascript program to scrape each bounty (e.g. https://devcash.dev/bountyplatform/bounty/192)\nShould get\n\nBounty amount\nBounty Description\npublic/private bounty\nbounty smart contract addresss\nCreated By\nBounties left and deadline\n\nThen we need an API to serve all this info.\n',
     bountyPrice: '800 Devcash',
     bountiesLeft: '2 Bounties left'
   },
@@ -51,16 +59,15 @@ const cardData: CardItem[] = [
 ];
 interface CardProps {
   isUserLoggedIn?: boolean;
+  onBountiesClickedFromList?: (id: number) => void;
 }
-
-const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn }) => {
+const global = globalThis as any
+const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesClickedFromList }) => {
   console.log('ExpandableCardList isUserLoggedIn', isUserLoggedIn);
   const [expandedCardId, setExpandedCardId] = useState<number | null>(1);
   const [claimBountyclicked, setClaimBountyClicked] = useState<boolean>(false);
   const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
   const [isLoggedInPopupVisible, setLoggedInUserPopupVisible] = useState(false);
-
-
 
   const toggleCard = (id: number) => {
     setExpandedCardId(prevId => (prevId === id ? null : id));
@@ -69,6 +76,12 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn }) => {
   function handleClaimBountyClick(id: number): void {
     console.log("clicked bounty id:" + id);
     setClaimBountyClicked(true);
+    const selectedCard = cardData.find(card => card.id === id);
+
+    if (selectedCard) {
+      setCardDataById(selectedCard); // Save only the selected card data in the global store
+    }
+
 
     if (!isUserLoggedIn) {
       setGitHubPopupVisible(true);
@@ -76,8 +89,9 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn }) => {
     }
     else {
       //start bounty process
-      setLoggedInUserPopupVisible(true);
+      // setLoggedInUserPopupVisible(true);
       console.log("user loggedin and claim button clicked");
+      onBountiesClickedFromList ? onBountiesClickedFromList(id) : null;
 
     }
 

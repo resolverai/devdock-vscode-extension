@@ -13,7 +13,8 @@ import UserGitHubLoggedInPopup from '../user/github_user_loggedin_popup';
 const Dashboard: React.FC = () => {
 
     const [bountiesClicked, setBountiesClicked] = useState<boolean>(true);
-    const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(false);
+    const [bountyClickedId, setBountyClickedId] = useState<number | null>(0);
+    const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(true);
     const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
     const [showLoggedInUserPopup, setLoggedInPoupVisibile] = useState(false);
 
@@ -84,11 +85,26 @@ const Dashboard: React.FC = () => {
 
 
 
-
     const handleBountiesClick = () => {
         console.log('Bounties clicked!');
         // Set both bounties and devdockChat opacity to 0.5 when bounties is clicked
         setBountiesClicked(true);
+
+    };
+
+    const handleBountyClickId = (id: number) => {
+        console.log('Bounty clicked! id:', id);
+        // Set both bounties and devdockChat opacity to 0.5 when bounties is clicked
+        setBountiesClicked(true);
+        if (bountyClickedId == id) {
+            setBountyClickedId(null); // Temporarily set it to null
+            setTimeout(() => {
+                setBountyClickedId(id); // Reset it back to the clicked ID after a short delay
+            }, 0);
+
+        } else {
+            setBountyClickedId(id);
+        }
 
 
     };
@@ -187,16 +203,16 @@ const Dashboard: React.FC = () => {
 
                 </div>
                 <div style={{ height: 5 }}></div>
-                {bountiesClicked ? <ExpandableCardList isUserLoggedIn={isUserLoggedIn} /> : <></>}
+                {bountiesClicked ? <ExpandableCardList isUserLoggedIn={isUserLoggedIn} onBountiesClickedFromList={handleBountyClickId} /> : <></>}
                 <Chat onDevChatClick={devdockChatButtonClicked}
-                    onBountiesClicked={handleBountiesClick}
+                    onBountiesClicked={bountyClickedId}
                     isDashboardInView={bountiesClicked}
                 />
 
-                <Main onDevChatClick={devdockChatButtonClicked}
-                    onBountiesClicked={handleBountiesClick}
+                {/* <Main onDevChatClick={devdockChatButtonClicked}
+                    onBountiesClicked={bountyClickedId}
                     isDashboardInView={bountiesClicked}
-                ></Main>
+                ></Main> */}
                 <div style={{ height: '125px' }}></div>
             </div >
 

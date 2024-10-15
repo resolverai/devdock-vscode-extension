@@ -56,11 +56,12 @@ import AttachmentSVG from './home/svgs/filefolder_svg'
 import CenterLogoOnBlankScreen from './home/svgs/center_log_blank_screen'
 import GreenRoundWithTick from './home/svgs/green_tick'
 import CurrentFileSymbol from './home/svgs/current_file_symbol'
+import { getCardData, getGlobalVariable } from '../extension/store'
 
 
 interface ChatProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
-  onBountiesClicked: () => void; // This is the function passed from Dashboard
+  onBountiesClicked: number | null; // This is the function passed from Dashboard
   isDashboardInView: boolean;
 }
 
@@ -148,6 +149,37 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     };
   }, [isAddFocusPopupVisible]);
 
+  useEffect(() => {
+    console.log('chat.tsx onBountiesClicked:', onBountiesClicked);
+    handleBountyclickForChat(onBountiesClicked);
+  }, [onBountiesClicked]);
+
+  const handleBountyclickForChat = (bountyId: number | null) => {
+    if (bountyId) {
+
+      const cardData = getCardData();
+      console.log('getCardData', cardData);
+
+
+      const bountYdataForId = {
+        description: cardData?.description
+      }
+
+      const myBountyMessage: MessageType = {
+        role: USER,
+        content: bountYdataForId.description
+      }
+      global.vscode.postMessage({
+        type: EVENT_NAME.devdockBountyRequest,
+        data: [myBountyMessage],
+
+      } as ClientMessage)
+
+
+    }
+
+  }
+
 
   useEffect(() => {
     fileNameRef.current = fileName;
@@ -187,8 +219,6 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         setHideCenterUIFromChatScreen(true);
 
         console.log("Message received from server in chat.tsx setHideCenterUIFromChatScreen", hideCenterUIFromChatScreen)
-
-
       }
 
     };
@@ -201,6 +231,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       window.removeEventListener('message', handleMessage);
     };
   }, []);
+
 
   const scrollToBottom = () => {
     if (!autoScrollContext) return
@@ -535,7 +566,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     console.log("handleGitDiffClick");
   }
 
-  // i want to get the file name opened in the vscode editor on a div click, handleCurrentFileClick method is called on div click and the command to get the file name is registered as DEVDOCK_COMMAND_NAME.focusOnCurrentFileCommand, this is a vs code extension development codebase 
+
   const handleCurrentFileClick = () => {
 
     console.log("handleCurrentFileClick");
@@ -657,11 +688,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       return true;
     }
 
-
-
     return false;
   }
-
 
 
   return (

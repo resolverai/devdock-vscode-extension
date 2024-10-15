@@ -82,23 +82,6 @@ export const Message = ({
     onUpdate?.(content || '', index)
     setEditing(false)
   }
-  function handleGenerateSourceFilesClick(): void {
-    console.log("handleGenerateSourceFilesClick");
-
-    const chatGPTResponseForSrcFiles = [{
-      filename: 'File1.js',
-      content: 'console.log(\"Hello World\");'
-    },
-    {
-      filename: 'File2.js',
-      content: 'console.log(\"Goodbye World\");'
-    }]
-
-    global.vscode.postMessage({
-      type: EVENT_NAME.devdockGenerateFilesEvent,
-      response: JSON.stringify(chatGPTResponseForSrcFiles),
-    });
-  }
 
   const editor = useEditor(
     {
@@ -171,9 +154,6 @@ export const Message = ({
             )}
             {!editing && isAssistant && (
               <div style={{ display: 'flex', flexDirection: 'row' }}>
-                <div style={{ cursor: 'pointer' }} onClick={handleGenerateSourceFilesClick}>
-                  Generate files
-                </div>
                 <div style={{ width: '10px' }}></div>
                 <VSCodeButton
                   disabled={isLoading}
