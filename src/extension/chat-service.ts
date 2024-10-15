@@ -588,7 +588,7 @@ export class ChatService {
         isFileInFocus,
         fileData
       );
-      additionalContext += `Selected Code:\n${fileData}\n\n`;
+      additionalContext += `Attached file content:\n${fileData}\n\n`;
     }
 
     const ragContext = await this.getRagContext(text);
