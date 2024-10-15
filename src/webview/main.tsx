@@ -38,7 +38,7 @@ export const Main: React.FC<MainProps> = ({ onDevChatClick, onBountiesClicked, i
 
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<string | undefined> = event.data
-    console.log("Message received from server: ", message)
+    // console.log("Message received from server: ", message)
     if (message?.type === EVENT_NAME.devdockSetTab) {
 
       setTab(message?.value.data)

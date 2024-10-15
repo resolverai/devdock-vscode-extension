@@ -106,7 +106,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   const markdownRef = useRef<HTMLDivElement>(null)
   const { symmetryConnection } = useSymmetryConnection()
   const [fileName, setFileName] = useState<string | null>('');
-  const [currentfileData, setCurrentFileData] = useState<string | null>('');
+  const fileNameRef = useRef<string | null>(null);
 
   const { context: autoScrollContext, setContext: setAutoScrollContext } =
     useWorkSpaceContext<boolean>(WORKSPACE_STORAGE_KEY.autoScroll)
@@ -150,9 +150,10 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
 
   useEffect(() => {
+    fileNameRef.current = fileName;
     console.log("FileName state updated:", fileName);
     console.log('fileName received in chat.tsx', fileName)
-    console.log('fielData received in chat.tsx', currentfileData)
+
 
   }, [fileName]); // This will log whenever fileName is updated
 
@@ -394,15 +395,14 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     if (input) {
       setIsLoading(true)
       clearEditor()
-      if (fileName) {
-        console.log('Ask button clicked with file name in focus with some user message');
+      if (fileNameRef.current) {
+        // console.log('Ask button clicked with file name in focus with some user message');
         //in this case add context about the file content
 
         setMessages((prevMessages) => {
           const updatedMessages = [
             ...(prevMessages || []),
-            // { isInFocusFile: true, role: USER, content: input + '\n' + currentfileData, },
-            { isInFocusFile: true, role: USER, content: input },
+            { isInFocusFile: true, role: USER, content: input + '\n\n\n' + '@file attached- ' + fileNameRef.current },
           ]
           global.vscode.postMessage({
             type: EVENT_NAME.devdockChatMessage,
@@ -431,8 +431,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       }, 200)
     }
     else {
-      console.log('input is empty, fileName val', fileName)
-      if (fileName) {
+      console.log('input is empty, fileName val', fileNameRef.current)
+      if (fileNameRef.current) {
         console.log('Ask button clicked with file name in focus but empty input box');
         //in this case add context about the file content
       }
@@ -597,7 +597,6 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       CustomKeyMap.configure({
         handleSubmitForm,
         clearEditor,
-
       })
     ]
   })
@@ -867,7 +866,6 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
                 onClick={() => {
                   console.log(`${fileName} clicked`);
                   setFileName('')
-                  setCurrentFileData('')
                 }}
                 className={styles.chatSubmit}
                 style={{
