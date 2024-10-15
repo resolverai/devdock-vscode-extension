@@ -653,7 +653,7 @@ export class ChatService {
     );
 
     let additionalContext =
-      "Provide me a response in a key named fileCodeJsonString in a way where if in your response there is any code snippet is available for any file then provide me a json response like this - " +
+      "Provide me a response in a way where if in your response there is any code snippet is available then provide me a json response like this - " +
       expectedJsonResponseString +
       "\n\n" +
       "\n Generate response as short as possible so that I can get response in only first stream of the response if stream is set to true for the request";
