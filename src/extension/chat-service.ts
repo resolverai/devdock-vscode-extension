@@ -582,7 +582,7 @@ export class ChatService {
     if (userSelection) {
       additionalContext += `Selected Code:\n${userSelection}\n\n`;
     }
-    if (isFileInFocus) {
+    if (isFileInFocus && fileData) {
       console.log(
         "streamChatCompletion isFileInFocus",
         isFileInFocus,
