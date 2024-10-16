@@ -137,7 +137,6 @@ const Dashboard: React.FC = () => {
     };
 
     {
-
         return (
             <div
                 style={{
@@ -209,10 +208,10 @@ const Dashboard: React.FC = () => {
                     isDashboardInView={bountiesClicked}
                 />
 
-                {/* <Main onDevChatClick={devdockChatButtonClicked}
+                <Main onDevChatClick={devdockChatButtonClicked}
                     onBountiesClicked={bountyClickedId}
                     isDashboardInView={bountiesClicked}
-                ></Main> */}
+                ></Main>
                 <div style={{ height: '125px' }}></div>
             </div >
 
