@@ -2,6 +2,7 @@ import React from 'react';
 
 import { LOGIN_EVENT_NAME } from '../../common/constants';
 import WhiteCrossSvg from '../login/white_cross_svg';
+import ProfileThumbnailSVG from '../home/svgs/profile_thumbnail';
 
 interface UserGitHubLoggedInPopupProps {
     onClose: () => void;
@@ -97,16 +98,107 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
             }>
                 <div style={{ height: '10px' }}></div>
                 <div style={{ display: 'flex', flexDirection: 'row', height: '36px', width: '36px', borderRadius: '18px', background: 'linear-gradient(90deg, #A380FD 0%, #784CDB 100%)', }}>
-                    <img src={loginData?.profilePic} ></img>
+                    {loginData?.profilePic ?
+
+                        <div>
+                            <img src={loginData?.profilePic} ></img>
+                        </div>
+                        :
+                        <div>
+                            <ProfileThumbnailSVG></ProfileThumbnailSVG>
+                        </div>
+
+                    }
+
+                    <div style={{ flex: 'display', flexDirection: 'column', alignItems: 'center', marginLeft: '8px' }}>
+                        <div><span>GithubID</span></div>
+                        <div><span>0x5852...8Fe1</span></div>
+
+                    </div>
                 </div>
 
-
-                <div style={{ height: '10px' }}></div>
-                <span style={{ color: 'white', fontSize: '12px', opacity: 0.7, fontFamily: 'inherit' }}>Get protocol specific dev support. Earn as you deploy contracts</span>
                 <div style={{ height: '20px' }}></div>
-                <div style={{ width: '100%', alignContent: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={handleGithubLogin} >
+
+                <div style={{ height: '43px', display: 'flex', flexDirection: 'column' }}>
+                    <div>
+                        <span style={{ opacity: 0.5, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter' }}>
+                            Devcash balance
+                        </span>
+                    </div>
+                    <div>
+                        <span style={{ opacity: 1, fontSize: '20px', fontWeight: 'bold', color: '#ffffff' }}>
+                            375
+                        </span>
+                    </div>
 
                 </div>
+
+
+                <div style={{ height: '20px' }}></div>
+
+                <div style={{ border: '2px', backgroundColor: '#292929', borderRadius: '8px', width: '258px', height: '39px', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', }} >
+
+                    <div style={{ display: 'flex', flexDirection: 'row', }}>
+                        <div>
+                            <span style={{ marginLeft: '5px', opacity: 1, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
+                                4432
+                            </span>
+                        </div>
+                        <div >
+                            <span style={{ opacity: 0.8, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter', marginLeft: '5px' }}>
+                                Unclaimed Devcash
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span style={{ opacity: 1, fontSize: '12px', color: '#94FB48', fontWeight: 'normal', marginLeft: '5px', marginRight: '10px' }}>
+                            Claim now
+                        </span>
+                    </div>
+
+                </div>
+                <div style={{ height: '20px' }}></div>
+                <div style={{ height: '1px', backgroundColor: '#37373C' }}></div>
+                <div style={{ height: '20px' }}></div>
+                <div>
+                    <span style={{ opacity: 0.5, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter' }}>
+                        Other wallets connected
+                    </span>
+                </div>
+                <div style={{ height: '20px' }}></div>
+                <div>
+                    <span style={{ opacity: 1, fontSize: '10px', fontWeight: 'normal', color: '#ffffff' }}>
+                        EVM:0x2097490827
+                    </span>
+                </div>
+                <div style={{ height: '20px' }}></div>
+                <div>
+                    <span style={{ opacity: 1, fontSize: '10px', fontWeight: 'normal', color: '#ffffff' }}>
+                        Starknet:0x2097490827
+                    </span>
+                </div>
+                <div style={{ height: '20px' }}></div>
+                <div style={{ height: '1px', backgroundColor: '#37373C' }}></div>
+                <div style={{ height: '20px' }}></div>
+                <div>
+                    <span style={{ opacity: 1, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
+                        My contributions
+                    </span>
+                </div>
+                <div style={{ height: '20px' }}></div>
+                <div>
+                    <span style={{ opacity: 1, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
+                        Settings
+                    </span>
+                </div>
+                <div style={{ height: '20px' }}></div>
+                <div>
+                    <span style={{ opacity: 1, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
+                        Logout
+                    </span>
+                </div>
+                <div style={{ height: '20px' }}></div>
 
             </div>
 
