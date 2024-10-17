@@ -12,6 +12,7 @@ import { ServerMessage } from '../../common/types';
 import { EVENT_NAME, WEBUI_TABS } from '../../common/constants';
 
 
+
 const Dashboard: React.FC = () => {
 
     const [bountiesClicked, setBountiesClicked] = useState<boolean>(true);
@@ -20,6 +21,7 @@ const Dashboard: React.FC = () => {
     const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(true);
     const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
     const [showLoggedInUserPopup, setLoggedInPoupVisibile] = useState(false);
+    const [serverMessageForTab, setServerMessageForTab] = useState<string | undefined>();
 
 
     type UserLoginData = {
@@ -65,23 +67,28 @@ const Dashboard: React.FC = () => {
 
     const handler = (event: MessageEvent) => {
         const message: ServerMessage<string | undefined> = event.data
-        // console.log("Message received from server: ", message)
+        // console.log("Message received from server in dashboard.tsx: ", message?.type, message?.value?.data)
         if (message?.type === EVENT_NAME.devdockSetTab) {
 
-            setTopTabClicked(true);
-            console.log("Top Tab clicked in dashboard.tsx topTabsClicked", topTabsClicked);
+            setServerMessageForTab(message?.value.data);
+
             if (message?.value.data == WEBUI_TABS.chat) {
                 console.log("Top Tab clicked in dashboard.tsx inside WEBUI_TABS.chat, this is to show chat ui");
                 setTopTabClicked(false);
+            } else {
+                setTopTabClicked(true);
+                console.log("Top Tab clicked in dashboard.tsx inside WEBUI_TABS.chat, this is to show non chat ui");
             }
         }
         return () => window.removeEventListener('message', handler)
     }
+
     useEffect(() => {
         window.addEventListener('message', handler)
     }, [])
     useEffect(() => {
-        console.log('topTabsClicked', topTabsClicked);
+        // console.log('topTabsClicked', topTabsClicked);
+        console.log("Top Tab clicked in dashboard.tsx topTabsClicked", topTabsClicked);
     }, [topTabsClicked])
 
 
@@ -236,7 +243,8 @@ const Dashboard: React.FC = () => {
 
 
                 {topTabsClicked ? <Main
-                    onDevChatClick={devdockChatButtonClicked}
+                    tabServerMessageValue={serverMessageForTab}
+
                 ></Main> : <Chat
                     topTabClickedProp={topTabsClicked}
                     onDevChatClick={devdockChatButtonClicked}

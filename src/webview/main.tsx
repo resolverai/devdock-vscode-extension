@@ -9,15 +9,15 @@ import { ConversationHistory } from './conversation-history'
 import { SocialLogin } from './social-login'
 
 interface MainProps {
-  onDevChatClick: () => void; // This is the function passed from Dashboard
+  // onDevChatClick: () => void; // This is the function passed from Dashboard
   // onBountiesClicked: number | null; // This is the function passed from Dashboard
-  // isDashboardInView: boolean;
+  tabServerMessageValue?: string;
   // topTabClickedProp: boolean;
 }
 
 
 
-export const Main: React.FC<MainProps> = ({ onDevChatClick, }) => {
+export const Main: React.FC<MainProps> = ({ tabServerMessageValue }) => {
 
   const tabs: Record<string, JSX.Element> = {
     // [WEBUI_TABS.chat]:
@@ -39,10 +39,10 @@ export const Main: React.FC<MainProps> = ({ onDevChatClick, }) => {
 
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<string | undefined> = event.data
-    // console.log("Message received from server: ", message)
+    // console.log("Message received from server: main.tsx", message)
     if (message?.type === EVENT_NAME.devdockSetTab) {
 
-      setTab(message?.value.data)
+      // setTab(message?.value?.data)
       // onDevChatClick();
     }
     return () => window.removeEventListener('message', handler)
@@ -51,14 +51,23 @@ export const Main: React.FC<MainProps> = ({ onDevChatClick, }) => {
     window.addEventListener('message', handler)
   }, [])
 
+  useEffect(() => {
+    if (tabServerMessageValue != null && tabServerMessageValue != undefined) {
+      console.log("Message received from dashboard.tsx in  main.tsx", tabServerMessageValue)
+      setTab(tabServerMessageValue)
+    }
+
+  }, [tabServerMessageValue]);
+
+
   if (!tab) {
+    console.log('inside not tab main.tsx');
     return null
   }
 
   if (tab === WEBUI_TABS.history) {
     return <ConversationHistory onSelect={() => setTab(WEBUI_TABS.chat)} />
   }
-
   const element: JSX.Element = tabs[tab]
 
   return element || null

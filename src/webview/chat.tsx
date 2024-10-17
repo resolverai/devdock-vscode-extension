@@ -147,17 +147,18 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   useEffect(() => {
 
     setTopTabsClicked(topTabClickedProp!);
-    console.log("Top Tab clicked in chat.tsx");
+    console.log("topTabClickedProp clicked in chat.tsx", topTabClickedProp);
 
   }, [topTabClickedProp]);
 
   useEffect(() => {
-    console.log("isTopTabsClicked", isTopTabsClicked);
+    console.log("isTopTabsClicked in chat.tsx", isTopTabsClicked);
     if (isAddFocusPopupVisible) {
       setIsAddFocusPopupVisible(false); // Close the popup
     }
     console.log("Top Tab clicked in chat.tsx isAddFocusPopupVisible", isAddFocusPopupVisible);
   }, [isTopTabsClicked]);
+
 
   useEffect(() => {
     console.log('chat.tsx onBountiesClicked:', onBountiesClicked);
@@ -219,36 +220,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
   useEffect(() => {
     // Set up the event listener for messages coming from the extension
-    const handleMessage = (event: MessageEvent) => {
-      const message = event.data;
-      if (message.type === EVENT_NAME.devdockGetCurrentFocusFileNameEvent) {
-        // Update state with the received file name
 
-        const fileNameRecieved = JSON.parse(message?.value.data) ?? null;
-
-
-        const fileInfo = {
-          fileName: fileNameRecieved.fileName,
-          fileData: fileNameRecieved.fileData,
-        };
-
-
-        console.log("fileNameRecieved in chat.tsx: ", fileInfo.fileName);
-
-        setFileName(fileInfo.fileName);
-      }
-      if (message.type === EVENT_NAME.hideCenterBlankUIFromChatEvent) {
-        setHideCenterUIFromChatScreen(true);
-
-        console.log("Message received from server in chat.tsx setHideCenterUIFromChatScreen", hideCenterUIFromChatScreen)
-
-      }
-
-      if (message?.type === EVENT_NAME.devdockSetTab) {
-        setIsAddFocusPopupVisible(false); // Close the popup, if visible
-      }
-
-    };
 
     // Add the event listener to receive messages from the extension
     window.addEventListener('message', handleMessage);
@@ -258,6 +230,37 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       window.removeEventListener('message', handleMessage);
     };
   }, []);
+
+  const handleMessage = (event: MessageEvent) => {
+    const message = event.data;
+    if (message.type === EVENT_NAME.devdockGetCurrentFocusFileNameEvent) {
+      // Update state with the received file name
+
+      const fileNameRecieved = JSON.parse(message?.value.data) ?? null;
+
+
+      const fileInfo = {
+        fileName: fileNameRecieved.fileName,
+        fileData: fileNameRecieved.fileData,
+      };
+
+
+      console.log("fileNameRecieved in chat.tsx: ", fileInfo.fileName);
+
+      setFileName(fileInfo.fileName);
+    }
+    if (message.type === EVENT_NAME.hideCenterBlankUIFromChatEvent) {
+      setHideCenterUIFromChatScreen(true);
+
+      console.log("Message received from server in chat.tsx setHideCenterUIFromChatScreen", hideCenterUIFromChatScreen)
+
+    }
+
+    if (message?.type === EVENT_NAME.devdockSetTab) {
+      setIsAddFocusPopupVisible(false); // Close the popup, if visible
+    }
+
+  };
 
 
   const scrollToBottom = () => {
@@ -669,9 +672,14 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
   const canShowCenterUi = () => {
 
-    if (!isTopTabsClicked && !isDashboardInView && (!messages || (messages && messages?.length < 1))) {
-      //this will show the ui
-      return true;
+    if (!isTopTabsClicked && !isDashboardInView) {
+      if (messages && messages?.length < 1) {
+        return true;
+      }
+      else if (messages == undefined) {
+        return true;
+      }
+
     }
 
     return false;
@@ -753,7 +761,42 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             background: (messages && messages?.length > 0) ? 'black' : 'transparent'
           }
         }>
+          {canShowCenterUi() &&
 
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '72vh', // Full height of the viewport
+              backgroundColor: 'transparent', // Just for visual contrast
+              flexDirection: 'column',
+
+            }}>
+              <CenterLogoOnBlankScreen></CenterLogoOnBlankScreen>
+              <div style={{ height: '32px' }}> </div>
+              {items.map((item, index) => (
+                <div key={index} style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  backgroundColor: '#292929',
+                  padding: '5px',
+                  margin: '4px',
+                  borderRadius: '50px',
+                  width: '226px',
+                  height: '32px',
+                  textAlign: 'center',
+                  alignItems: 'center'
+                }}>
+                  <div style={{ width: '5px' }}> </div>
+                  <GreenRoundWithTick></GreenRoundWithTick>
+                  <div style={{ width: '10px' }}> </div>
+                  <span style={{
+                    fontSize: '12px', color: 'white', opacity: '0.7'
+                  }}>{item}</span >
+
+                </div>
+              ))}
+            </div>}
 
           {!isDashboardInView && <div className={styles.markdown} ref={markdownRef}>
             <div style={{
@@ -795,6 +838,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             )}
           </div>}
 
+
           {!isDashboardInView && !!selection.length && (
 
             <Suggestions isDisabled={!!generatingRef.current} />
@@ -808,39 +852,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           {!isDashboardInView && showEmbeddingOptionsContext && !symmetryConnection && (
             <EmbeddingOptions />
           )}
-          {canShowCenterUi() && !hideCenterUIFromChatScreen && <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '70vh', // Full height of the viewport
-            backgroundColor: 'transparent', // Just for visual contrast
-            flexDirection: 'column'
-          }}>
-            <CenterLogoOnBlankScreen></CenterLogoOnBlankScreen>
-            <div style={{ height: '32px' }}> </div>
-            {items.map((item, index) => (
-              <div key={index} style={{
-                display: 'flex',
-                flexDirection: 'row',
-                backgroundColor: '#292929',
-                padding: '5px',
-                margin: '4px',
-                borderRadius: '50px',
-                width: '226px',
-                height: '32px',
-                textAlign: 'center',
-                alignItems: 'center'
-              }}>
-                <div style={{ width: '5px' }}> </div>
-                <GreenRoundWithTick></GreenRoundWithTick>
-                <div style={{ width: '10px' }}> </div>
-                <span style={{
-                  fontSize: '12px', color: 'white', opacity: '0.7'
-                }}>{item}</span >
 
-              </div>
-            ))}
-          </div>}
 
           < div className={styles.chatOptions}>
             <div>
