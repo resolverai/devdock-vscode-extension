@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './container.css'
 import ExpandableCardList from '../expandableCardList';
 import HamberIcon from './svgs/hanberger_icon';
@@ -8,11 +8,14 @@ import { Main } from '../main';
 import { Chat } from '../chat';
 import GitHubLoginPopup from '../login/github_login_popup';
 import UserGitHubLoggedInPopup from '../user/github_user_loggedin_popup';
+import { ServerMessage } from '../../common/types';
+import { EVENT_NAME, WEBUI_TABS } from '../../common/constants';
 
 
 const Dashboard: React.FC = () => {
 
     const [bountiesClicked, setBountiesClicked] = useState<boolean>(true);
+    const [topTabsClicked, setTopTabClicked] = useState<boolean | null>(false);
     const [bountyClickedId, setBountyClickedId] = useState<number | null>(0);
     const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(true);
     const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
@@ -60,6 +63,29 @@ const Dashboard: React.FC = () => {
     };
 
 
+    const handler = (event: MessageEvent) => {
+        const message: ServerMessage<string | undefined> = event.data
+        // console.log("Message received from server: ", message)
+        if (message?.type === EVENT_NAME.devdockSetTab) {
+
+            setTopTabClicked(true);
+            console.log("Top Tab clicked in dashboard.tsx topTabsClicked", topTabsClicked);
+            if (message?.value.data == WEBUI_TABS.chat) {
+                console.log("Top Tab clicked in dashboard.tsx inside WEBUI_TABS.chat, this is to show chat ui");
+                setTopTabClicked(false);
+            }
+        }
+        return () => window.removeEventListener('message', handler)
+    }
+    useEffect(() => {
+        window.addEventListener('message', handler)
+    }, [])
+    useEffect(() => {
+        console.log('topTabsClicked', topTabsClicked);
+    }, [topTabsClicked])
+
+
+
     const showPopupForUser = () => {
 
 
@@ -89,6 +115,7 @@ const Dashboard: React.FC = () => {
         console.log('Bounties clicked!');
         // Set both bounties and devdockChat opacity to 0.5 when bounties is clicked
         setBountiesClicked(true);
+        // setTopTabClicked(false);
 
     };
 
@@ -96,6 +123,8 @@ const Dashboard: React.FC = () => {
         console.log('Bounty clicked! id:', id);
         // Set both bounties and devdockChat opacity to 0.5 when bounties is clicked
         setBountiesClicked(true);
+        // setTopTabClicked(false);
+
         if (bountyClickedId == id) {
             setBountyClickedId(null); // Temporarily set it to null
             setTimeout(() => {
@@ -113,8 +142,7 @@ const Dashboard: React.FC = () => {
         console.log('Devdock chat clicked!');
         // Set both bounties and devdockChat opacity to 0.5 when devdockChat is clicked
         setBountiesClicked(false);
-
-
+        // setTopTabClicked(false);
     };
 
     const handleProfileIconClick = () => {
@@ -168,7 +196,8 @@ const Dashboard: React.FC = () => {
                 <div style={{ height: 10, width: '100%' }}></div>
                 <div style={{ height: 1, width: '100%', backgroundColor: "#212121" }}></div>
                 <div style={{ height: 10, width: '100%' }}></div>
-                <div>
+
+                {!topTabsClicked && <div>
                     <div style={{ display: 'flex', flexDirection: 'row', alignContent: "start", }}>
                         <div
                             style={{
@@ -200,18 +229,22 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
 
-                </div>
-                <div style={{ height: 5 }}></div>
-                {bountiesClicked ? <ExpandableCardList isUserLoggedIn={isUserLoggedIn} onBountiesClickedFromList={handleBountyClickId} /> : <></>}
-                <Chat onDevChatClick={devdockChatButtonClicked}
-                    onBountiesClicked={bountyClickedId}
-                    isDashboardInView={bountiesClicked}
-                />
+                </div>}
 
-                <Main onDevChatClick={devdockChatButtonClicked}
+                <div style={{ height: 5 }}></div>
+                {!topTabsClicked && bountiesClicked ? <ExpandableCardList isUserLoggedIn={isUserLoggedIn} onBountiesClickedFromList={handleBountyClickId} /> : null}
+
+
+                {topTabsClicked ? <Main
+                    onDevChatClick={devdockChatButtonClicked}
+                ></Main> : <Chat
+                    topTabClickedProp={topTabsClicked}
+                    onDevChatClick={devdockChatButtonClicked}
                     onBountiesClicked={bountyClickedId}
                     isDashboardInView={bountiesClicked}
-                ></Main>
+                />}
+
+
                 <div style={{ height: '125px' }}></div>
             </div >
 

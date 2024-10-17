@@ -63,6 +63,8 @@ interface ChatProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
   onBountiesClicked: number | null; // This is the function passed from Dashboard
   isDashboardInView: boolean;
+  topTabClickedProp?: boolean | null;
+
 }
 
 const CustomKeyMap = Extension.create({
@@ -95,7 +97,7 @@ const CustomKeyMap = Extension.create({
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any
-export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, isDashboardInView }) => {
+export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, isDashboardInView, topTabClickedProp }) => {
   // console.log("ChatProps received onBountiesClicked::", onBountiesClicked);
   const generatingRef = useRef(false)
   const editorRef = useRef<Editor | null>(null)
@@ -126,6 +128,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   const chatRef = useRef<HTMLTextAreaElement>(null)
   const [isAddFocusPopupVisible, setIsAddFocusPopupVisible] = useState(false);
   const [hideCenterUIFromChatScreen, setHideCenterUIFromChatScreen] = useState(false);
+  const [isTopTabsClicked, setTopTabsClicked] = useState<boolean | null>(null);
 
 
   // Handle clicks outside the popup
@@ -135,23 +138,34 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   };
 
   useEffect(() => {
-    // if (isAddFocusPopupVisible) {
-    //   document.addEventListener('mousedown', handleClickOutside);
 
-    // }
-    // else {
-    //   document.removeEventListener('mousedown', handleClickOutside);
-    // }
-
-    // Cleanup the event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isAddFocusPopupVisible]);
 
   useEffect(() => {
+
+    setTopTabsClicked(topTabClickedProp!);
+    console.log("Top Tab clicked in chat.tsx");
+
+  }, [topTabClickedProp]);
+
+  useEffect(() => {
+    console.log("isTopTabsClicked", isTopTabsClicked);
+    if (isAddFocusPopupVisible) {
+      setIsAddFocusPopupVisible(false); // Close the popup
+    }
+    console.log("Top Tab clicked in chat.tsx isAddFocusPopupVisible", isAddFocusPopupVisible);
+  }, [isTopTabsClicked]);
+
+  useEffect(() => {
     console.log('chat.tsx onBountiesClicked:', onBountiesClicked);
     handleBountyclickForChat(onBountiesClicked);
+    setTopTabsClicked(false);
+    if (isAddFocusPopupVisible) {
+      setIsAddFocusPopupVisible(false); // Close the popup
+    }
   }, [onBountiesClicked]);
 
   const handleBountyclickForChat = (bountyId: number | null) => {
@@ -193,6 +207,14 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     console.log("hideCenterUIFromChatScreen:", hideCenterUIFromChatScreen);
   }, [hideCenterUIFromChatScreen]);
 
+  useEffect(() => {
+    console.log("isDashboardInView:", isDashboardInView);
+    if (isDashboardInView && isAddFocusPopupVisible) {
+      setIsAddFocusPopupVisible(false); // Close the popup
+    }
+
+  }, [isDashboardInView]);
+
 
 
   useEffect(() => {
@@ -219,6 +241,11 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         setHideCenterUIFromChatScreen(true);
 
         console.log("Message received from server in chat.tsx setHideCenterUIFromChatScreen", hideCenterUIFromChatScreen)
+
+      }
+
+      if (message?.type === EVENT_NAME.devdockSetTab) {
+        setIsAddFocusPopupVisible(false); // Close the popup, if visible
       }
 
     };
@@ -421,6 +448,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
   const handleSubmitForm = () => {
     onDevChatClick();
+    setTopTabsClicked(false);
     const input = editor?.getText()
     if (input) {
       setIsLoading(true)
@@ -473,8 +501,9 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   }
   const handleAddFocusButton = () => {
     // onBountiesClicked();
+    console.log("Add focus button clicked");
     onDevChatClick();
-    setIsAddFocusPopupVisible(!isAddFocusPopupVisible);
+    setIsAddFocusPopupVisible(true);
   }
 
   const clearEditor = useCallback(() => {
@@ -638,52 +667,9 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   }
 
 
-
-  const renderEmptyChatBlock = () => {
-    const items = ['Auto-completes code', 'Answers queries', 'Deploy contracts'];
-
-    if (hideCenterUIFromChatScreen) return (<></>);
-    else
-      return (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '70vh', // Full height of the viewport
-          backgroundColor: 'transparent', // Just for visual contrast
-          flexDirection: 'column'
-        }}>
-          <CenterLogoOnBlankScreen></CenterLogoOnBlankScreen>
-          <div style={{ height: '32px' }}> </div>
-          {items.map((item, index) => (
-            <div key={index} style={{
-              display: 'flex',
-              flexDirection: 'row',
-              backgroundColor: '#292929',
-              padding: '5px',
-              margin: '4px',
-              borderRadius: '50px',
-              width: '226px',
-              height: '32px',
-              textAlign: 'center',
-              alignItems: 'center'
-            }}>
-              <div style={{ width: '5px' }}> </div>
-              <GreenRoundWithTick></GreenRoundWithTick>
-              <div style={{ width: '10px' }}> </div>
-              <span style={{
-                fontSize: '12px', color: 'white', opacity: '0.7'
-              }}>{item}</span >
-
-            </div>
-          ))}
-        </div>
-      );
-  };
-
   const canShowCenterUi = () => {
 
-    if (!isDashboardInView && (!messages || (messages && messages?.length < 1))) {
+    if (!isTopTabsClicked && !isDashboardInView && (!messages || (messages && messages?.length < 1))) {
       //this will show the ui
       return true;
     }
@@ -691,335 +677,370 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     return false;
   }
 
+  const onTopTabItemsClick = () => {
+    return isTopTabsClicked ? <></> : <></>;
+  }
 
-  return (
-    <VSCodePanelView >
-
+  const showAddFocusPopup = () => {
+    return isAddFocusPopupVisible ?
       <div style={
         {
-          display: 'flex',
-          flexDirection: 'column',
-          height: 'auto',
-          width: '90%',
-          margin: '4px',
-          position: 'fixed',
-          // flexGrow: 1, // Allow this container to grow and push container 3 to the bottom
-          overflowY: 'auto',
-          bottom: 0,
-          alignContent: 'center',
-          background: (messages && messages?.length > 0) ? 'black' : 'transparent'
-
+          position: 'absolute' as 'absolute',
+          bottom: '30px', // Position it at the bottom
+          left: '30px',   // Position it at the left
+          width: '155px', // Customize width
+          height: '150px',
+          backgroundColor: '#252527', // Custom background color
+          color: 'white', // Text color
+          padding: '12px 0px 0px 0px', // Padding inside the popup
+          boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)', // Optional: Add a shadow for better visibility
+          borderRadius: '8px',
+          zIndex: 1000, // Ensure it appears on top of other elements
+          border: '1px 0px 0px 0px',
+          opacity: '0px'
 
         }
       }>
-
-
-        {!isDashboardInView && <div className={styles.markdown} ref={markdownRef}>
-          <div style={{
-
-            maxHeight: '68vh', // Maximum height for the scroll area
-            overflowY: 'auto', // Enable vertical scrolling when content exceeds maxHeight
-            padding: (messages && messages?.length > 0) ? '10px' : 0,
-            // border: '1px solid #ccc',
-            borderRadius: (messages && messages?.length > 0) ? '5px' : '0px',
-            backgroundColor: (messages && messages?.length > 0) ? 'black' : 'transparent'
-
-          }}>
-
-            {!isDashboardInView && messages?.map((message, index) => (
-
-              <Message
-                key={index}
-                onRegenerate={handleRegenerateMessage}
-                onUpdate={handleEditMessage}
-                onDelete={handleDeleteMessage}
-                isLoading={isLoading || generatingRef.current}
-                isAssistant={index % 2 !== 0}
-                conversationLength={messages?.length}
-                message={message}
-                theme={theme}
-                index={index}
-              />
-
-            ))}
-          </div>
-          {!isDashboardInView && isLoading && !generatingRef.current && <ChatLoader />}
-          {!!completion && (
-            <Message
-              isLoading={false}
-              isAssistant
-              theme={theme}
-              message={{
-                ...completion,
-                role: ASSISTANT
-              }}
-            />
-          )}
-        </div>}
-
-        {!!selection.length && (
-
-          <Suggestions isDisabled={!!generatingRef.current} />
-
-
-        )}
-        {showProvidersContext && !symmetryConnection && <ProviderSelect />}
-        {showProvidersContext && showEmbeddingOptionsContext && (
-          <VSCodeDivider />
-        )}
-        {showEmbeddingOptionsContext && !symmetryConnection && (
-          <EmbeddingOptions />
-        )}
-        {canShowCenterUi() && renderEmptyChatBlock()}
-        <div className={styles.chatOptions}>
-          <div>
-            <VSCodeButton
-              onClick={handleToggleAutoScroll}
-              title="Toggle auto scroll on/off"
-              appearance="icon"
-            >
-              {autoScrollContext ? (
-                <EnabledAutoScrollIcon />
-              ) : (
-                <DisabledAutoScrollIcon />
-              )}
-            </VSCodeButton>
-            <VSCodeButton
-              onClick={handleGetGitChanges}
-              title="Generate commit message from staged changes"
-              appearance="icon"
-            >
-              <span className="codicon codicon-git-pull-request"></span>
-            </VSCodeButton>
-            <VSCodeButton
-              title="Scroll down to the bottom"
-              appearance="icon"
-              onClick={handleScrollBottom}
-            >
-              <span className="codicon codicon-arrow-down"></span>
-            </VSCodeButton>
-            <VSCodeButton
-              title="Enable/disable RAG context for all messages"
-              appearance="icon"
-              onClick={handleToggleRag}
-            >
-              {enableRagContext ? <EnabledRAGIcon /> : <DisabledRAGIcon />}
-            </VSCodeButton>
-            <VSCodeBadge>{selection?.length}</VSCodeBadge>
-          </div>
-          <div>
-            {generatingRef.current && (
-              <VSCodeButton
-                type="button"
-                appearance="icon"
-                onClick={handleStopGeneration}
-                aria-label="Stop generation"
-              >
-                <span className="codicon codicon-debug-stop"></span>
-              </VSCodeButton>
-            )}
-            {!symmetryConnection && (
-              <>
-                <VSCodeButton
-                  title="Embedding options"
-                  appearance="icon"
-                  onClick={handleToggleEmbeddingOptions}
-                >
-                  <span className="codicon codicon-database"></span>
-                </VSCodeButton>
-                <VSCodeButton
-                  title="Select active providers"
-                  appearance="icon"
-                  onClick={handleToggleProviderSelection}
-                >
-                  <span className={styles.textIcon}>🤖</span>
-                </VSCodeButton>
-              </>
-            )}
-            {!!symmetryConnection && (
-              <a
-                href={`https://twinny.dev/symmetry/?id=${symmetryConnection.id}`}
-              >
-                <VSCodeBadge
-                  title={`Connected to symmetry network provider ${symmetryConnection?.name}, model ${symmetryConnection?.modelName}, provider ${symmetryConnection?.provider}`}
-                >
-                  ⚡️ {symmetryConnection?.name}
-                </VSCodeBadge>
-              </a>
-            )}
-          </div>
+        <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Focus on</span>
+        <div style={{ marginTop: '10px' }}></div>
+        <div
+          onClick={handleCurrentFileClick}
+          style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer' }}>
+          <CurrentFileSvg></CurrentFileSvg>
+          <div style={{ marginLeft: '5px' }}></div>
+          <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Current File</span>
         </div>
 
-        <form>
-          <div className={styles.chatBox}>
-            <EditorContent
-              placeholder="How can devdock help you today?"
-              className={styles.tiptap}
-              editor={editor}
-            />
+        <div style={{ marginTop: '10px' }}></div>
+        <div
+          onClick={handleGitDiffClick}
+          style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer' }}>
+          <GitDiffSVG></GitDiffSVG>
+          <div style={{ marginLeft: '5px' }}></div>
+          <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Git diff</span>
+        </div>
+        <div style={{ marginTop: '10px' }}></div>
+        <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Extra context</span>
+        <div style={{ marginTop: '10px' }}></div>
+        <div
+          onClick={handleAttachmentClick}
+          style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer', }}>
+          <AttachmentSVG></AttachmentSVG>
+          <div style={{ marginLeft: '5px' }}></div>
+          <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px', }}>Add a file or folder</span>
+        </div>
 
-            <div style={{ display: 'flex', flexDirection: 'row', alignContent: 'space-between' }}>
-              <div
-                role="button"
-                onClick={handleAddFocusButton}
-                className={styles.chatSubmit}
-                style={{
+      </div> : null;
+  }
 
-                  height: '24px',
-                  display: 'flex',
-                  width: '75px',
-                  flexDirection: 'row',
+  const items = ['Auto-completes code', 'Answers queries', 'Deploy contracts'];
+  return (
+    <VSCodePanelView >
 
-                  background: 'linear-gradient(90deg, #292929 0%, #292929 100%)',
-                  borderRadius: '30px',
-                  fontSize: '10px',
-                  paddingTop: '5px',
-                  paddingLeft: '10px',
-                  left: '5px',
-                  position: 'absolute',
-                  cursor: 'pointer',
-                  bottom: '2px'
-
-
-                }}
-              >
-
-                <div>
-                  @ Add Focus
-                </div>
-              </div>
-              {fileName && <div
-                role="button"
-                onClick={() => {
-                  console.log(`${fileName} clicked`);
-                  setFileName('')
-                }}
-                className={styles.chatSubmit}
-                style={{
-
-                  height: '24px',
-                  display: 'flex',
-                  // width: '85px',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  background: 'linear-gradient(90deg, #294B10 0%, #294B10 100%)',
-                  borderRadius: '30px',
-                  fontSize: '10px',
-                  // paddingTop: '5px',
-                  paddingLeft: '10px',
-                  left: '95px',
-                  position: 'absolute',
-                  cursor: 'pointer',
-                  bottom: '2px'
-                }}
-              >
-
-                <div style={{ display: 'flex', flexDirection: 'row', height: '10px', alignItems: "center" }}>
-                  <CurrentFileSymbol></CurrentFileSymbol>
-                  <div style={{ width: '5px' }}></div>
-                  <span style={{ color: '#94FB48', fontSize: '10px', opacity: 0.7 }}>{fileName} </span>
-
-                  <div style={{ width: '5px' }}></div>
-
-
-                  <span style={{ color: '#94FB48', fontSize: '12px', fontWeight: 'bold', opacity: 0.7 }}>X </span>
-                  <div style={{ width: '5px' }}></div>
-
-                </div>
-              </div>}
-
-              <div
-                role="button"
-                onClick={handleSubmitForm}
-                className={styles.chatSubmit}
-                style={{
-
-                  height: '24px',
-                  display: 'flex',
-                  width: '64px',
-                  flexDirection: 'row',
-
-                  background: 'linear-gradient(90deg, #3172FC 0%, #5738BE 100%)',
-                  borderRadius: '30px',
-                  paddingTop: '5px',
-                  paddingLeft: '20px',
-                  right: '5px',
-                  position: 'absolute',
-                  cursor: 'pointer',
-                  bottom: '2px'
-
-
-                }}
-              >
-
-                <div>
-                  Ask
-                </div>
-                <div style={{ width: '5px' }}>
-
-                </div>
-                <div>
-                  <span className="codicon codicon-send"></span>
-                </div>
-
-              </div>
-            </div>
-
-
-          </div>
-        </form>
-      </div>
-
-      {isAddFocusPopupVisible && (
+      {
         <div style={
           {
-            position: 'absolute' as 'absolute',
-            bottom: '30px', // Position it at the bottom
-            left: '30px',   // Position it at the left
-            width: '155px', // Customize width
-            height: '150px',
-            backgroundColor: '#252527', // Custom background color
-            color: 'white', // Text color
-            padding: '12px 0px 0px 0px', // Padding inside the popup
-            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)', // Optional: Add a shadow for better visibility
-            borderRadius: '8px',
-            zIndex: 1000, // Ensure it appears on top of other elements
-            border: '1px 0px 0px 0px',
-            opacity: '0px'
-
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'auto',
+            width: '90%',
+            margin: '4px',
+            position: 'fixed',
+            // flexGrow: 1, // Allow this container to grow and push container 3 to the bottom
+            overflowY: 'auto',
+            bottom: 0,
+            alignContent: 'center',
+            background: (messages && messages?.length > 0) ? 'black' : 'transparent'
           }
         }>
-          <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Focus on</span>
-          <div style={{ marginTop: '10px' }}></div>
-          <div
-            onClick={handleCurrentFileClick}
-            style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer' }}>
-            <CurrentFileSvg></CurrentFileSvg>
-            <div style={{ marginLeft: '5px' }}></div>
-            <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Current File</span>
-          </div>
 
-          <div style={{ marginTop: '10px' }}></div>
-          <div
-            onClick={handleGitDiffClick}
-            style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer' }}>
-            <GitDiffSVG></GitDiffSVG>
-            <div style={{ marginLeft: '5px' }}></div>
-            <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Git diff</span>
-          </div>
-          <div style={{ marginTop: '10px' }}></div>
-          <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Extra context</span>
-          <div style={{ marginTop: '10px' }}></div>
-          <div
-            onClick={handleAttachmentClick}
-            style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer', }}>
-            <AttachmentSVG></AttachmentSVG>
-            <div style={{ marginLeft: '5px' }}></div>
-            <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px', }}>Add a file or folder</span>
-          </div>
 
-        </div>
-      )}
+          {!isDashboardInView && <div className={styles.markdown} ref={markdownRef}>
+            <div style={{
+              maxHeight: '68vh', // Maximum height for the scroll area
+              overflowY: 'auto', // Enable vertical scrolling when content exceeds maxHeight
+              padding: (messages && messages?.length > 0) ? '10px' : 0,
+              // border: '1px solid #ccc',
+              borderRadius: (messages && messages?.length > 0) ? '5px' : '0px',
+              backgroundColor: (messages && messages?.length > 0) ? 'black' : 'transparent'
+            }}>
+              {messages?.map((message, index) => (
+
+                <Message
+                  key={index}
+                  onRegenerate={handleRegenerateMessage}
+                  onUpdate={handleEditMessage}
+                  onDelete={handleDeleteMessage}
+                  isLoading={isLoading || generatingRef.current}
+                  isAssistant={index % 2 !== 0}
+                  conversationLength={messages?.length}
+                  message={message}
+                  theme={theme}
+                  index={index}
+                />
+
+              ))}
+            </div>
+            {!isDashboardInView && isLoading && !generatingRef.current && <ChatLoader />}
+            {!isDashboardInView && !!completion && (
+              <Message
+                isLoading={false}
+                isAssistant
+                theme={theme}
+                message={{
+                  ...completion,
+                  role: ASSISTANT
+                }}
+              />
+            )}
+          </div>}
+
+          {!isDashboardInView && !!selection.length && (
+
+            <Suggestions isDisabled={!!generatingRef.current} />
+
+
+          )}
+          {!isDashboardInView && showProvidersContext && !symmetryConnection && <ProviderSelect />}
+          {!isDashboardInView && showProvidersContext && showEmbeddingOptionsContext && (
+            <VSCodeDivider />
+          )}
+          {!isDashboardInView && showEmbeddingOptionsContext && !symmetryConnection && (
+            <EmbeddingOptions />
+          )}
+          {canShowCenterUi() && !hideCenterUIFromChatScreen && <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '70vh', // Full height of the viewport
+            backgroundColor: 'transparent', // Just for visual contrast
+            flexDirection: 'column'
+          }}>
+            <CenterLogoOnBlankScreen></CenterLogoOnBlankScreen>
+            <div style={{ height: '32px' }}> </div>
+            {items.map((item, index) => (
+              <div key={index} style={{
+                display: 'flex',
+                flexDirection: 'row',
+                backgroundColor: '#292929',
+                padding: '5px',
+                margin: '4px',
+                borderRadius: '50px',
+                width: '226px',
+                height: '32px',
+                textAlign: 'center',
+                alignItems: 'center'
+              }}>
+                <div style={{ width: '5px' }}> </div>
+                <GreenRoundWithTick></GreenRoundWithTick>
+                <div style={{ width: '10px' }}> </div>
+                <span style={{
+                  fontSize: '12px', color: 'white', opacity: '0.7'
+                }}>{item}</span >
+
+              </div>
+            ))}
+          </div>}
+
+          < div className={styles.chatOptions}>
+            <div>
+              <VSCodeButton
+                onClick={handleToggleAutoScroll}
+                title="Toggle auto scroll on/off"
+                appearance="icon"
+              >
+                {autoScrollContext ? (
+                  <EnabledAutoScrollIcon />
+                ) : (
+                  <DisabledAutoScrollIcon />
+                )}
+              </VSCodeButton>
+              <VSCodeButton
+                onClick={handleGetGitChanges}
+                title="Generate commit message from staged changes"
+                appearance="icon"
+              >
+                <span className="codicon codicon-git-pull-request"></span>
+              </VSCodeButton>
+              <VSCodeButton
+                title="Scroll down to the bottom"
+                appearance="icon"
+                onClick={handleScrollBottom}
+              >
+                <span className="codicon codicon-arrow-down"></span>
+              </VSCodeButton>
+              <VSCodeButton
+                title="Enable/disable RAG context for all messages"
+                appearance="icon"
+                onClick={handleToggleRag}
+              >
+                {enableRagContext ? <EnabledRAGIcon /> : <DisabledRAGIcon />}
+              </VSCodeButton>
+              <VSCodeBadge>{selection?.length}</VSCodeBadge>
+            </div>
+            <div>
+              {generatingRef.current && (
+                <VSCodeButton
+                  type="button"
+                  appearance="icon"
+                  onClick={handleStopGeneration}
+                  aria-label="Stop generation"
+                >
+                  <span className="codicon codicon-debug-stop"></span>
+                </VSCodeButton>
+              )}
+              {!symmetryConnection && (
+                <>
+                  <VSCodeButton
+                    title="Embedding options"
+                    appearance="icon"
+                    onClick={handleToggleEmbeddingOptions}
+                  >
+                    <span className="codicon codicon-database"></span>
+                  </VSCodeButton>
+                  <VSCodeButton
+                    title="Select active providers"
+                    appearance="icon"
+                    onClick={handleToggleProviderSelection}
+                  >
+                    <span className={styles.textIcon}>🤖</span>
+                  </VSCodeButton>
+                </>
+              )}
+              {!!symmetryConnection && (
+                <a
+                  href={`https://twinny.dev/symmetry/?id=${symmetryConnection.id}`}
+                >
+                  <VSCodeBadge
+                    title={`Connected to symmetry network provider ${symmetryConnection?.name}, model ${symmetryConnection?.modelName}, provider ${symmetryConnection?.provider}`}
+                  >
+                    ⚡️ {symmetryConnection?.name}
+                  </VSCodeBadge>
+                </a>
+              )}
+            </div>
+          </div>
+          <form>
+            <div className={styles.chatBox}>
+              <EditorContent
+                placeholder="How can devdock help you today?"
+                className={styles.tiptap}
+                editor={editor}
+              />
+
+              <div style={{ display: 'flex', flexDirection: 'row', alignContent: 'space-between' }}>
+                <div
+                  role="button"
+                  onClick={handleAddFocusButton}
+                  className={styles.chatSubmit}
+                  style={{
+
+                    height: '24px',
+                    display: 'flex',
+                    width: '75px',
+                    flexDirection: 'row',
+
+                    background: 'linear-gradient(90deg, #292929 0%, #292929 100%)',
+                    borderRadius: '30px',
+                    fontSize: '10px',
+                    paddingTop: '5px',
+                    paddingLeft: '10px',
+                    left: '5px',
+                    position: 'absolute',
+                    cursor: 'pointer',
+                    bottom: '2px'
+
+
+                  }}
+                >
+
+                  <div>
+                    @ Add Focus
+                  </div>
+                </div>
+                {fileName && <div
+                  role="button"
+                  onClick={() => {
+                    console.log(`${fileName} clicked`);
+                    setFileName('')
+                  }}
+                  className={styles.chatSubmit}
+                  style={{
+
+                    height: '24px',
+                    display: 'flex',
+                    // width: '85px',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    background: 'linear-gradient(90deg, #294B10 0%, #294B10 100%)',
+                    borderRadius: '30px',
+                    fontSize: '10px',
+                    // paddingTop: '5px',
+                    paddingLeft: '10px',
+                    left: '95px',
+                    position: 'absolute',
+                    cursor: 'pointer',
+                    bottom: '2px'
+                  }}
+                >
+
+                  <div style={{ display: 'flex', flexDirection: 'row', height: '10px', alignItems: "center" }}>
+                    <CurrentFileSymbol></CurrentFileSymbol>
+                    <div style={{ width: '5px' }}></div>
+                    <span style={{ color: '#94FB48', fontSize: '10px', opacity: 0.7 }}>{fileName} </span>
+
+                    <div style={{ width: '5px' }}></div>
+
+
+                    <span style={{ color: '#94FB48', fontSize: '12px', fontWeight: 'bold', opacity: 0.7 }}>X </span>
+                    <div style={{ width: '5px' }}></div>
+
+                  </div>
+                </div>}
+
+                <div
+                  role="button"
+                  onClick={handleSubmitForm}
+                  className={styles.chatSubmit}
+                  style={{
+
+                    height: '24px',
+                    display: 'flex',
+                    width: '64px',
+                    flexDirection: 'row',
+
+                    background: 'linear-gradient(90deg, #3172FC 0%, #5738BE 100%)',
+                    borderRadius: '30px',
+                    paddingTop: '5px',
+                    paddingLeft: '20px',
+                    right: '5px',
+                    position: 'absolute',
+                    cursor: 'pointer',
+                    bottom: '2px'
+
+
+                  }}
+                >
+
+                  <div>
+                    Ask
+                  </div>
+                  <div style={{ width: '5px' }}>
+
+                  </div>
+                  <div>
+                    <span className="codicon codicon-send"></span>
+                  </div>
+
+                </div>
+              </div>
+
+
+            </div>
+          </form>
+        </div>}
+
+      {showAddFocusPopup()}
     </VSCodePanelView >
   )
 }

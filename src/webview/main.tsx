@@ -10,22 +10,23 @@ import { SocialLogin } from './social-login'
 
 interface MainProps {
   onDevChatClick: () => void; // This is the function passed from Dashboard
-  onBountiesClicked: number | null; // This is the function passed from Dashboard
-  isDashboardInView: boolean;
-
+  // onBountiesClicked: number | null; // This is the function passed from Dashboard
+  // isDashboardInView: boolean;
+  // topTabClickedProp: boolean;
 }
 
 
 
-export const Main: React.FC<MainProps> = ({ onDevChatClick, onBountiesClicked, isDashboardInView, }) => {
+export const Main: React.FC<MainProps> = ({ onDevChatClick, }) => {
 
   const tabs: Record<string, JSX.Element> = {
-    [WEBUI_TABS.chat]:
-      <Chat
-        onDevChatClick={onDevChatClick}
-        onBountiesClicked={onBountiesClicked}
-        isDashboardInView={isDashboardInView}
-      />,
+    // [WEBUI_TABS.chat]:
+    //   <Chat
+    //     topTabClickedProp={topTabClickedProp}
+    //     onDevChatClick={onDevChatClick}
+    //     onBountiesClicked={onBountiesClicked}
+    //     isDashboardInView={isDashboardInView}
+    //   />,
     [WEBUI_TABS.settings]: <Settings />,
     [WEBUI_TABS.providers]: <Providers />,
     [WEBUI_TABS.symmetry]: <Symmetry />,
@@ -33,7 +34,7 @@ export const Main: React.FC<MainProps> = ({ onDevChatClick, onBountiesClicked, i
   }
 
 
-  console.log(onDevChatClick, onBountiesClicked, isDashboardInView);
+  // console.log(onDevChatClick, onBountiesClicked, isDashboardInView);
   const [tab, setTab] = useState<string | undefined>(WEBUI_TABS.chat)
 
   const handler = (event: MessageEvent) => {
@@ -42,7 +43,7 @@ export const Main: React.FC<MainProps> = ({ onDevChatClick, onBountiesClicked, i
     if (message?.type === EVENT_NAME.devdockSetTab) {
 
       setTab(message?.value.data)
-      onDevChatClick();
+      // onDevChatClick();
     }
     return () => window.removeEventListener('message', handler)
   }
