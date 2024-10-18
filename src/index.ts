@@ -34,14 +34,11 @@ import { ServerMessage } from "./common/types";
 import { FileInteractionCache } from "./extension/file-interaction";
 import { getLineBreakCount } from "./webview/utils";
 import {
-  auth0Config,
   socialLogin,
-  handleAuthentication,
-  initWeb3Auth,
 } from "./common/auth";
-import { assignReward } from "./common/viem";
 import Analytics from "./common/analytics";
 import { AnalyticsEvents } from "./common/analyticsEventKeys";
+
 
 export async function activate(context: ExtensionContext) {
   setContext(context);
@@ -638,106 +635,102 @@ export async function activate(context: ExtensionContext) {
 
   const trySignerThing = () => {
     console.log("trySignerThing");
+  
     const panel = vscode.window.createWebviewPanel(
-      "signerView", // Identifies the type of the WebView
+      "signerWebview", // Identifies the type of the WebView
       "Signer Flow", // Title of the WebView
       vscode.ViewColumn.One, // Editor column to show the WebView
       {
         enableScripts: true, // Enable JavaScript in the WebView
       }
     );
-
+  
     // Set initial HTML content for the WebView
     panel.webview.html = getWebviewContent();
-    // sidebarProvider.view!.webview.html = getWebviewContent();
-
+  
     // Handle messages from WebView
-    // sidebarProvider.view?.webview.onDidReceiveMessage(
     panel.webview.onDidReceiveMessage(
       async (message) => {
-        if (message.command === "startSigning") {
-          // Create the signer instance
-          // const signer = new Signer();
-          console.log("put signer code here");
-
-          // const signedData = await signer.sign(message.payload); // Payload comes from the WebView
-          // console.log("signedData", signedData);
-
-          // Send the signed data back to the WebView
-          // sidebarProvider.view?.webview.postMessage({
-          //   command: "signedData",
-          //   data: signedData,
-          // });
+        if (message.command === "signedData") {
+          // Parse the JSON string received from the webview
+          const signedData = JSON.parse(message.data);
+          console.log("Signature:", signedData.signature);
+          console.log("Wallet Address:", signedData.address);
+        }
+  
+        if (message.command === 'closeWebview') {
+          console.log('Closing webview...');
+          panel.dispose();  // Close the webview when the message is received
         }
       },
       undefined,
       context.subscriptions
     );
   };
-  // Function to exchange the authorization code for an access token
-  async function exchangeCodeForToken(code: string) {
-    console.log("exchangeCodeForToken");
-    const clientId = "dev-nnxojm0y7p8jah4w.us.auth0.com";
-    const clientSecret = process.env.ALCHEMY_CLIENT_SECRET;
-    const tokenUrl = process.env.ALCHEMY_AUTH0_DOMAIN;
-
-    const response = await fetch(tokenUrl!, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        code: code,
-        grant_type: "authorization_code",
-        redirect_uri: process.env.ALCHEMY_AUTH0_REDIRECT_URI,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.access_token) {
-      vscode.window.showInformationMessage("OAuth login successful!");
-      // You can now use the access token to make authenticated requests
-      console.log("Access Token:", data.access_token);
-    } else {
-      vscode.window.showErrorMessage(
-        "Failed to exchange OAuth code for token."
-      );
-    }
-  }
+  
 
   function getWebviewContent() {
     return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Signer Flow</title>
-    </head>
-    <body>
-      <h1>Signer Flow</h1>
-      <button id="signBtn">Start Signing</button>
-      <div id="signedData"></div>
-
-      <script>
-        const vscode = acquireVsCodeApi();
-
-        document.getElementById('signBtn').addEventListener('click', () => {
-          vscode.postMessage({ command: 'startSigning', payload: 'Sample data to sign' });
-        });
-
-        window.addEventListener('message', (event) => {
-          const message = event.data;
-          if (message.command === 'signedData') {
-            document.getElementById('signedData').textContent = 'Signed Data: ' + message.data;
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Signer Flow</title>
+        <style>
+          #alchemy-signer-iframe-container {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
           }
-        });
-      </script>
-    </body>
-    </html>
-  `;
+        </style>
+      </head>
+      <body>
+        <h1>Auto Signer Flow</h1>
+        <div id="signedData"></div>
+  
+        <script src="https://cdn.jsdelivr.net/npm/web3@1.3.5/dist/web3.min.js"></script>
+        <script>
+          const vscode = acquireVsCodeApi();
+          
+          // Initialize Web3 with Alchemy
+          const web3 = new Web3('https://eth-mainnet.alchemyapi.io/v2/TeCd7dhqTm2my1oIR2zhsjmaj4ejfJu0');
+  
+          // Automatically initiate signing and recovery
+          (async function signAndRecover() {
+            const message = 'Sample data to sign';
+            try {
+              // Generate a new Ethereum account (for demonstration purposes)
+              const account = web3.eth.accounts.create();
+  
+              // Sign the message using the generated account's private key
+              const signature = await web3.eth.accounts.sign(message, account.privateKey);
+  
+              // Recover the address from the signature
+              const signerAddress = web3.eth.accounts.recover(message, signature.signature);
+  
+              // Combine the signature and address in a JSON object
+              const signedData = {
+                signature: signature.signature,
+                address: signerAddress
+              };
+  
+              // Send the JSON string back to the VS Code extension
+              vscode.postMessage({ command: 'signedData', data: JSON.stringify(signedData) });
+  
+              // Close the webview once signing and recovery are done
+              vscode.postMessage({ command: 'closeWebview' });
+  
+            } catch (error) {
+              console.error('Error signing data:', error);
+            }
+          })();
+        </script>
+      </body>
+      </html>
+    `;
   }
+  
+  
+  
 }
