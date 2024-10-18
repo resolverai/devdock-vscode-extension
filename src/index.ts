@@ -285,6 +285,8 @@ export async function activate(context: ExtensionContext) {
     return content
       .replace(/\\n/g, "\n") // Replace escaped newlines with actual newlines
       .replace(/\\t/g, "\t") // Replace escaped tabs with actual tabs
+      .replace(/\\"/g, '"') // Replace escaped quotes with actual quotes
+      .replace(/\\\\/g, "\\") // Replace double backslashes with a single backslash
       .replace(/\s+$/g, "") // Remove trailing spaces
       .trim(); // Trim leading and trailing spaces
   }
