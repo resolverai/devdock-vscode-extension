@@ -1,11 +1,11 @@
-let globalVariable: any = null;
+let isUserLoggedIn: boolean = false;
 
-export const setGlobalVariable = (value: any) => {
-  globalVariable = value;
+export const setIsLoggedIn = (value: boolean) => {
+  isUserLoggedIn = value;
 };
 
-export const getGlobalVariable = () => {
-  return globalVariable;
+export const isUserLoggedInAuth0 = () => {
+  return isUserLoggedIn;
 };
 
 interface CardItem {
@@ -27,4 +27,33 @@ export const setCardDataById = (data: CardItem) => {
 
 export const getCardData = () => {
   return selectedCard;
+};
+
+type UserLoginData = {
+  profilePic?: string;
+  profileLabel?: string;
+  topWalletAddress?: string;
+  balance_lable?: string;
+  balance?: number;
+  unclaimed_cash_label?: string;
+  unclaimed_cash?: number;
+  claim_now_cta_text?: string;
+  other_Wallets_label?: string;
+  wallets?: string[];
+  my_contribution_icon_path?: string;
+  my_contribution_label?: string;
+  my_contribution_web_link?: string;
+  settings_icon_path?: string;
+  settings_label?: string;
+  logout_icon_path?: string;
+  logout_label?: string;
+};
+
+let userData: UserLoginData | null = null;
+
+export const getUserData = () => {
+  return userData;
+};
+export const setUserData = (mUserData: UserLoginData) => {
+  userData = mUserData;
 };

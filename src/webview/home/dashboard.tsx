@@ -10,6 +10,7 @@ import GitHubLoginPopup from '../login/github_login_popup';
 import UserGitHubLoggedInPopup from '../user/github_user_loggedin_popup';
 import { ServerMessage } from '../../common/types';
 import { EVENT_NAME, WEBUI_TABS } from '../../common/constants';
+import { isUserLoggedInAuth0 } from '../../extension/store';
 
 
 
@@ -18,7 +19,7 @@ const Dashboard: React.FC = () => {
     const [bountiesClicked, setBountiesClicked] = useState<boolean>(true);
     const [topTabsClicked, setTopTabClicked] = useState<boolean | null>(false);
     const [bountyClickedId, setBountyClickedId] = useState<number | null>(0);
-    const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(false);
+    const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(isUserLoggedInAuth0());
     const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
     const [showLoggedInUserPopup, setLoggedInPoupVisibile] = useState(false);
     const [serverMessageForTab, setServerMessageForTab] = useState<string | undefined>();

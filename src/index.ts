@@ -38,6 +38,7 @@ import {
 } from "./common/auth";
 import Analytics from "./common/analytics";
 import { AnalyticsEvents } from "./common/analyticsEventKeys";
+import { isUserLoggedInAuth0, setIsLoggedIn, setUserData } from "./extension/store";
 
 
 export async function activate(context: ExtensionContext) {
@@ -623,6 +624,8 @@ export async function activate(context: ExtensionContext) {
           // console.log("Access Token:", accessToken);
           // exchangeCodeForToken(accessToken);
           // You can now use the access token to make authenticated requests
+          setIsLoggedIn(true);
+
           trySignerThing();
         } else {
           vscode.window.showErrorMessage(
@@ -656,6 +659,36 @@ export async function activate(context: ExtensionContext) {
           const signedData = JSON.parse(message.data);
           console.log("Signature:", signedData.signature);
           console.log("Wallet Address:", signedData.address);
+
+
+          type UserLoginData = {
+            profilePic?: string;
+            profileLabel?: string;
+            topWalletAddress?: string;
+            balance_lable?: string;
+            balance?: number;
+            unclaimed_cash_label?: string;
+            unclaimed_cash?: number;
+            claim_now_cta_text?: string;
+            other_Wallets_label?: string;
+            wallets?: string[];
+            my_contribution_icon_path?: string;
+            my_contribution_label?: string;
+            my_contribution_web_link?: string;
+            settings_icon_path?: string;
+            settings_label?: string;
+            logout_icon_path?: string;
+            logout_label?: string;
+          };
+          
+          const userData : UserLoginData = {
+            balance:10,
+            topWalletAddress:signedData.address,
+            wallets:[signedData.address]
+          };
+          setUserData(userData);
+          console.log("isUserLoggedInAuth0",isUserLoggedInAuth0());
+          console.log("userData",userData.topWalletAddress);
         }
   
         if (message.command === 'closeWebview') {

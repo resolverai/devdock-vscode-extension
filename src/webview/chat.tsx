@@ -56,7 +56,7 @@ import AttachmentSVG from './home/svgs/filefolder_svg'
 import CenterLogoOnBlankScreen from './home/svgs/center_log_blank_screen'
 import GreenRoundWithTick from './home/svgs/green_tick'
 import CurrentFileSymbol from './home/svgs/current_file_symbol'
-import { getCardData, getGlobalVariable } from '../extension/store'
+import { getCardData } from '../extension/store'
 
 
 interface ChatProps {
