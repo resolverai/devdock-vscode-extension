@@ -36,7 +36,7 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
 
     const global = globalThis as any;
     function handleGithubLogin(): void {
-        console.log('This is handleSocialLogin');
+        console.log('This is handleSocialLogin1');
         global.vscode.postMessage({
             type: LOGIN_EVENT_NAME.initiateSocialLogin,
         });

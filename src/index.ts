@@ -540,8 +540,6 @@ export async function activate(context: ExtensionContext) {
     }),
 
     commands.registerCommand(DEVDOCK_COMMAND_NAME.githubConnect, async () => {
-      // const web3Auth = initWeb3Auth();
-      // await web3Auth?.initModal();
       socialLogin(context);
     }),
 
@@ -610,4 +608,136 @@ export async function activate(context: ExtensionContext) {
 
   if (config.get("enabled")) statusBar.show();
   statusBar.text = "🤖";
+
+  // Register the URI handler to capture the callback
+  vscode.window.registerUriHandler({
+    handleUri(uri: vscode.Uri) {
+      console.log("OnGithubLogin are we here...");
+      if (uri.path === "/auth/callback") {
+        // Parse the query parameters to extract the authorization code
+        const fragment = uri.fragment; // This will get everything after `#`
+
+        // Parse the fragment to get the access_token
+        const params = new URLSearchParams(fragment); // Treat the fragment like query parameters
+        const accessToken = params.get("access_token"); // Extract access_token
+
+        if (accessToken) {
+          // vscode.window.showInformationMessage(`Access token: ${accessToken}`);
+          // console.log("Access Token:", accessToken);
+          // exchangeCodeForToken(accessToken);
+          // You can now use the access token to make authenticated requests
+          trySignerThing();
+        } else {
+          vscode.window.showErrorMessage(
+            "Failed to extract access token from URI."
+          );
+        }
+      }
+    },
+  });
+
+  const trySignerThing = () => {
+    console.log("trySignerThing");
+    const panel = vscode.window.createWebviewPanel(
+      "signerView", // Identifies the type of the WebView
+      "Signer Flow", // Title of the WebView
+      vscode.ViewColumn.One, // Editor column to show the WebView
+      {
+        enableScripts: true, // Enable JavaScript in the WebView
+      }
+    );
+
+    // Set initial HTML content for the WebView
+    panel.webview.html = getWebviewContent();
+    // sidebarProvider.view!.webview.html = getWebviewContent();
+
+    // Handle messages from WebView
+    // sidebarProvider.view?.webview.onDidReceiveMessage(
+    panel.webview.onDidReceiveMessage(
+      async (message) => {
+        if (message.command === "startSigning") {
+          // Create the signer instance
+          // const signer = new Signer();
+          console.log("put signer code here");
+
+          // const signedData = await signer.sign(message.payload); // Payload comes from the WebView
+          // console.log("signedData", signedData);
+
+          // Send the signed data back to the WebView
+          // sidebarProvider.view?.webview.postMessage({
+          //   command: "signedData",
+          //   data: signedData,
+          // });
+        }
+      },
+      undefined,
+      context.subscriptions
+    );
+  };
+  // Function to exchange the authorization code for an access token
+  async function exchangeCodeForToken(code: string) {
+    console.log("exchangeCodeForToken");
+    const clientId = "dev-nnxojm0y7p8jah4w.us.auth0.com";
+    const clientSecret = process.env.ALCHEMY_CLIENT_SECRET;
+    const tokenUrl = process.env.ALCHEMY_AUTH0_DOMAIN;
+
+    const response = await fetch(tokenUrl!, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        code: code,
+        grant_type: "authorization_code",
+        redirect_uri: process.env.ALCHEMY_AUTH0_REDIRECT_URI,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.access_token) {
+      vscode.window.showInformationMessage("OAuth login successful!");
+      // You can now use the access token to make authenticated requests
+      console.log("Access Token:", data.access_token);
+    } else {
+      vscode.window.showErrorMessage(
+        "Failed to exchange OAuth code for token."
+      );
+    }
+  }
+
+  function getWebviewContent() {
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Signer Flow</title>
+    </head>
+    <body>
+      <h1>Signer Flow</h1>
+      <button id="signBtn">Start Signing</button>
+      <div id="signedData"></div>
+
+      <script>
+        const vscode = acquireVsCodeApi();
+
+        document.getElementById('signBtn').addEventListener('click', () => {
+          vscode.postMessage({ command: 'startSigning', payload: 'Sample data to sign' });
+        });
+
+        window.addEventListener('message', (event) => {
+          const message = event.data;
+          if (message.command === 'signedData') {
+            document.getElementById('signedData').textContent = 'Signed Data: ' + message.data;
+          }
+        });
+      </script>
+    </body>
+    </html>
+  `;
+  }
 }

@@ -113,6 +113,7 @@ export const DEVDOCK_COMMAND_NAME = {
   devdockGetCurrentFocusFileNameCommand: "devdock.getCurrentFocusFileName",
   hideCenterBlankUIFromChat: "devdock.hideCenterUIFromChat",
   devdockBountyFilesResponse: "devdock.sendBountyFilesResponse",
+  devdockOpenSigner: "devdock.openSigner",
 };
 
 export const CONVERSATION_EVENT_NAME = {

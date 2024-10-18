@@ -7,7 +7,7 @@ const global = globalThis as any;
 
 export const SocialLogin: React.FC = () => {
   const handleSocialLogin = () => {
-    console.log('This is handleSocialLogin');
+    console.log('This is handleSocialLogin3');
     global.vscode.postMessage({
       type: LOGIN_EVENT_NAME.initiateSocialLogin,
     });
@@ -19,7 +19,6 @@ export const SocialLogin: React.FC = () => {
       <VSCodeButton appearance="primary" onClick={handleSocialLogin}>
         Github Login
       </VSCodeButton>
-
     </div>
 
 

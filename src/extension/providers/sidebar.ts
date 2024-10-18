@@ -537,7 +537,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private initiateSocialLogin() {
+    console.log("initiateSocialLogin");
     vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.githubConnect);
+    // vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.devdockOpenSigner);
   }
   private hideCenterUIFromChatScreen() {
     vscode.commands.executeCommand(
