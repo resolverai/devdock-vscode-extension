@@ -38,7 +38,9 @@ import {
 } from "./common/auth";
 import Analytics from "./common/analytics";
 import { AnalyticsEvents } from "./common/analyticsEventKeys";
-import { isUserLoggedInAuth0, setIsLoggedIn, setUserData } from "./extension/store";
+import { getUserData, isUserLoggedInAuth0, setIsLoggedIn, setUserData } from "./extension/store";
+import { AlchemyProvider, ethers } from 'ethers';
+
 
 
 export async function activate(context: ExtensionContext) {
@@ -626,7 +628,21 @@ export async function activate(context: ExtensionContext) {
           // You can now use the access token to make authenticated requests
           setIsLoggedIn(true);
 
-          trySignerThing();
+          
+          const userData = getUserData();
+          const walletAddress = userData?.topWalletAddress;
+          const privateKey = userData?.privateKey;
+           
+           if( privateKey!=null){
+              // startTransactionRelatedStuff(walletAddress,privateKey);
+              startTransactionRelatedStuff(privateKey);
+              
+           }
+           else{
+            //try create wallet
+            trySignerThing();
+           }
+          
         } else {
           vscode.window.showErrorMessage(
             "Failed to extract access token from URI."
@@ -657,9 +673,8 @@ export async function activate(context: ExtensionContext) {
         if (message.command === "signedData") {
           // Parse the JSON string received from the webview
           const signedData = JSON.parse(message.data);
-          console.log("Signature:", signedData.signature);
+          console.log("PrivateKey:", signedData.privateKey);
           console.log("Wallet Address:", signedData.address);
-
 
           type UserLoginData = {
             profilePic?: string;
@@ -679,16 +694,21 @@ export async function activate(context: ExtensionContext) {
             settings_label?: string;
             logout_icon_path?: string;
             logout_label?: string;
+            privateKey?: string;
           };
           
           const userData : UserLoginData = {
             balance:10,
             topWalletAddress:signedData.address,
-            wallets:[signedData.address]
+            wallets:[signedData.address],
+            privateKey: signedData.privateKey,
+            
           };
           setUserData(userData);
           console.log("isUserLoggedInAuth0",isUserLoggedInAuth0());
           console.log("userData",userData.topWalletAddress);
+          startTransactionRelatedStuff('0x05725394104f64a44805c33c28323afe47fcbb6052070169bc345982e703c6ec');
+
         }
   
         if (message.command === 'closeWebview') {
@@ -727,7 +747,9 @@ export async function activate(context: ExtensionContext) {
           const vscode = acquireVsCodeApi();
           
           // Initialize Web3 with Alchemy
-          const web3 = new Web3('https://eth-mainnet.alchemyapi.io/v2/TeCd7dhqTm2my1oIR2zhsjmaj4ejfJu0');
+          const web3 = new Web3('https://eth-sepolia.g.alchemy.com/v2/TeCd7dhqTm2my1oIR2zhsjmaj4ejfJu0');
+          //test net  https://eth-sepolia.g.alchemy.com/v2/
+          //main net https://eth-mainnet.alchemyapi.io/v2/TeCd7dhqTm2my1oIR2zhsjmaj4ejfJu0
   
           // Automatically initiate signing and recovery
           (async function signAndRecover() {
@@ -735,17 +757,20 @@ export async function activate(context: ExtensionContext) {
             try {
               // Generate a new Ethereum account (for demonstration purposes)
               const account = web3.eth.accounts.create();
+
+              console.log('ethAccount',account);
   
               // Sign the message using the generated account's private key
               const signature = await web3.eth.accounts.sign(message, account.privateKey);
+              console.log('signedMessage',signature.signature);
   
               // Recover the address from the signature
               const signerAddress = web3.eth.accounts.recover(message, signature.signature);
   
               // Combine the signature and address in a JSON object
               const signedData = {
-                signature: signature.signature,
-                address: signerAddress
+                privateKey: account.privateKey,
+                address: account.address
               };
   
               // Send the JSON string back to the VS Code extension
@@ -765,5 +790,50 @@ export async function activate(context: ExtensionContext) {
   }
   
   
+ async function startTransactionRelatedStuff ( privateKey: string)
+  {
+  console.log('startTransactionRelatedStuff',privateKey);
+    //create a  transaction
+    // sign a transaction
+    //send money from and to account
+
+    try {
+      const wallet = new ethers.Wallet(privateKey);
+      console.log('startTransactionRelatedStuff ethers wallet',wallet);
+      const gasPrice = '20';
+      const dataForTransaction = 'hello manish';
+      const toAddress = '0xc34f2d24c4457c917dF8F61a34f0cFCD065019cB';//its manish address
+      const transferEth = '0.001';
+        // Connect to the Ethereum network (e.g., Infura, Alchemy)
+      // const mainNet = ethers.getDefaultProvider('mainnet');
+      const provider = new AlchemyProvider('sepolia', process.env.ALCHEMY_API_KEY);
+  
+    // Connect the wallet to the provider
+    const signer = wallet.connect(provider);
+      //create a transaction with message
+      const transaction = {
+        to: toAddress,
+        value: ethers.parseEther(transferEth), // Value in Ether
+        // gasLimit: 21000, // Estimate the gas limit
+        gasPrice: ethers.parseUnits(gasPrice, 'gwei'),
+        data: ethers.hexlify(ethers.toUtf8Bytes(dataForTransaction)),
+      };
+      const signedTransaction = await wallet.signTransaction(transaction);
+      console.log("startTransactionRelatedStuff signedTransaction",signedTransaction);
+      // Sign and send the transaction
+      const txResponse = await signer.sendTransaction(transaction);//this default signs the transaction internally
+      console.log('startTransactionRelatedStuff Transaction Hash:', txResponse.hash);
+  
+      // Wait for the transaction to be mined
+      const receipt = await txResponse.wait();
+      console.log('startTransactionRelatedStuff Transaction Mined:', receipt);
+      
+    } catch (error) {
+      console.error('startTransactionRelatedStuff Error signing or sending transaction:', error);
+    }
+
+    }
   
 }
+
+

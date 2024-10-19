@@ -47,6 +47,7 @@ type UserLoginData = {
   settings_label?: string;
   logout_icon_path?: string;
   logout_label?: string;
+  privateKey?: string;
 };
 
 let userData: UserLoginData | null = null;
