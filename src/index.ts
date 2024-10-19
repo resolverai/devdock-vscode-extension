@@ -622,25 +622,16 @@ export async function activate(context: ExtensionContext) {
         const accessToken = params.get("access_token"); // Extract access_token
 
         if (accessToken) {
-          // vscode.window.showInformationMessage(`Access token: ${accessToken}`);
-          // console.log("Access Token:", accessToken);
-          // exchangeCodeForToken(accessToken);
-          // You can now use the access token to make authenticated requests
           setIsLoggedIn(true);
 
-          
           const userData = getUserData();
-          const walletAddress = userData?.topWalletAddress;
           const privateKey = userData?.privateKey;
            
            if( privateKey!=null){
-              // startTransactionRelatedStuff(walletAddress,privateKey);
-              startTransactionRelatedStuff(privateKey);
-              
+              startTransactionRelatedStuff(privateKey);  
            }
            else{
-            //try create wallet
-            trySignerThing();
+            createWalletForUser();
            }
           
         } else {
@@ -652,8 +643,8 @@ export async function activate(context: ExtensionContext) {
     },
   });
 
-  const trySignerThing = () => {
-    console.log("trySignerThing");
+  const createWalletForUser = () => {
+    console.log("createWalletForUser");
   
     const panel = vscode.window.createWebviewPanel(
       "signerWebview", // Identifies the type of the WebView

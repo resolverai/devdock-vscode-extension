@@ -466,6 +466,7 @@
     "webpack": "^5.94.0"
   },
   "dependencies": {
+    "@alch/alchemy-web3": "^1.4.7",
     "@lancedb/lancedb": "^0.9.0",
     "@tiptap/extension-mention": "^2.5.9",
     "@tiptap/extension-placeholder": "^2.5.9",
@@ -491,7 +492,7 @@
     "b4a": "^1.6.6",
     "classnames": "^2.5.1",
     "dotenv": "^16.4.5",
-    "ethers": "^6.13.2",
+    "ethers": "^6.13.4",
     "handlebars": "^4.7.8",
     "handlebars-loader": "^1.7.3",
     "hypercore-crypto": "^3.4.2",
