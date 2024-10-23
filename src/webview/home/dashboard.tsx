@@ -81,6 +81,11 @@ const Dashboard: React.FC = () => {
                 console.log("Top Tab clicked in dashboard.tsx inside WEBUI_TABS.chat, this is to show non chat ui");
             }
         }
+        if (message?.type === EVENT_NAME.devdockStopGeneration) {
+            console.log("devdockStopGeneration devdockStopGeneration");
+            setTopTabClicked(false);
+        }
+
         return () => window.removeEventListener('message', handler)
     }
 
