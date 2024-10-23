@@ -591,13 +591,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         <link href="${codiconCssWebviewUri}" rel="stylesheet">
         <link href="${css}" rel="stylesheet">
         <meta charset="UTF-8">
-				<meta
-          http-equiv="Content-Security-Policy"
-          content="default-src 'self' http://localhost:11434;
-          img-src vscode-resource: https:;
-          font-src vscode-webview-resource:;
-          script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
-        >
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Sidebar</title>
         <style>

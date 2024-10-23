@@ -43,6 +43,7 @@ import {
   setUserData,
 } from "./extension/store";
 import { AlchemyProvider, ethers } from "ethers";
+import apiService from "./services/apiService";
 
 export async function activate(context: ExtensionContext) {
   setContext(context);
@@ -612,18 +613,27 @@ export async function activate(context: ExtensionContext) {
 
   // Register the URI handler to capture the callback
   vscode.window.registerUriHandler({
-    handleUri(uri: vscode.Uri) {
-      console.log("OnGithubLogin are we here...");
+    async handleUri(uri: vscode.Uri) {
+      console.log("OnGithubLogin are we here...", uri);
       if (uri.path === "/auth/callback") {
         // Parse the query parameters to extract the authorization code
         const fragment = uri.fragment; // This will get everything after `#`
 
         // Parse the fragment to get the access_token
         const params = new URLSearchParams(fragment); // Treat the fragment like query parameters
+        console.log("Github login params", params);
         const accessToken = params.get("access_token"); // Extract access_token
+        const id_token = params.get("id_token"); // Extract access_token
 
-        if (accessToken) {
+        // query: 'code=3q8l2Lq7HSa0P-s6u1udVcovDjamfqERp5435UTtV1sAt'}
+        // const code = uri.query.split("=")[1];
+        console.log("GithubAccessToken", accessToken);
+        console.log("Github Id_token", id_token);
+
+        if (id_token) {
           setIsLoggedIn(true);
+          fetchGithubUserDetails(id_token);
+          // fetchAccessToken(id_token);
 
           const userData = getUserData();
           const privateKey = userData?.privateKey;
@@ -641,6 +651,39 @@ export async function activate(context: ExtensionContext) {
       }
     },
   });
+
+  const fetchAccessToken = async (code: string) => {
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET; // From GitHub App settings
+    const redirectUri = process.env.GITHUB_REDIRECT_URI;
+
+    const response = await fetch(
+      "https://github.com/login/oauth/access_token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json", // GitHub returns JSON response for access token
+        },
+        body: JSON.stringify({
+          client_id: clientId,
+          client_secret: clientSecret,
+          code: code, // Authorization code received in the callback
+          redirect_uri: redirectUri,
+        }),
+      }
+    );
+    console.log("authorizedAccessTokenResponse", JSON.stringify(response));
+    const data = await response.json();
+    if (data.error) {
+      console.log(`Error fetching access token: ${data.error}`);
+      // throw new Error(`Error fetching access token: ${data.error}`);
+    }
+    console.log("authorizedAccessToken", data.access_token);
+
+    getGitHubProfile(data!.access_token ? data!.access_token : code);
+    return data.access_token;
+  };
 
   const createWalletForUser = () => {
     console.log("createWalletForUser");
@@ -826,6 +869,49 @@ export async function activate(context: ExtensionContext) {
         "startTransactionRelatedStuff Error signing or sending transaction:",
         error
       );
+    }
+  }
+
+  function fetchGithubUserDetails(accessToken: string) {
+    //repos:  https://api.github.com/user/repos
+    //username: https://api.github.com/user
+    // fetch("https://api.github.com/user/", {
+    //   headers: {
+    //     Authorization: `Bearer ${accessToken}`, // Access token fetched from Auth0
+    //   },
+    // })
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     console.log("GitHub data:", data); // GitHub username
+    //   })
+    //   .catch((error) =>
+    //     console.error("GitHub data Error fetching user profile:", error)
+    //   );
+
+    const result = apiService.getWithFullUrl(
+      "https://api.github.com/user/",
+      {},
+      accessToken
+    );
+    console.log("GitHub data:", result); // GitHub username
+  }
+  async function getGitHubProfile(accessToken: string) {
+    try {
+      console.log("getGitHubProfile", accessToken);
+      const response = await fetch("https://api.github.com/user", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (response.status === 401) {
+        throw new Error("Unauthorized: Bad credentials");
+      }
+
+      const data = await response.json();
+      console.log("GitHub username:", data.login); // GitHub username
+    } catch (error) {
+      console.error("Error fetching GitHub profile:", error);
     }
   }
 }

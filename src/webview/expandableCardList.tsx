@@ -1,12 +1,13 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { List } from 'apache-arrow';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DevCashSVG from './home/svgs/dev_cash';
 import BountiesLeftIcon from './home/svgs/bounties_left_icon';
 
 import GitHubLoginPopup from './login/github_login_popup';
 import UserGitHubLoggedInPopup from './user/github_user_loggedin_popup';
 import { setCardDataById } from '../extension/store';
+import apiService from '../services/apiService';
 
 
 interface CardItem {
@@ -20,9 +21,10 @@ interface CardItem {
   bountiesLeft: string;
 }
 
-const cardData: CardItem[] = [
+const myCardData: CardItem[] = [
   {
-    id: 1, title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
+    id: 1,
+    title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
     bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
     bottomDescription: 'You can make multiple submissions',
     bottomHeading: 'Top 10 Submissions will be approved',
@@ -31,7 +33,8 @@ const cardData: CardItem[] = [
     bountiesLeft: '8 Bounties left'
   },
   {
-    id: 2, title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
+    id: 2,
+    title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
     bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
     bottomDescription: 'You can make multiple submissions',
     bottomHeading: 'Top 10 Submissions will be approved',
@@ -46,7 +49,8 @@ const cardData: CardItem[] = [
     bountiesLeft: '3 Bounties left'
   },
   {
-    id: 3, title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
+    id: 3,
+    title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
     bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
     bottomDescription: 'You can make multiple submissions',
     bottomHeading: 'Top 10 Submissions will be approved',
@@ -68,6 +72,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
   const [claimBountyclicked, setClaimBountyClicked] = useState<boolean>(false);
   const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
   const [isLoggedInPopupVisible, setLoggedInUserPopupVisible] = useState(false);
+  const [cardData, setIsDataLoadedAndParsed] = useState<CardItem[]>(myCardData);
 
   const toggleCard = (id: number) => {
     setExpandedCardId(prevId => (prevId === id ? null : id));
@@ -76,7 +81,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
   function handleClaimBountyClick(id: number): void {
     console.log("clicked bounty id:" + id);
     setClaimBountyClicked(true);
-    const selectedCard = cardData.find(card => card.id === id);
+    const selectedCard = cardData!.find(card => card.id === id);
 
     if (selectedCard) {
       setCardDataById(selectedCard); // Save only the selected card data in the global store
@@ -97,6 +102,44 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
   }
 
+
+  async function fetchAllBounties() {
+    console.log('called fetchAllBounties');
+    const response = await apiService.getWithFullUrl('https://dapp.devdock.ai/v1/master/bounties');
+    console.log(JSON.stringify(response));
+    const CardItem = mapApiResponseToCardData(response);
+    console.log('CardItem[0]', CardItem[0]);
+    //convert response to CardItems so that carditem can be shown as expandable cards
+    //once data parsing is done set state of data so that re-rendering can happen
+    //while re-rendering use this updated data object to show data on the list
+    if (CardItem.length > 0)
+      setIsDataLoadedAndParsed(CardItem);
+
+  }
+  useEffect(() => {
+    console.log('call fetchAllBounties');
+    fetchAllBounties();
+  }, [])
+  useEffect(() => {
+
+  }, [cardData])
+
+  function mapApiResponseToCardData(apiResponse: any): CardItem[] {
+    return apiResponse.data.map((item: any) => {
+      return {
+        id: item.id, // Assuming `item.id` is unique for each bounty
+        title: `[${item.platform.toUpperCase()} BOUNTY] ${item.title}`,
+        bulletsArray: item.bulletsArray ? item.bulletsArray : [item.platform, item.category, item.scope_result],
+        bottomDescription: item.num_submissions_left > 0 ? 'You can make multiple submissions' : 'No more submissions allowed',
+        bottomHeading: item.num_submissions_left > 0 ? `${item.num_submissions_left} Submissions left` : 'Submissions closed',
+        description: `Mission\n${item.description}\n\nBounty amount: ${item.amount || 'Not specified'}\nBounty Description: ${item.description}\npublic/private bounty: ${item.scope_result}\nbounty smart contract address: ${item.smart_contract_address}\nCreated By: ${item.created_by}\nBounties left: ${item.num_submissions_left} and deadline: ${new Date(item.updated_at).toLocaleDateString()}\n`,
+        bountyPrice: `${item.amount || '0'} ${item.token || 'Devcash'}`,
+        bountiesLeft: `${item.num_submissions_left || '0'} Bounties left`
+      };
+    });
+  }
+
+
   // Function to close the popup
   const closePopup = () => {
     setGitHubPopupVisible(false);
@@ -111,7 +154,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
   return (
     <div style={styles.parentCard}>
-      {cardData.map(card => (
+      {cardData!.map(card => (
         <div key={card.id} style={styles.card}>
           <div style={styles.cardHeader} onClick={() => toggleCard(card.id)}>
 

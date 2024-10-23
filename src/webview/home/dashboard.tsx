@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
     const [bountiesClicked, setBountiesClicked] = useState<boolean>(true);
     const [topTabsClicked, setTopTabClicked] = useState<boolean | null>(false);
     const [bountyClickedId, setBountyClickedId] = useState<number | null>(0);
-    const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(isUserLoggedInAuth0());
+    const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(false);
     const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
     const [showLoggedInUserPopup, setLoggedInPoupVisibile] = useState(false);
     const [serverMessageForTab, setServerMessageForTab] = useState<string | undefined>();

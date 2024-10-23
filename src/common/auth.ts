@@ -101,11 +101,20 @@ const socialLogin = (context: ExtensionContext) => {
   extensionContext = context;
   //webAuth.authorize();
   const nonce = generateNonce();
+
+  // Add the desired GitHub scopes here (read:user, repo)
+  const scope = "openid profile email read:user repo";
+
   const authUrl = `https://${auth0Config.domain}/authorize?client_id=${
     auth0Config.clientId
   }&redirect_uri=${encodeURIComponent(
     auth0Config.redirectUri
-  )}&response_type=token id_token&scope=openid profile email&nonce=${nonce}`;
+  )}&response_type=token id_token&scope=${encodeURIComponent(
+    scope
+  )}&nonce=${nonce}`;
+
+  console.log("GithubAuthUrl", authUrl);
+
   vscode.env
     .openExternal(vscode.Uri.parse(authUrl))
     .then(undefined, (error) => {

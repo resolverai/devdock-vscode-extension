@@ -98,6 +98,29 @@ class ApiService {
     }
   }
 
+  async getWithFullUrl<T>(
+    url: string,
+    params: Record<string, any> = {},
+    key?: string
+  ): Promise<T> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (key) {
+      headers.Authorization = `Bearer ${key}`;
+    }
+    try {
+      const response: AxiosResponse<T> = await axios.get(url, {
+        headers,
+        params, // Query parameters if needed
+      });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
+  }
+
   // Error handling method
   private handleError(error: any): void {
     console.error("API call failed:", error);

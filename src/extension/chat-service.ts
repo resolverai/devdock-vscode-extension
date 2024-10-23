@@ -656,7 +656,7 @@ export class ChatService {
       "Provide me a response in a way where if in your response there is any code snippet is available then provide me a json response like this - " +
       expectedJsonResponseString +
       "\n\n" +
-      "\n Generate response as short as possible so that I can get response in only first stream of the response if stream is set to true for the request";
+      "\n Generate all relevant source files for the project which are required for a web3 project development, along with basic setup of code snippets";
 
     const ragContext = await this.getRagContext(text);
 
