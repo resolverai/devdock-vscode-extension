@@ -24,40 +24,40 @@ interface CardItem {
 const myCardData: CardItem[] = [
   {
     id: 1,
-    title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
-    bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
-    bottomDescription: 'You can make multiple submissions',
-    bottomHeading: 'Top 10 Submissions will be approved',
-    description: 'Mission\nWrite a Javascript program to scrape each bounty (e.g. https://devcash.dev/bountyplatform/bounty/192)\nShould get\n\nBounty amount\nBounty Description\npublic/private bounty\nbounty smart contract addresss\nCreated By\nBounties left and deadline\n\nThen we need an API to serve all this info.\n',
-    bountyPrice: '1000 Devcash',
-    bountiesLeft: '8 Bounties left'
+    title: 'Loading ...',
+    bulletsArray: ["Loading ...",],
+    bottomDescription: 'Loading ...',
+    bottomHeading: 'Loading ...',
+    description: 'Loading ...',
+    bountyPrice: 'Loading ...',
+    bountiesLeft: 'Loading ...'
   },
-  {
-    id: 2,
-    title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
-    bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
-    bottomDescription: 'You can make multiple submissions',
-    bottomHeading: 'Top 10 Submissions will be approved',
-    description:
-      "1. Install Metamask and set up your wallet (metamask.io)\n" +
-      "2. Connect your Metamask to Gnosis Chain using chainlist.org \n" +
-      "3. Receive a small amount of xDAI. You can either join the Dev Discord and request a small amount, or purchase it yourself \n" +
-      "4. Make a submission on this bounty. Add a constructive or humorous comment \n" +
-      "5. Wait for review and acceptance \n" +
-      "6. Check your Devcash Balance \n",
-    bountyPrice: '900 Devcash',
-    bountiesLeft: '3 Bounties left'
-  },
-  {
-    id: 3,
-    title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
-    bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
-    bottomDescription: 'You can make multiple submissions',
-    bottomHeading: 'Top 10 Submissions will be approved',
-    description: 'Mission\nWrite a Javascript program to scrape each bounty (e.g. https://devcash.dev/bountyplatform/bounty/192)\nShould get\n\nBounty amount\nBounty Description\npublic/private bounty\nbounty smart contract addresss\nCreated By\nBounties left and deadline\n\nThen we need an API to serve all this info.\n',
-    bountyPrice: '800 Devcash',
-    bountiesLeft: '2 Bounties left'
-  },
+  // {
+  //   id: 2,
+  //   title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
+  //   bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
+  //   bottomDescription: 'You can make multiple submissions',
+  //   bottomHeading: 'Top 10 Submissions will be approved',
+  //   description:
+  //     "1. Install Metamask and set up your wallet (metamask.io)\n" +
+  //     "2. Connect your Metamask to Gnosis Chain using chainlist.org \n" +
+  //     "3. Receive a small amount of xDAI. You can either join the Dev Discord and request a small amount, or purchase it yourself \n" +
+  //     "4. Make a submission on this bounty. Add a constructive or humorous comment \n" +
+  //     "5. Wait for review and acceptance \n" +
+  //     "6. Check your Devcash Balance \n",
+  //   bountyPrice: '900 Devcash',
+  //   bountiesLeft: '3 Bounties left'
+  // },
+  // {
+  //   id: 3,
+  //   title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
+  //   bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
+  //   bottomDescription: 'You can make multiple submissions',
+  //   bottomHeading: 'Top 10 Submissions will be approved',
+  //   description: 'Mission\nWrite a Javascript program to scrape each bounty (e.g. https://devcash.dev/bountyplatform/bounty/192)\nShould get\n\nBounty amount\nBounty Description\npublic/private bounty\nbounty smart contract addresss\nCreated By\nBounties left and deadline\n\nThen we need an API to serve all this info.\n',
+  //   bountyPrice: '800 Devcash',
+  //   bountiesLeft: '2 Bounties left'
+  // },
 
 
 ];
@@ -68,7 +68,7 @@ interface CardProps {
 const global = globalThis as any
 const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesClickedFromList }) => {
   console.log('ExpandableCardList isUserLoggedIn', isUserLoggedIn);
-  const [expandedCardId, setExpandedCardId] = useState<number | null>(1);
+  const [expandedCardId, setExpandedCardId] = useState<number | null>();
   const [claimBountyclicked, setClaimBountyClicked] = useState<boolean>(false);
   const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
   const [isLoggedInPopupVisible, setLoggedInUserPopupVisible] = useState(false);
@@ -121,7 +121,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
     fetchAllBounties();
   }, [])
   useEffect(() => {
-
+    setExpandedCardId(cardData[0].id);
   }, [cardData])
 
   function mapApiResponseToCardData(apiResponse: any): CardItem[] {
