@@ -105,7 +105,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
   async function fetchAllBounties() {
     console.log('called fetchAllBounties');
-    const response = await apiService.getWithFullUrl('https://dapp.devdock.ai/v1/master/bounties');
+    const response = await apiService.getWithFullUrl('https://dapp.devdock.ai/v1/master/bounties?status=active');
     console.log(JSON.stringify(response));
     const CardItem = mapApiResponseToCardData(response);
     console.log('CardItem[0]', CardItem[0]);
@@ -154,8 +154,9 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
   return (
     <div style={styles.parentCard}>
-      {cardData!.map(card => (
-        <div key={card.id} style={styles.card}>
+      {cardData!.map(card =>
+      (
+        (card.bountyPrice && parseInt(card.bountyPrice) > 0 && <div key={card.id} style={styles.card}>
           <div style={styles.cardHeader} onClick={() => toggleCard(card.id)}>
 
             <span style={
@@ -283,7 +284,8 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
             </div>
 
           )}
-        </div>
+        </div>)
+
       ))}
       {isGitHubPopupVisible && <GitHubLoginPopup onClose={closePopup}></GitHubLoginPopup>}
       {isLoggedInPopupVisible && <UserGitHubLoggedInPopup onClose={closeLoggedinPopup}></UserGitHubLoggedInPopup>}
