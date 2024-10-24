@@ -42,8 +42,10 @@ import {
   setIsLoggedIn,
   setUserData,
 } from "./extension/store";
-import { AlchemyProvider, ethers } from "ethers";
+import { AlchemyProvider, ethers, Wallet } from "ethers";
 import apiService from "./services/apiService";
+import { API_END_POINTS } from "./services/apiEndPoints";
+import { useGlobalContext } from "./webview/hooks";
 
 export async function activate(context: ExtensionContext) {
   setContext(context);
@@ -630,18 +632,61 @@ export async function activate(context: ExtensionContext) {
         console.log("GithubAccessToken", accessToken);
         console.log("Github Id_token", id_token);
 
-        if (id_token) {
+        if (accessToken) {
           setIsLoggedIn(true);
-          fetchGithubUserDetails(id_token);
+          // fetchGithubUserDetails(accessToken);
           // fetchAccessToken(id_token);
+          //creating a dummy data because github login is not working as per the desire
+          const createUserBodyData = {
+            github_id: id_token?.substring(0, 15),
+            username: accessToken?.substring(0, 15),
+            github_username: accessToken?.substring(0, 15),
+            email: "ms.sharma2505@gmail.com",
+            rank: 0,
+          };
+          try {
+            await apiService
+              .post(API_END_POINTS.CREATE_USER, createUserBodyData)
+              .then(async (response: any) => {
+                console.log("user created", response);
 
-          const userData = getUserData();
-          const privateKey = userData?.privateKey;
+                const userId = response.data.id;
 
-          if (privateKey != null) {
-            startTransactionRelatedStuff(privateKey);
-          } else {
-            createWalletForUser();
+                console.log("User ID:", userId);
+
+                const userWallets = response.data.wallets;
+                if (userWallets.length > 0) {
+                  //user has wallets no need to create
+                  console.log("user has wallets");
+                } else {
+                  //user dont have wallet create one and post to backend
+                  console.log("user has no wallets, creating now");
+                  createWalletForUserBak(
+                    async (wallet: Wallet) => {
+                      console.log("wallet created", wallet.address);
+                      const bodyToCreateWallet = {
+                        userId: userId,
+                        walletAddress: wallet.address,
+                        chain: "ETHEREUM",
+                        balance: 0,
+                      };
+
+                      await apiService
+                        .post(API_END_POINTS.CREATE_WALLET, bodyToCreateWallet)
+                        .then((response: any) => {
+                          console.log("Wallet created for the user", response);
+                        });
+                    },
+                    (error) => {
+                      console.log("wallet creation failed", error);
+                    }
+                  );
+                }
+              });
+          } catch (error) {
+            //error in user creation
+            console.log("error in user creation", error);
+            //this means user already exist
           }
         } else {
           vscode.window.showErrorMessage(
@@ -651,6 +696,23 @@ export async function activate(context: ExtensionContext) {
       }
     },
   });
+
+  const fetchUserWallet = async (
+    userId: number,
+    onSuccess: (response: any) => void,
+    onFailure: () => void
+  ) => {
+    await apiService
+      .get(API_END_POINTS.FETCH_USER_WALLET + "/" + userId)
+      .then((response: any) => {
+        const { wallet_address, balance, chain } = response.data;
+        if (wallet_address) {
+          onSuccess(response.data);
+        } else {
+          onFailure();
+        }
+      });
+  };
 
   const fetchAccessToken = async (code: string) => {
     const clientId = process.env.GITHUB_CLIENT_ID;
@@ -740,6 +802,52 @@ export async function activate(context: ExtensionContext) {
           console.log("isUserLoggedInAuth0", isUserLoggedInAuth0());
           console.log("userData", userData.topWalletAddress);
           startTransactionRelatedStuff(signedData.privateKey);
+        }
+
+        if (message.command === "closeWebview") {
+          console.log("Closing webview...");
+          panel.dispose(); // Close the webview when the message is received
+        }
+      },
+      undefined,
+      context.subscriptions
+    );
+  };
+
+  const createWalletForUserBak = (
+    onWalletCreated: (wallet: Wallet) => void,
+    onFailure: (error: any) => void
+  ) => {
+    console.log("createWalletForUser");
+
+    const panel = vscode.window.createWebviewPanel(
+      "signerWebview", // Identifies the type of the WebView
+      "Signer Flow", // Title of the WebView
+      vscode.ViewColumn.One, // Editor column to show the WebView
+      {
+        enableScripts: true, // Enable JavaScript in the WebView
+      }
+    );
+
+    // Set initial HTML content for the WebView
+    panel.webview.html = getWebviewContent();
+
+    // Handle messages from WebView
+    panel.webview.onDidReceiveMessage(
+      async (message) => {
+        if (message.command === "signedData") {
+          // Parse the JSON string received from the webview
+
+          try {
+            const signedData = JSON.parse(message.data);
+            console.log("PrivateKey:", signedData.privateKey);
+            const privateKey = signedData.privateKey;
+            const wallet = new ethers.Wallet(privateKey);
+            //ToDo return value of wallet in callback onWalletCreated
+            onWalletCreated(wallet);
+          } catch (error) {
+            onFailure(error);
+          }
         }
 
         if (message.command === "closeWebview") {
