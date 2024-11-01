@@ -88,17 +88,17 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
     }
 
 
-    if (!isUserLoggedIn) {
-      setGitHubPopupVisible(true);
-      console.log("user not loggedin and claim button clicked");
-    }
-    else {
-      //start bounty process
-      // setLoggedInUserPopupVisible(true);
-      console.log("user loggedin and claim button clicked");
-      onBountiesClickedFromList ? onBountiesClickedFromList(id) : null;
+    // if (!isUserLoggedIn) {
+    //   setGitHubPopupVisible(true);
+    //   console.log("user not loggedin and claim button clicked");
+    // }
+    // else {
+    //   //start bounty process
+    //   // setLoggedInUserPopupVisible(true);
+    //   console.log("user loggedin and claim button clicked");
+    //   onBountiesClickedFromList ? onBountiesClickedFromList(id) : null;
 
-    }
+    // }
 
   }
 
