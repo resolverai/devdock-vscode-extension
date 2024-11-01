@@ -87,6 +87,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
       setCardDataById(selectedCard); // Save only the selected card data in the global store
     }
 
+    onBountiesClickedFromList ? onBountiesClickedFromList(id) : null;
 
     // if (!isUserLoggedIn) {
     //   setGitHubPopupVisible(true);
