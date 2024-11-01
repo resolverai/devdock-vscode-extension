@@ -62,10 +62,6 @@ const Dashboard: React.FC = () => {
         updated_at: string
     }
 
-
-
-
-
     const handler = (event: MessageEvent) => {
         const message: ServerMessage<string | undefined> = event.data
         // console.log("Message received from server in dashboard.tsx: ", message?.type, message?.value?.data)
@@ -85,6 +81,22 @@ const Dashboard: React.FC = () => {
             console.log("devdockStopGeneration devdockStopGeneration");
             setTopTabClicked(false);
         }
+        if (message?.type === EVENT_NAME.githubLoginDone) {
+            console.log("githubLoginDone dashboard.tsx", message.value, typeof message.value);
+            setUserLoggedin(true);
+            const parsedMessageValue = message?.value as any;
+            const balance = parsedMessageValue.data.balance;
+            console.log('balance', balance);
+            setUserLoginData(parsedMessageValue.data);
+        }
+        if (message?.type === EVENT_NAME.githubLogoutDone) {
+            console.log("githubLogoutDone dashboard.tsx");
+            setUserLoggedin(true);
+
+        }
+
+
+
 
         return () => window.removeEventListener('message', handler)
     }

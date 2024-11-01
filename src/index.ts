@@ -821,6 +821,12 @@ export async function activate(context: ExtensionContext) {
         const responseVal = JSON.stringify(response.data);
         context.globalState.update("userProfileInfo", responseVal);
         console.log("userProfileInfo: " + getUserInfo());
+        sidebarProvider.view?.webview.postMessage({
+          type: EVENT_NAME.githubLoginDone,
+          value: {
+            data: response.data,
+          },
+        } as ServerMessage<string>);
         //post message user logged in successfully with data
         // userLoggedInSuccessFully();
       } else {

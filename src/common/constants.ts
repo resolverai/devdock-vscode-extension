@@ -81,6 +81,8 @@ export const EVENT_NAME = {
   devdockGetCurrentFocusFileNameEvent: "devdock-getCurrentFocusFileName",
   hideCenterBlankUIFromChatEvent: "devdock-hideCenterBlankUIFromChatEvent",
   devdockBountyRequest: "devdock-bounty-request",
+  githubLoginDone: "github-login-done",
+  githubLogoutDone: "github-logout-done",
 };
 
 export const DEVDOCK_COMMAND_NAME = {
