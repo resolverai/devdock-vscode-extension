@@ -49,6 +49,7 @@ import { Reranker } from "./reranker";
 import { SymmetryService } from "./symmetry-service";
 import { Logger } from "../common/logger";
 import { SessionManager } from "./session-manager";
+import { DevdockPoints, PointsEvents } from "../common/devdockPoints";
 
 const logger = new Logger();
 
@@ -365,6 +366,8 @@ export class ChatService {
       EXTENSION_CONTEXT_NAME.devdockGeneratingText,
       false
     );
+    const devdockPoints = DevdockPoints.getInstance();
+    devdockPoints.pointsEventDoneFor(PointsEvents.PROMPT);
     if (onEnd) {
       onEnd(this._completion);
       this._view?.webview.postMessage({

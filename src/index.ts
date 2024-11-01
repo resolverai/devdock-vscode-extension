@@ -45,7 +45,7 @@ import {
 import { AlchemyProvider, ethers, Wallet } from "ethers";
 import apiService from "./services/apiService";
 import { API_END_POINTS } from "./services/apiEndPoints";
-import { useGlobalContext } from "./webview/hooks";
+import { DevdockPoints, PointsEvents } from "./common/devdockPoints";
 
 export async function activate(context: ExtensionContext) {
   setContext(context);
@@ -173,6 +173,8 @@ export async function activate(context: ExtensionContext) {
   }
 
   createAndShowTerminal();
+  // fetchUserActionsList();
+  const devdockPoints = DevdockPoints.getInstance(context);
 
   async function generateFilesFromResponse(
     response: string, // Assuming response is a JSON string
@@ -625,32 +627,35 @@ export async function activate(context: ExtensionContext) {
         const params = new URLSearchParams(fragment); // Treat the fragment like query parameters
         console.log("Github login params", params);
         const accessToken = params.get("access_token"); // Extract access_token
-        const id_token = params.get("id_token"); // Extract access_token
 
-        // query: 'code=3q8l2Lq7HSa0P-s6u1udVcovDjamfqERp5435UTtV1sAt'}
-        // const code = uri.query.split("=")[1];
         console.log("GithubAccessToken", accessToken);
-        console.log("Github Id_token", id_token);
 
         if (accessToken) {
           setIsLoggedIn(true);
-          // fetchGithubUserDetails(accessToken);
+
+          const gitHubUserInfo: any = await fetchGithubUserDetails(accessToken);
+
+          console.log("gitHubUserInfo", gitHubUserInfo);
           // fetchAccessToken(id_token);
-          //creating a dummy data because github login is not working as per the desire
+          //save user gitHubUserInfo in localstorage so that it can be fetched thorough out
+
           const createUserBodyData = {
-            github_id: id_token?.substring(0, 15),
-            username: accessToken?.substring(0, 15),
-            github_username: accessToken?.substring(0, 15),
-            email: "ms.sharma2505@gmail.com",
+            github_id: gitHubUserInfo?.nickname,
+            username: gitHubUserInfo?.nickname,
+            github_username: gitHubUserInfo?.nickname,
+            email: gitHubUserInfo?.email,
             rank: 0,
           };
+
           try {
-            await apiService
+            apiService
               .post(API_END_POINTS.CREATE_USER, createUserBodyData)
               .then(async (response: any) => {
-                console.log("user created", response);
+                console.log("user created or logged in", response);
 
                 const userId = response.data.id;
+
+                devdockPoints.pointsEventDoneFor(PointsEvents.SIGNUP, userId);
 
                 console.log("User ID:", userId);
 
@@ -658,27 +663,54 @@ export async function activate(context: ExtensionContext) {
                 if (userWallets.length > 0) {
                   //user has wallets no need to create
                   console.log("user has wallets");
+                  fetchUserInfo(
+                    userId, //user id
+                    () => {
+                      console.log("OnSuccess");
+                    },
+                    () => {
+                      console.log("OnFailure");
+                    }
+                  );
                 } else {
                   //user dont have wallet create one and post to backend
                   console.log("user has no wallets, creating now");
-                  createWalletForUserBak(
-                    async (wallet: Wallet) => {
+                  createEthWalletForUser(
+                    (wallet: Wallet) => {
                       console.log("wallet created", wallet.address);
                       const bodyToCreateWallet = {
-                        userId: userId,
-                        walletAddress: wallet.address,
+                        user_id: userId,
+                        wallet_address: wallet.address,
                         chain: "ETHEREUM",
                         balance: 0,
                       };
 
-                      await apiService
+                      apiService
                         .post(API_END_POINTS.CREATE_WALLET, bodyToCreateWallet)
                         .then((response: any) => {
-                          console.log("Wallet created for the user", response);
+                          console.log(
+                            "Created wallet details posted to backend",
+                            response
+                          );
+
+                          console.log("fetch user info, load in local storage");
+
+                          fetchUserInfo(
+                            userId, //user id
+                            () => {
+                              console.log("OnSuccess");
+                            },
+                            () => {
+                              console.log("OnFailure");
+                            }
+                          );
                         });
                     },
                     (error) => {
-                      console.log("wallet creation failed", error);
+                      console.log(
+                        "wallet details posting to backend failed",
+                        error
+                      );
                     }
                   );
                 }
@@ -697,12 +729,12 @@ export async function activate(context: ExtensionContext) {
     },
   });
 
-  const fetchUserWallet = async (
+  const fetchUserWallet = (
     userId: number,
     onSuccess: (response: any) => void,
     onFailure: () => void
   ) => {
-    await apiService
+    apiService
       .get(API_END_POINTS.FETCH_USER_WALLET + "/" + userId)
       .then((response: any) => {
         const { wallet_address, balance, chain } = response.data;
@@ -714,107 +746,95 @@ export async function activate(context: ExtensionContext) {
       });
   };
 
-  const fetchAccessToken = async (code: string) => {
-    const clientId = process.env.GITHUB_CLIENT_ID;
-    const clientSecret = process.env.GITHUB_CLIENT_SECRET; // From GitHub App settings
-    const redirectUri = process.env.GITHUB_REDIRECT_URI;
+  const fetchUserInfo = (
+    userId: number,
+    onSuccess: (response: any) => void,
+    onFailure: () => void
+  ) => {
+    console.log("fetchUserInfo called");
 
-    const response = await fetch(
-      "https://github.com/login/oauth/access_token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json", // GitHub returns JSON response for access token
-        },
-        body: JSON.stringify({
-          client_id: clientId,
-          client_secret: clientSecret,
-          code: code, // Authorization code received in the callback
-          redirect_uri: redirectUri,
-        }),
+    // fetchUserInfo(
+    //   13,//user id
+    //   () => {
+    //     console.log("OnSuccess");
+    //   },
+    //   () => {
+    //     console.log("OnFailure");
+    //   }
+    // );
+
+    apiService.get(API_END_POINTS.FETCH_USER + userId).then((response: any) => {
+      const {
+        id,
+        github_id,
+        username,
+        email,
+        rank,
+        created_at,
+        updated_at,
+        wallets,
+        profilePic,
+        profileLabel,
+        balance_lable,
+        balance,
+        unclaimed_cash_label,
+        unclaimed_cash,
+        claim_now_cta_text,
+        other_Wallets_label,
+        my_contribution_icon_path,
+        my_contribution_label,
+        my_contribution_web_link,
+        settings_icon_path,
+        settings_label,
+        logout_icon_path,
+        logout_label,
+      } = response.data;
+      if (id) {
+        console.log(
+          id,
+          github_id,
+          username,
+          email,
+          rank,
+          created_at,
+          updated_at,
+          wallets,
+          profilePic,
+          profileLabel,
+          balance_lable,
+          balance,
+          unclaimed_cash_label,
+          unclaimed_cash,
+          claim_now_cta_text,
+          other_Wallets_label,
+          my_contribution_icon_path,
+          my_contribution_label,
+          my_contribution_web_link,
+          settings_icon_path,
+          settings_label,
+          logout_icon_path,
+          logout_label
+        );
+        onSuccess(response.data);
+
+        //store the response data
+        const responseVal = JSON.stringify(response.data);
+        context.globalState.update("userProfileInfo", responseVal);
+        console.log("userProfileInfo: " + getUserInfo());
+        //post message user logged in successfully with data
+        // userLoggedInSuccessFully();
+      } else {
+        onFailure();
       }
-    );
-    console.log("authorizedAccessTokenResponse", JSON.stringify(response));
-    const data = await response.json();
-    if (data.error) {
-      console.log(`Error fetching access token: ${data.error}`);
-      // throw new Error(`Error fetching access token: ${data.error}`);
-    }
-    console.log("authorizedAccessToken", data.access_token);
-
-    getGitHubProfile(data!.access_token ? data!.access_token : code);
-    return data.access_token;
+    });
   };
 
-  const createWalletForUser = () => {
-    console.log("createWalletForUser");
-
-    const panel = vscode.window.createWebviewPanel(
-      "signerWebview", // Identifies the type of the WebView
-      "Signer Flow", // Title of the WebView
-      vscode.ViewColumn.One, // Editor column to show the WebView
-      {
-        enableScripts: true, // Enable JavaScript in the WebView
-      }
-    );
-
-    // Set initial HTML content for the WebView
-    panel.webview.html = getWebviewContent();
-
-    // Handle messages from WebView
-    panel.webview.onDidReceiveMessage(
-      async (message) => {
-        if (message.command === "signedData") {
-          // Parse the JSON string received from the webview
-          const signedData = JSON.parse(message.data);
-          console.log("PrivateKey:", signedData.privateKey);
-          console.log("Wallet Address:", signedData.address);
-
-          type UserLoginData = {
-            profilePic?: string;
-            profileLabel?: string;
-            topWalletAddress?: string;
-            balance_lable?: string;
-            balance?: number;
-            unclaimed_cash_label?: string;
-            unclaimed_cash?: number;
-            claim_now_cta_text?: string;
-            other_Wallets_label?: string;
-            wallets?: string[];
-            my_contribution_icon_path?: string;
-            my_contribution_label?: string;
-            my_contribution_web_link?: string;
-            settings_icon_path?: string;
-            settings_label?: string;
-            logout_icon_path?: string;
-            logout_label?: string;
-            privateKey?: string;
-          };
-
-          const userData: UserLoginData = {
-            balance: 10,
-            topWalletAddress: signedData.address,
-            wallets: [signedData.address],
-            privateKey: signedData.privateKey,
-          };
-          setUserData(userData);
-          console.log("isUserLoggedInAuth0", isUserLoggedInAuth0());
-          console.log("userData", userData.topWalletAddress);
-          startTransactionRelatedStuff(signedData.privateKey);
-        }
-
-        if (message.command === "closeWebview") {
-          console.log("Closing webview...");
-          panel.dispose(); // Close the webview when the message is received
-        }
-      },
-      undefined,
-      context.subscriptions
-    );
+  //access the stored data in any other class
+  const getUserInfo = () => {
+    return context.globalState.get("userProfileInfo");
   };
 
-  const createWalletForUserBak = (
+  const createEthWalletForUser = (
     onWalletCreated: (wallet: Wallet) => void,
     onFailure: (error: any) => void
   ) => {
@@ -980,46 +1000,13 @@ export async function activate(context: ExtensionContext) {
     }
   }
 
-  function fetchGithubUserDetails(accessToken: string) {
-    //repos:  https://api.github.com/user/repos
-    //username: https://api.github.com/user
-    // fetch("https://api.github.com/user/", {
-    //   headers: {
-    //     Authorization: `Bearer ${accessToken}`, // Access token fetched from Auth0
-    //   },
-    // })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     console.log("GitHub data:", data); // GitHub username
-    //   })
-    //   .catch((error) =>
-    //     console.error("GitHub data Error fetching user profile:", error)
-    //   );
-
-    const result = apiService.getWithFullUrl(
-      "https://api.github.com/user/",
+  async function fetchGithubUserDetails(accessToken: string) {
+    const result = await apiService.getWithFullUrl(
+      `https://${process.env.ALCHEMY_AUTH0_DOMAIN}/userinfo`,
       {},
       accessToken
     );
     console.log("GitHub data:", result); // GitHub username
-  }
-  async function getGitHubProfile(accessToken: string) {
-    try {
-      console.log("getGitHubProfile", accessToken);
-      const response = await fetch("https://api.github.com/user", {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (response.status === 401) {
-        throw new Error("Unauthorized: Bad credentials");
-      }
-
-      const data = await response.json();
-      console.log("GitHub username:", data.login); // GitHub username
-    } catch (error) {
-      console.error("Error fetching GitHub profile:", error);
-    }
+    return result;
   }
 }

@@ -109,9 +109,9 @@ const socialLogin = (context: ExtensionContext) => {
     auth0Config.clientId
   }&redirect_uri=${encodeURIComponent(
     auth0Config.redirectUri
-  )}&response_type=token id_token&scope=${encodeURIComponent(
-    scope
-  )}&nonce=${nonce}`;
+  )}&response_type=token id_token&scope=${scope}&nonce=${encodeURIComponent(
+    nonce
+  )}`;
 
   console.log("GithubAuthUrl", authUrl);
 

@@ -11,6 +11,8 @@ import UserGitHubLoggedInPopup from '../user/github_user_loggedin_popup';
 import { ServerMessage } from '../../common/types';
 import { EVENT_NAME, WEBUI_TABS } from '../../common/constants';
 import { isUserLoggedInAuth0 } from '../../extension/store';
+import { API_END_POINTS } from '../../services/apiEndPoints';
+import apiService from '../../services/apiService';
 
 
 
@@ -23,9 +25,12 @@ const Dashboard: React.FC = () => {
     const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
     const [showLoggedInUserPopup, setLoggedInPoupVisibile] = useState(false);
     const [serverMessageForTab, setServerMessageForTab] = useState<string | undefined>();
+    const [userLoggedInData, setUserLoginData] = useState<UserLoginData>();
+    const [userId, setUserID] = useState<number>(0);
 
 
     type UserLoginData = {
+        id: string,
         profilePic: string,
         profileLabel: string,
         topWalletAddress: string,
@@ -35,7 +40,7 @@ const Dashboard: React.FC = () => {
         unclaimed_cash: number,
         claim_now_cta_text: string,
         other_Wallets_label: string,
-        wallets: string[],
+        wallets: WalletType[],
         my_contribution_icon_path: string,
         my_contribution_label: string,
         my_contribution_web_link: string,
@@ -45,25 +50,20 @@ const Dashboard: React.FC = () => {
         logout_label: string,
     };
 
-    const userLoginData: UserLoginData = {
-        profilePic: '',
-        profileLabel: 'Github_id',
-        topWalletAddress: '0x5852...8Fe1',
-        balance_lable: 'Devcash balance',
-        balance: 375,
-        unclaimed_cash_label: 'Unclaimed Devcash',
-        unclaimed_cash: 4432,
-        claim_now_cta_text: 'Claim now',
-        other_Wallets_label: 'Other wallets connected',
-        wallets: ['EVM: 0x83s5...d89s', 'Starknet: 0cujsw...98da'],
-        my_contribution_icon_path: '',
-        my_contribution_label: 'My contributions',
-        my_contribution_web_link: '',
-        settings_icon_path: '',
-        settings_label: 'Settings',
-        logout_icon_path: '',
-        logout_label: 'Logout',
-    };
+    interface WalletType {
+        id: string,
+        user_id: number,
+        wallet_address: string,
+        chain: string,
+        is_deleted: boolean,
+        balance: number,
+        currency: string,
+        created_at: string,
+        updated_at: string
+    }
+
+
+
 
 
     const handler = (event: MessageEvent) => {
@@ -103,9 +103,15 @@ const Dashboard: React.FC = () => {
 
 
         if (isUserLoggedIn && showLoggedInUserPopup) {
-            console.log('isUserLoggedIn', isUserLoggedIn, userLoginData);
+            console.log('isUserLoggedIn', isUserLoggedIn, userLoggedInData);
             return (
-                <UserGitHubLoggedInPopup onClose={closeUserGithubPopup} loginData={userLoginData}></UserGitHubLoggedInPopup>
+                <UserGitHubLoggedInPopup onClose={closeUserGithubPopup} loginData={userLoggedInData} onLogout={() => {
+                    console.log('handle user logout');
+
+                    setUserLoginData(undefined);
+                    setUserLoggedin(false);
+
+                }}></UserGitHubLoggedInPopup>
             );
         }
         if (!isUserLoggedIn && isGitHubPopupVisible) {
@@ -122,7 +128,120 @@ const Dashboard: React.FC = () => {
         return <></>;
     }
 
+    useEffect(() => {
+        if (isUserLoggedIn && userId)
+            fetchUserInfo(
+                userId,//user id
+                () => {
+                    console.log("OnSuccess");
+                },
+                () => {
+                    console.log("OnFailure");
+                }
+            );
+    }, []);
 
+    useEffect(() => {
+        console.log('userLoggedInData', userLoggedInData);
+        // userLoginData = userLoggedInData;
+        setUserLoginData(userLoggedInData);
+        if (userLoggedInData != undefined && userLoggedInData != null) {
+            setUserLoggedin(true);
+        }
+
+        else {
+            setUserLoggedin(false);
+        }
+
+
+
+    }, [userLoggedInData]);
+
+    const fetchUserInfo = (
+        userId: number,
+        onSuccess: (response: any) => void,
+        onFailure: () => void
+    ) => {
+        console.log("fetchUserInfo called");
+
+        // fetchUserInfo(
+        //   13,//user id
+        //   () => {
+        //     console.log("OnSuccess");
+        //   },
+        //   () => {
+        //     console.log("OnFailure");
+        //   }
+        // );
+
+        apiService.get(API_END_POINTS.FETCH_USER + userId).then((response: any) => {
+            const {
+                id,
+                github_id,
+                username,
+                email,
+                rank,
+                created_at,
+                updated_at,
+                wallets,
+                profilePic,
+                profileLabel,
+                balance_lable,
+                balance,
+                unclaimed_cash_label,
+                unclaimed_cash,
+                claim_now_cta_text,
+                other_Wallets_label,
+                my_contribution_icon_path,
+                my_contribution_label,
+                my_contribution_web_link,
+                settings_icon_path,
+                settings_label,
+                logout_icon_path,
+                logout_label,
+            } = response.data;
+            if (id) {
+                console.log(
+                    id,
+                    github_id,
+                    username,
+                    email,
+                    rank,
+                    created_at,
+                    updated_at,
+                    wallets,
+                    profilePic,
+                    profileLabel,
+                    balance_lable,
+                    balance,
+                    unclaimed_cash_label,
+                    unclaimed_cash,
+                    claim_now_cta_text,
+                    other_Wallets_label,
+                    my_contribution_icon_path,
+                    my_contribution_label,
+                    my_contribution_web_link,
+                    settings_icon_path,
+                    settings_label,
+                    logout_icon_path,
+                    logout_label
+                );
+                onSuccess(response.data);
+
+                //store the response data
+                const responseVal: UserLoginData = response.data;
+                // const 
+                setUserLoginData(responseVal);
+                setUserLoggedin(true);
+                setUserID(id);
+                localStorage.setItem('userInfo', response.data);
+                // context.globalState.update("userProfileInfo", responseVal);
+                console.log('user_id', id);
+            } else {
+                onFailure();
+            }
+        });
+    };
 
     const handleBountiesClick = () => {
         console.log('Bounties clicked!');

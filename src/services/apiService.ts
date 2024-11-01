@@ -54,7 +54,7 @@ class ApiService {
         throw this.createFailureResponse(response);
       }
     } catch (error) {
-      this.handleError(error);
+      this.handleError(error, endpoint);
       throw error;
     }
   }
@@ -74,7 +74,7 @@ class ApiService {
         throw this.createFailureResponse(response);
       }
     } catch (error) {
-      this.handleError(error);
+      this.handleError(error, endpoint);
       throw error;
     }
   }
@@ -94,7 +94,7 @@ class ApiService {
         throw this.createFailureResponse(response);
       }
     } catch (error) {
-      this.handleError(error);
+      this.handleError(error, endpoint);
       throw error;
     }
   }
@@ -129,7 +129,7 @@ class ApiService {
       });
       return response.data;
     } catch (error) {
-      this.handleError(error);
+      this.handleError(error, url);
       throw error;
     }
   }
@@ -150,16 +150,17 @@ class ApiService {
         headers,
         params, // Query parameters if needed
       });
+
       return response.data;
     } catch (error) {
-      this.handleError(error);
+      this.handleError(error, url);
       throw error;
     }
   }
 
   // Error handling method
-  private handleError(error: any): void {
-    console.error("API call failed:", error);
+  private handleError(error: any, url: string): void {
+    console.error("API call failed:", error?.response, url);
   }
 }
 
