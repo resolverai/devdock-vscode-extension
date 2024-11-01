@@ -1,6 +1,7 @@
 import { API_END_POINTS } from "../services/apiEndPoints";
 import apiService from "../services/apiService";
 import { ExtensionContext } from "vscode";
+import * as vscode from "vscode";
 
 export enum PointsEvents {
   PROMPT = "PROMPT",
@@ -101,8 +102,17 @@ export class DevdockPoints {
     };
     apiService
       .post(API_END_POINTS.SUBMIT_POINTS_FOR_ACTIONS, postData)
-      .then((response) => {
+      .then((response: any) => {
         console.log("API_END_POINTS.SUBMIT_POINTS_FOR_ACTIONS", response);
+        const points = response?.data?.points;
+        if (points > 0) {
+          vscode.window.showInformationMessage(
+            `You've Earned ${points} DevDock points for ${actionDone}`,
+            {
+              modal: true,
+            }
+          );
+        }
       });
   }
 
