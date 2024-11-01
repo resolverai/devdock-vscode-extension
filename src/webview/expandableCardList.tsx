@@ -8,6 +8,7 @@ import GitHubLoginPopup from './login/github_login_popup';
 import UserGitHubLoggedInPopup from './user/github_user_loggedin_popup';
 import { setCardDataById } from '../extension/store';
 import apiService from '../services/apiService';
+import { API_END_POINTS } from '../services/apiEndPoints';
 
 
 interface CardItem {
@@ -106,7 +107,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
   async function fetchAllBounties() {
     console.log('called fetchAllBounties');
-    const response = await apiService.getWithFullUrl('https://dapp.devdock.ai/v1/master/bounties?status=active');
+    const response = await apiService.get(API_END_POINTS.FETCH_BOUNTIES);
     console.log(JSON.stringify(response));
     const CardItem = mapApiResponseToCardData(response);
     console.log('CardItem[0]', CardItem[0]);

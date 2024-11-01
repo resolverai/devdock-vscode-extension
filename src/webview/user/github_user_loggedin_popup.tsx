@@ -30,6 +30,7 @@ type UserLoginData = {
     settings_label: string,
     logout_icon_path: string,
     logout_label: string,
+    points: string,
 };
 
 
@@ -155,20 +156,41 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                 </div>
 
                 <div style={{ height: '20px' }}></div>
+                <div style={{ display: 'flex', flexDirection: 'row' }}>
 
-                <div style={{ height: '43px', display: 'flex', flexDirection: 'column' }}>
-                    <div>
-                        <span style={{ opacity: 0.5, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter' }}>
-                            Devcash balance
-                        </span>
+                    <div style={{ height: '43px', display: 'flex', flexDirection: 'column' }}>
+                        <div>
+                            <span style={{ opacity: 0.5, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter' }}>
+                                DevDock points
+                            </span>
+                        </div>
+                        <div>
+                            <span style={{ opacity: 1, fontSize: '20px', fontWeight: 'bold', color: '#ffffff' }}>
+                                {loginData?.points}
+                            </span>
+                        </div>
+
                     </div>
-                    <div>
-                        <span style={{ opacity: 1, fontSize: '20px', fontWeight: 'bold', color: '#ffffff' }}>
-                            {loginData?.balance}
-                        </span>
+
+                    <div style={{ width: '20px' }}></div>
+
+                    <div style={{ height: '43px', display: 'flex', flexDirection: 'column' }}>
+                        <div>
+                            <span style={{ opacity: 0.5, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter' }}>
+                                Devcash balance
+                            </span>
+                        </div>
+                        <div>
+                            <span style={{ opacity: 1, fontSize: '20px', fontWeight: 'bold', color: '#ffffff' }}>
+                                {loginData?.balance}
+                            </span>
+                        </div>
+
                     </div>
 
                 </div>
+
+
 
 
                 <div style={{ height: '20px' }}></div>
@@ -195,6 +217,8 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                     </div>
 
                 </div>
+
+
                 <div style={{ height: '20px' }}></div>
                 <div style={{ height: '1px', backgroundColor: '#37373C' }}></div>
                 <div style={{ height: '20px' }}></div>

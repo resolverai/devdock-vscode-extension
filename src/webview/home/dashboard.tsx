@@ -48,6 +48,7 @@ const Dashboard: React.FC = () => {
         settings_label: string,
         logout_icon_path: string,
         logout_label: string,
+        points: string
     };
 
     interface WalletType {
@@ -91,7 +92,7 @@ const Dashboard: React.FC = () => {
         }
         if (message?.type === EVENT_NAME.githubLogoutDone) {
             console.log("githubLogoutDone dashboard.tsx");
-            setUserLoggedin(true);
+            setUserLoggedin(false);
 
         }
 
@@ -189,66 +190,20 @@ const Dashboard: React.FC = () => {
         apiService.get(API_END_POINTS.FETCH_USER + userId).then((response: any) => {
             const {
                 id,
-                github_id,
-                username,
-                email,
-                rank,
-                created_at,
-                updated_at,
-                wallets,
-                profilePic,
-                profileLabel,
-                balance_lable,
-                balance,
-                unclaimed_cash_label,
-                unclaimed_cash,
-                claim_now_cta_text,
-                other_Wallets_label,
-                my_contribution_icon_path,
-                my_contribution_label,
-                my_contribution_web_link,
-                settings_icon_path,
-                settings_label,
-                logout_icon_path,
-                logout_label,
             } = response.data;
             if (id) {
-                console.log(
-                    id,
-                    github_id,
-                    username,
-                    email,
-                    rank,
-                    created_at,
-                    updated_at,
-                    wallets,
-                    profilePic,
-                    profileLabel,
-                    balance_lable,
-                    balance,
-                    unclaimed_cash_label,
-                    unclaimed_cash,
-                    claim_now_cta_text,
-                    other_Wallets_label,
-                    my_contribution_icon_path,
-                    my_contribution_label,
-                    my_contribution_web_link,
-                    settings_icon_path,
-                    settings_label,
-                    logout_icon_path,
-                    logout_label
-                );
                 onSuccess(response.data);
 
-                //store the response data
-                const responseVal: UserLoginData = response.data;
-                // const 
-                setUserLoginData(responseVal);
                 setUserLoggedin(true);
+                const parsedMessageValue = response.data;
+                const balance = parsedMessageValue.data.balance;
+                console.log('balance', balance);
+                setUserLoginData(parsedMessageValue.data);
                 setUserID(id);
                 localStorage.setItem('userInfo', response.data);
                 // context.globalState.update("userProfileInfo", responseVal);
                 console.log('user_id', id);
+
             } else {
                 onFailure();
             }

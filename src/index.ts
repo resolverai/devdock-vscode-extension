@@ -655,7 +655,7 @@ export async function activate(context: ExtensionContext) {
 
                 const userId = response.data.id;
 
-                devdockPoints.pointsEventDoneFor(PointsEvents.SIGNUP, userId);
+                devdockPoints.pointsEventDoneFor(PointsEvents.SIGNUP);
 
                 console.log("User ID:", userId);
 
@@ -744,95 +744,6 @@ export async function activate(context: ExtensionContext) {
           onFailure();
         }
       });
-  };
-
-  const fetchUserInfo = (
-    userId: number,
-    onSuccess: (response: any) => void,
-    onFailure: () => void
-  ) => {
-    console.log("fetchUserInfo called");
-
-    // fetchUserInfo(
-    //   13,//user id
-    //   () => {
-    //     console.log("OnSuccess");
-    //   },
-    //   () => {
-    //     console.log("OnFailure");
-    //   }
-    // );
-
-    apiService.get(API_END_POINTS.FETCH_USER + userId).then((response: any) => {
-      const {
-        id,
-        github_id,
-        username,
-        email,
-        rank,
-        created_at,
-        updated_at,
-        wallets,
-        profilePic,
-        profileLabel,
-        balance_lable,
-        balance,
-        unclaimed_cash_label,
-        unclaimed_cash,
-        claim_now_cta_text,
-        other_Wallets_label,
-        my_contribution_icon_path,
-        my_contribution_label,
-        my_contribution_web_link,
-        settings_icon_path,
-        settings_label,
-        logout_icon_path,
-        logout_label,
-      } = response.data;
-      if (id) {
-        console.log(
-          id,
-          github_id,
-          username,
-          email,
-          rank,
-          created_at,
-          updated_at,
-          wallets,
-          profilePic,
-          profileLabel,
-          balance_lable,
-          balance,
-          unclaimed_cash_label,
-          unclaimed_cash,
-          claim_now_cta_text,
-          other_Wallets_label,
-          my_contribution_icon_path,
-          my_contribution_label,
-          my_contribution_web_link,
-          settings_icon_path,
-          settings_label,
-          logout_icon_path,
-          logout_label
-        );
-        onSuccess(response.data);
-
-        //store the response data
-        const responseVal = JSON.stringify(response.data);
-        context.globalState.update("userProfileInfo", responseVal);
-        console.log("userProfileInfo: " + getUserInfo());
-        sidebarProvider.view?.webview.postMessage({
-          type: EVENT_NAME.githubLoginDone,
-          value: {
-            data: response.data,
-          },
-        } as ServerMessage<string>);
-        //post message user logged in successfully with data
-        // userLoggedInSuccessFully();
-      } else {
-        onFailure();
-      }
-    });
   };
 
   //access the stored data in any other class
@@ -1014,5 +925,45 @@ export async function activate(context: ExtensionContext) {
     );
     console.log("GitHub data:", result); // GitHub username
     return result;
+  }
+  function fetchUserInfo(
+    userId: number,
+    onSuccess: (response: any) => void,
+    onFailure: () => void
+  ) {
+    console.log("fetchUserInfo called");
+
+    // fetchUserInfo(
+    //   13,//user id
+    //   () => {
+    //     console.log("OnSuccess");
+    //   },
+    //   () => {
+    //     console.log("OnFailure");
+    //   }
+    // );
+
+    apiService.get(API_END_POINTS.FETCH_USER + userId).then((response: any) => {
+      const { id } = response.data;
+      if (id) {
+        console.log(id);
+        onSuccess(response.data);
+
+        //store the response data
+        const responseVal = JSON.stringify(response.data);
+        context.globalState.update("userProfileInfo", responseVal);
+        console.log("userProfileInfo: " + getUserInfo());
+        sidebarProvider.view?.webview.postMessage({
+          type: EVENT_NAME.githubLoginDone,
+          value: {
+            data: response.data,
+          },
+        } as ServerMessage<string>);
+        //post message user logged in successfully with data
+        // userLoggedInSuccessFully();
+      } else {
+        onFailure();
+      }
+    });
   }
 }
