@@ -13,6 +13,7 @@ import { EVENT_NAME, WEBUI_TABS } from '../../common/constants';
 import { isUserLoggedInAuth0 } from '../../extension/store';
 import { API_END_POINTS } from '../../services/apiEndPoints';
 import apiService from '../../services/apiService';
+import { stringify } from 'querystring';
 
 
 
@@ -93,6 +94,8 @@ const Dashboard: React.FC = () => {
         if (message?.type === EVENT_NAME.githubLogoutDone) {
             console.log("githubLogoutDone dashboard.tsx");
             setUserLoggedin(false);
+            localStorage.setItem('userProfileInfo', '');
+
 
         }
 
@@ -142,11 +145,32 @@ const Dashboard: React.FC = () => {
     }
 
     useEffect(() => {
-        if (isUserLoggedIn && userId)
+
+        // localStorage.setItem('userProfileInfo', '');
+        const myUserData = localStorage.getItem('userProfileInfo');
+        console.log('myUserData in dashboard.tsx', myUserData);
+        let userId;
+        if (myUserData != null) {
+            userId = JSON.parse(myUserData).id;
+            console.log('myUserData in dashboard.tsx userId', userId);
+        }
+
+        if (userId)
             fetchUserInfo(
                 userId,//user id
-                () => {
-                    console.log("OnSuccess");
+                (response: UserLoginData) => {
+                    console.log("OnSuccess response", response);
+                    setUserLoggedin(true);
+                    const parsedMessageValue = response;
+                    const balance = parsedMessageValue.balance;
+                    console.log('parsedMessageValue balance', balance);
+                    setUserLoginData(parsedMessageValue);
+                    // setUserID(id);
+                    localStorage.setItem('userProfileInfo', JSON.stringify(response));
+
+
+                    // context.globalState.update("userProfileInfo", responseVal);
+                    // console.log('user_id', id);
                 },
                 () => {
                     console.log("OnFailure");
@@ -160,6 +184,9 @@ const Dashboard: React.FC = () => {
         setUserLoginData(userLoggedInData);
         if (userLoggedInData != undefined && userLoggedInData != null) {
             setUserLoggedin(true);
+
+            //TODO save userLoggedInData in localstorage when its type is UserLoginData
+            localStorage.setItem('userProfileInfo', JSON.stringify(userLoggedInData));
         }
 
         else {
@@ -192,17 +219,8 @@ const Dashboard: React.FC = () => {
                 id,
             } = response.data;
             if (id) {
-                onSuccess(response.data);
-
-                setUserLoggedin(true);
-                const parsedMessageValue = response.data;
-                const balance = parsedMessageValue.data.balance;
-                console.log('balance', balance);
-                setUserLoginData(parsedMessageValue.data);
                 setUserID(id);
-                localStorage.setItem('userInfo', response.data);
-                // context.globalState.update("userProfileInfo", responseVal);
-                console.log('user_id', id);
+                onSuccess(response.data);
 
             } else {
                 onFailure();

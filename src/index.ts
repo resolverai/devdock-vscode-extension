@@ -30,7 +30,7 @@ import {
   DEVDOCK_COMMAND_NAME,
 } from "./common/constants";
 import { TemplateProvider } from "./extension/template-provider";
-import { ServerMessage } from "./common/types";
+import { ClientMessage, ServerMessage } from "./common/types";
 import { FileInteractionCache } from "./extension/file-interaction";
 import { getLineBreakCount } from "./webview/utils";
 import { socialLogin } from "./common/auth";
@@ -46,6 +46,7 @@ import { AlchemyProvider, ethers, Wallet } from "ethers";
 import apiService from "./services/apiService";
 import { API_END_POINTS } from "./services/apiEndPoints";
 import { DevdockPoints, PointsEvents } from "./common/devdockPoints";
+import { submitBounty } from "./extension/bountySubmission/submitBounty";
 
 export async function activate(context: ExtensionContext) {
   setContext(context);
@@ -331,6 +332,18 @@ export async function activate(context: ExtensionContext) {
       DEVDOCK_COMMAND_NAME.devdockGetCurrentFocusFileNameCommand,
       () => {
         getCurrentFileOpenedName();
+      }
+    ),
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.devdockBountySubmitRequestCommand,
+      (response: ClientMessage) => {
+        console.log(
+          "DEVDOCK_COMMAND_NAME.devdockBountySubmitRequestCommand",
+          response
+        );
+        if (response?.data !== undefined) {
+          submitBountyRequest(response.data.toString());
+        }
       }
     ),
 
@@ -660,21 +673,13 @@ export async function activate(context: ExtensionContext) {
                 console.log("User ID:", userId);
 
                 const userWallets = response.data.wallets;
-                if (userWallets.length > 0) {
-                  //user has wallets no need to create
-                  console.log("user has wallets");
-                  fetchUserInfo(
-                    userId, //user id
-                    () => {
-                      console.log("OnSuccess");
-                    },
-                    () => {
-                      console.log("OnFailure");
-                    }
-                  );
-                } else {
-                  //user dont have wallet create one and post to backend
-                  console.log("user has no wallets, creating now");
+                const myPrivateKey = context.globalState.get("userPrivateKey");
+
+                if (
+                  myPrivateKey == undefined ||
+                  myPrivateKey == "" ||
+                  myPrivateKey == null
+                ) {
                   createEthWalletForUser(
                     (wallet: Wallet) => {
                       console.log("wallet created", wallet.address);
@@ -713,7 +718,75 @@ export async function activate(context: ExtensionContext) {
                       );
                     }
                   );
+                } else {
+                  //user has already a private key
+                  console.log("user has private key store in localstorage");
+                  console.log("fetch user info, load in local storage");
+                  fetchUserInfo(
+                    userId, //user id
+                    () => {
+                      console.log("OnSuccess");
+                    },
+                    () => {
+                      console.log("OnFailure");
+                    }
+                  );
                 }
+                // if (userWallets.length > 0) {
+                //   //user has wallets no need to create
+
+                //   console.log("user has wallets");
+                //   fetchUserInfo(
+                //     userId, //user id
+                //     () => {
+                //       console.log("OnSuccess");
+                //     },
+                //     () => {
+                //       console.log("OnFailure");
+                //     }
+                //   );
+                // } else {
+                //   //user dont have wallet create one and post to backend
+                //   console.log("user has no wallets, creating now");
+                //   createEthWalletForUser(
+                //     (wallet: Wallet) => {
+                //       console.log("wallet created", wallet.address);
+                //       const bodyToCreateWallet = {
+                //         user_id: userId,
+                //         wallet_address: wallet.address,
+                //         chain: "ETHEREUM",
+                //         balance: 0,
+                //       };
+
+                //       apiService
+                //         .post(API_END_POINTS.CREATE_WALLET, bodyToCreateWallet)
+                //         .then((response: any) => {
+                //           console.log(
+                //             "Created wallet details posted to backend",
+                //             response
+                //           );
+
+                //           console.log("fetch user info, load in local storage");
+
+                //           fetchUserInfo(
+                //             userId, //user id
+                //             () => {
+                //               console.log("OnSuccess");
+                //             },
+                //             () => {
+                //               console.log("OnFailure");
+                //             }
+                //           );
+                //         });
+                //     },
+                //     (error) => {
+                //       console.log(
+                //         "wallet details posting to backend failed",
+                //         error
+                //       );
+                //     }
+                //   );
+                // }
               });
           } catch (error) {
             //error in user creation
@@ -752,7 +825,7 @@ export async function activate(context: ExtensionContext) {
   };
 
   const createEthWalletForUser = (
-    onWalletCreated: (wallet: Wallet) => void,
+    onWalletCreated: (wallet: Wallet, privateKey: string) => void,
     onFailure: (error: any) => void
   ) => {
     console.log("createWalletForUser");
@@ -781,7 +854,9 @@ export async function activate(context: ExtensionContext) {
             const privateKey = signedData.privateKey;
             const wallet = new ethers.Wallet(privateKey);
             //ToDo return value of wallet in callback onWalletCreated
-            onWalletCreated(wallet);
+            context.globalState.update("userPrivateKey", privateKey);
+            onWalletCreated(wallet, privateKey);
+            context.globalState.update("userPrivateKey", privateKey);
           } catch (error) {
             onFailure(error);
           }
@@ -965,5 +1040,34 @@ export async function activate(context: ExtensionContext) {
         onFailure();
       }
     });
+  }
+
+  async function submitBountyRequest(response: string) {
+    if (!response) {
+      console.log("submitBountyRequest bounty id is undefined");
+      return;
+    }
+    console.log("submitBountyRequest index.ts", response);
+    //get private key from localstorage
+    //fetch bounty id from response
+    const myPrivateKey = context.globalState.get(
+      "userPrivateKey"
+    ) as `0x${string}`;
+
+    const bountyId = response;
+    // const { reciept, hash } = await submitBounty(bountyId.toString(), "", "");
+    const result = await submitBounty(
+      bountyId.toString(),
+      // "0x1cf1271b12b5f7ebdc7a1f46160b2f15d7758f46b0a21a747f84d388bcc6c19c",
+      myPrivateKey,
+      `submitting bounty: ${response}, check my github link`
+    );
+    if (result) {
+      const { reciept, hash } = result;
+      // use reciept and hash here
+      console.log("reciept, hash", reciept, hash);
+    } else {
+      // handle the case where result is undefined
+    }
   }
 }

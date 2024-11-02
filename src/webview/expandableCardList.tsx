@@ -9,6 +9,8 @@ import UserGitHubLoggedInPopup from './user/github_user_loggedin_popup';
 import { setCardDataById } from '../extension/store';
 import apiService from '../services/apiService';
 import { API_END_POINTS } from '../services/apiEndPoints';
+import { EVENT_NAME } from '../common/constants';
+import { ClientMessage } from '../common/types';
 
 
 interface CardItem {
@@ -154,6 +156,26 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
 
 
+  function handleBountySubmit(bountyId: number) {
+
+    if (isUserLoggedIn) {
+      console.log(`Submit clicked for bountyId ${bountyId}`);
+
+      // const myBountyMessage = {
+      //   bounty_id: bountyId,
+      // }
+      // const postMessageVal = JSON.stringify(myBountyMessage);
+      // console.log('postMessageVal', postMessageVal);
+      global.vscode.postMessage({
+        type: EVENT_NAME.devdockBountySubmitRequest,
+        data: bountyId.toString(),
+      }) as ClientMessage;
+
+    }
+
+
+  }
+
   return (
     <div style={styles.parentCard}>
       {cardData!.map(card =>
@@ -170,7 +192,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
               {card.title}
             </span>
 
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '258px' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: isUserLoggedIn ? '350px' : '258px' }}>
               <div style={
                 {
                   display: 'flex',
@@ -210,6 +232,22 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                 <span style={{ opacity: '0.8', color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: '400' }}>{card.bountiesLeft}</span>
 
               </div>
+              {isUserLoggedIn && <div style={{
+                alignContent: 'center',
+                justifyContent: 'center',
+                color: 'green',
+                fontSize: '10px',
+                cursor: 'pointer',
+                marginLeft: '20px',
+                borderRadius: '10px',
+                fontStyle: 'bold'
+
+              }}
+                onClick={() => {
+                  handleBountySubmit(card.id)
+                }}>
+                Submit
+              </div>}
 
             </div>
 
