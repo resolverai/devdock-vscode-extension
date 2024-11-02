@@ -993,7 +993,6 @@ export async function activate(context: ExtensionContext) {
     console.log("submitBountyRequest index.ts", response);
     //get private key from localstorage
     //fetch bounty id from response
-    const user_wallet = context.globalState.get("userWallet");
 
     const bountyId = response;
     // const { reciept, hash } = await submitBounty(bountyId.toString(), "", "");

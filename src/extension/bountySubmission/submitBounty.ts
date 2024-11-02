@@ -37,8 +37,7 @@ function convertBigIntToString(obj: any): any {
 export async function submitBounty(
   bountyId: string,
   privateKey?: string,
-  postMssage?: string,
-  userWallet?: string
+  postMssage?: string
 ) {
   const P_client = createPublicClient({
     chain: gnosis,
@@ -53,10 +52,8 @@ export async function submitBounty(
     const submitString = postMssage
       ? postMssage
       : `submitting bounty: ${bountyId}, check my github link`;
-    const idParam = 200;
-    // const account = userWallet
-    //   ? (userWallet as `0x${string}`)
-    //   : privateKeyToAccount(privateKey as `0x${string}`);
+    const idParam = parseInt(bountyId);
+
     const account = privateKeyToAccount(privateKey as `0x${string}`);
 
     const { request } = await P_client.simulateContract({
