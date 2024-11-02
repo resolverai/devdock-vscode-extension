@@ -655,7 +655,7 @@ export async function activate(context: ExtensionContext) {
 
                 const userId = response.data.id;
 
-                devdockPoints.pointsEventDoneFor(PointsEvents.SIGNUP);
+                devdockPoints.pointsEventDoneFor(PointsEvents.SIGNUP, userId);
 
                 console.log("User ID:", userId);
 

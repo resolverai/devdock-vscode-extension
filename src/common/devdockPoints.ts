@@ -131,15 +131,20 @@ export class DevdockPoints {
     });
   }
 
-  public pointsEventDoneFor(eventName: string) {
+  public pointsEventDoneFor(eventName: string, userId?: string) {
     //fetch user id if not available from localstorage
 
-    const userDetails = DevdockPoints?.myExtensioncontext?.globalState.get(
-      "userProfileInfo"
-    ) as any;
+    let myUserId;
+    if (userId != null) {
+      myUserId = userId;
+    } else {
+      const userDetails = DevdockPoints?.myExtensioncontext?.globalState.get(
+        "userProfileInfo"
+      ) as any;
 
-    const userDetailsObject = JSON.parse(userDetails as string);
-    const myUserId = userDetailsObject?.id;
+      const userDetailsObject = JSON.parse(userDetails as string);
+      myUserId = userDetailsObject?.id;
+    }
     console.log("myUserId", myUserId);
     if (myUserId && myUserId != null && myUserId != undefined) {
       const pointsAllocated = this.getPointsForEvents(eventName);
