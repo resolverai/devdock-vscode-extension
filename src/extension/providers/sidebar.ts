@@ -165,6 +165,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           this.getCurrentFocusFileName,
         [EVENT_NAME.hideCenterBlankUIFromChatEvent]:
           this.hideCenterUIFromChatScreen,
+        [EVENT_NAME.devdockBountySubmitRequest]: this.bountySubmitRequest,
       };
       eventHandlers[message.type as string]?.(message);
     });
@@ -539,11 +540,17 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   private initiateSocialLogin() {
     console.log("initiateSocialLogin");
     vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.githubConnect);
-    // vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.devdockOpenSigner);
   }
   private hideCenterUIFromChatScreen() {
     vscode.commands.executeCommand(
       DEVDOCK_COMMAND_NAME.hideCenterBlankUIFromChat
+    );
+  }
+
+  private bountySubmitRequest(message: ClientMessage) {
+    vscode.commands.executeCommand(
+      DEVDOCK_COMMAND_NAME.devdockBountySubmitRequestCommand,
+      message
     );
   }
 
@@ -591,13 +598,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         <link href="${codiconCssWebviewUri}" rel="stylesheet">
         <link href="${css}" rel="stylesheet">
         <meta charset="UTF-8">
-				<meta
-          http-equiv="Content-Security-Policy"
-          content="default-src 'self' http://localhost:11434;
-          img-src vscode-resource: https:;
-          font-src vscode-webview-resource:;
-          script-src 'nonce-${nonce}';style-src vscode-resource: 'unsafe-inline' http: https: data:;"
-        >
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Sidebar</title>
         <style>

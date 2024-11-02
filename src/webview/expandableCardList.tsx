@@ -1,12 +1,16 @@
 import { VSCodeButton } from '@vscode/webview-ui-toolkit/react';
 import { List } from 'apache-arrow';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DevCashSVG from './home/svgs/dev_cash';
 import BountiesLeftIcon from './home/svgs/bounties_left_icon';
 
 import GitHubLoginPopup from './login/github_login_popup';
 import UserGitHubLoggedInPopup from './user/github_user_loggedin_popup';
 import { setCardDataById } from '../extension/store';
+import apiService from '../services/apiService';
+import { API_END_POINTS } from '../services/apiEndPoints';
+import { EVENT_NAME } from '../common/constants';
+import { ClientMessage } from '../common/types';
 
 
 interface CardItem {
@@ -20,40 +24,43 @@ interface CardItem {
   bountiesLeft: string;
 }
 
-const cardData: CardItem[] = [
+const myCardData: CardItem[] = [
   {
-    id: 1, title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
-    bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
-    bottomDescription: 'You can make multiple submissions',
-    bottomHeading: 'Top 10 Submissions will be approved',
-    description: 'Mission\nWrite a Javascript program to scrape each bounty (e.g. https://devcash.dev/bountyplatform/bounty/192)\nShould get\n\nBounty amount\nBounty Description\npublic/private bounty\nbounty smart contract addresss\nCreated By\nBounties left and deadline\n\nThen we need an API to serve all this info.\n',
-    bountyPrice: '1000 Devcash',
-    bountiesLeft: '8 Bounties left'
+    id: 1,
+    title: 'Loading ...',
+    bulletsArray: ["Loading ...",],
+    bottomDescription: 'Loading ...',
+    bottomHeading: 'Loading ...',
+    description: 'Loading ...',
+    bountyPrice: 'Loading ...',
+    bountiesLeft: 'Loading ...'
   },
-  {
-    id: 2, title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
-    bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
-    bottomDescription: 'You can make multiple submissions',
-    bottomHeading: 'Top 10 Submissions will be approved',
-    description:
-      "1. Install Metamask and set up your wallet (metamask.io)\n" +
-      "2. Connect your Metamask to Gnosis Chain using chainlist.org \n" +
-      "3. Receive a small amount of xDAI. You can either join the Dev Discord and request a small amount, or purchase it yourself \n" +
-      "4. Make a submission on this bounty. Add a constructive or humorous comment \n" +
-      "5. Wait for review and acceptance \n" +
-      "6. Check your Devcash Balance \n",
-    bountyPrice: '900 Devcash',
-    bountiesLeft: '3 Bounties left'
-  },
-  {
-    id: 3, title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
-    bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
-    bottomDescription: 'You can make multiple submissions',
-    bottomHeading: 'Top 10 Submissions will be approved',
-    description: 'Mission\nWrite a Javascript program to scrape each bounty (e.g. https://devcash.dev/bountyplatform/bounty/192)\nShould get\n\nBounty amount\nBounty Description\npublic/private bounty\nbounty smart contract addresss\nCreated By\nBounties left and deadline\n\nThen we need an API to serve all this info.\n',
-    bountyPrice: '800 Devcash',
-    bountiesLeft: '2 Bounties left'
-  },
+  // {
+  //   id: 2,
+  //   title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
+  //   bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
+  //   bottomDescription: 'You can make multiple submissions',
+  //   bottomHeading: 'Top 10 Submissions will be approved',
+  //   description:
+  //     "1. Install Metamask and set up your wallet (metamask.io)\n" +
+  //     "2. Connect your Metamask to Gnosis Chain using chainlist.org \n" +
+  //     "3. Receive a small amount of xDAI. You can either join the Dev Discord and request a small amount, or purchase it yourself \n" +
+  //     "4. Make a submission on this bounty. Add a constructive or humorous comment \n" +
+  //     "5. Wait for review and acceptance \n" +
+  //     "6. Check your Devcash Balance \n",
+  //   bountyPrice: '900 Devcash',
+  //   bountiesLeft: '3 Bounties left'
+  // },
+  // {
+  //   id: 3,
+  //   title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
+  //   bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
+  //   bottomDescription: 'You can make multiple submissions',
+  //   bottomHeading: 'Top 10 Submissions will be approved',
+  //   description: 'Mission\nWrite a Javascript program to scrape each bounty (e.g. https://devcash.dev/bountyplatform/bounty/192)\nShould get\n\nBounty amount\nBounty Description\npublic/private bounty\nbounty smart contract addresss\nCreated By\nBounties left and deadline\n\nThen we need an API to serve all this info.\n',
+  //   bountyPrice: '800 Devcash',
+  //   bountiesLeft: '2 Bounties left'
+  // },
 
 
 ];
@@ -64,10 +71,11 @@ interface CardProps {
 const global = globalThis as any
 const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesClickedFromList }) => {
   console.log('ExpandableCardList isUserLoggedIn', isUserLoggedIn);
-  const [expandedCardId, setExpandedCardId] = useState<number | null>(1);
+  const [expandedCardId, setExpandedCardId] = useState<number | null>();
   const [claimBountyclicked, setClaimBountyClicked] = useState<boolean>(false);
   const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
   const [isLoggedInPopupVisible, setLoggedInUserPopupVisible] = useState(false);
+  const [cardData, setIsDataLoadedAndParsed] = useState<CardItem[]>(myCardData);
 
   const toggleCard = (id: number) => {
     setExpandedCardId(prevId => (prevId === id ? null : id));
@@ -76,12 +84,13 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
   function handleClaimBountyClick(id: number): void {
     console.log("clicked bounty id:" + id);
     setClaimBountyClicked(true);
-    const selectedCard = cardData.find(card => card.id === id);
+    const selectedCard = cardData!.find(card => card.id === id);
 
     if (selectedCard) {
       setCardDataById(selectedCard); // Save only the selected card data in the global store
     }
 
+    // onBountiesClickedFromList ? onBountiesClickedFromList(id) : null;
 
     if (!isUserLoggedIn) {
       setGitHubPopupVisible(true);
@@ -97,6 +106,44 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
   }
 
+
+  async function fetchAllBounties() {
+    console.log('called fetchAllBounties');
+    const response = await apiService.get(API_END_POINTS.FETCH_BOUNTIES);
+    console.log(JSON.stringify(response));
+    const CardItem = mapApiResponseToCardData(response);
+    console.log('CardItem[0]', CardItem[0]);
+    //convert response to CardItems so that carditem can be shown as expandable cards
+    //once data parsing is done set state of data so that re-rendering can happen
+    //while re-rendering use this updated data object to show data on the list
+    if (CardItem.length > 0)
+      setIsDataLoadedAndParsed(CardItem);
+
+  }
+  useEffect(() => {
+    console.log('call fetchAllBounties');
+    fetchAllBounties();
+  }, [])
+  useEffect(() => {
+    setExpandedCardId(cardData[0].id);
+  }, [cardData])
+
+  function mapApiResponseToCardData(apiResponse: any): CardItem[] {
+    return apiResponse.data.map((item: any) => {
+      return {
+        id: item.id, // Assuming `item.id` is unique for each bounty
+        title: `[${item.platform.toUpperCase()} BOUNTY] ${item.title}`,
+        bulletsArray: item.bulletsArray ? item.bulletsArray : [item.platform, item.category, item.scope_result],
+        bottomDescription: item.num_submissions_left > 0 ? 'You can make multiple submissions' : 'No more submissions allowed',
+        bottomHeading: item.num_submissions_left > 0 ? `${item.num_submissions_left} Submissions left` : 'Submissions closed',
+        description: `Mission\n${item.description}\n\nBounty amount: ${item.amount || 'Not specified'}\nBounty Description: ${item.description}\npublic/private bounty: ${item.scope_result}\nbounty smart contract address: ${item.smart_contract_address}\nCreated By: ${item.created_by}\nBounties left: ${item.num_submissions_left} and deadline: ${new Date(item.updated_at).toLocaleDateString()}\n`,
+        bountyPrice: `${item.amount || '0'} ${item.token || 'Devcash'}`,
+        bountiesLeft: `${item.num_submissions_left || '0'} Bounties left`
+      };
+    });
+  }
+
+
   // Function to close the popup
   const closePopup = () => {
     setGitHubPopupVisible(false);
@@ -109,10 +156,31 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
 
 
+  function handleBountySubmit(bountyId: number) {
+
+    if (isUserLoggedIn) {
+      console.log(`Submit clicked for bountyId ${bountyId}`);
+
+      // const myBountyMessage = {
+      //   bounty_id: bountyId,
+      // }
+      // const postMessageVal = JSON.stringify(myBountyMessage);
+      // console.log('postMessageVal', postMessageVal);
+      global.vscode.postMessage({
+        type: EVENT_NAME.devdockBountySubmitRequest,
+        data: bountyId.toString(),
+      }) as ClientMessage;
+
+    }
+
+
+  }
+
   return (
     <div style={styles.parentCard}>
-      {cardData.map(card => (
-        <div key={card.id} style={styles.card}>
+      {cardData!.map(card =>
+      (
+        (card.bountyPrice && parseInt(card.bountyPrice) > 0 && <div key={card.id} style={styles.card}>
           <div style={styles.cardHeader} onClick={() => toggleCard(card.id)}>
 
             <span style={
@@ -124,7 +192,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
               {card.title}
             </span>
 
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '258px' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: isUserLoggedIn ? '350px' : '258px' }}>
               <div style={
                 {
                   display: 'flex',
@@ -164,6 +232,22 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                 <span style={{ opacity: '0.8', color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: '400' }}>{card.bountiesLeft}</span>
 
               </div>
+              {isUserLoggedIn && <div style={{
+                alignContent: 'center',
+                justifyContent: 'center',
+                color: 'green',
+                fontSize: '10px',
+                cursor: 'pointer',
+                marginLeft: '20px',
+                borderRadius: '10px',
+                fontStyle: 'bold'
+
+              }}
+                onClick={() => {
+                  handleBountySubmit(card.id)
+                }}>
+                Submit
+              </div>}
 
             </div>
 
@@ -240,7 +324,8 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
             </div>
 
           )}
-        </div>
+        </div>)
+
       ))}
       {isGitHubPopupVisible && <GitHubLoginPopup onClose={closePopup}></GitHubLoginPopup>}
       {isLoggedInPopupVisible && <UserGitHubLoggedInPopup onClose={closeLoggedinPopup}></UserGitHubLoggedInPopup>}

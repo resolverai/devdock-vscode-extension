@@ -37,6 +37,7 @@ const GitHubLoginPopup: React.FC<GitHubLoginPopupProps> = ({ onClose, loginData 
         global.vscode.postMessage({
             type: LOGIN_EVENT_NAME.initiateSocialLogin,
         });
+        onClose();
     }
 
     return (

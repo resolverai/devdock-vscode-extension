@@ -41,15 +41,20 @@ class ApiService {
     );
   }
 
-  // GET request
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
     try {
       const response: AxiosResponse<T> = await this.apiClient.get(endpoint, {
         params,
       });
-      return response.data;
+      if (response.status === 200) {
+        // Success response, return JSON parsed string
+        return response.data;
+      } else {
+        // Failure response, create a failure response
+        throw this.createFailureResponse(response);
+      }
     } catch (error) {
-      this.handleError(error);
+      this.handleError(error, endpoint);
       throw error;
     }
   }
@@ -61,9 +66,15 @@ class ApiService {
         endpoint,
         data
       );
-      return response.data;
+      if (response.status === 200 || response.status === 201) {
+        // Success response, return JSON parsed string
+        return response.data;
+      } else {
+        // Failure response, create a failure response
+        throw this.createFailureResponse(response);
+      }
     } catch (error) {
-      this.handleError(error);
+      this.handleError(error, endpoint);
       throw error;
     }
   }
@@ -75,37 +86,86 @@ class ApiService {
         endpoint,
         data
       );
-      return response.data;
+      if (response.status === 200) {
+        // Success response, return JSON parsed string
+        return response.data;
+      } else {
+        // Failure response, create a failure response
+        throw this.createFailureResponse(response);
+      }
     } catch (error) {
-      this.handleError(error);
+      this.handleError(error, endpoint);
       throw error;
     }
   }
 
+  // Helper method to create a failure response
+  private createFailureResponse(response: AxiosResponse) {
+    console.log("createFailureResponse", response);
+    return {
+      success: false,
+      status: response.status,
+      message: response.statusText,
+      data: response.data,
+    };
+  }
+
   // NEW: Dynamic request method to support full URLs
-  async postWithFullUrl<T>(url: string, data: Record<string, any>): Promise<T> {
+  async postWithFullUrl<T>(
+    url: string,
+    data: Record<string, any>,
+    key?: string
+  ): Promise<T> {
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (key) {
+        headers.Authorization = `Bearer ${key}`;
+      }
+
       const response: AxiosResponse<T> = await axios.post(url, data, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer YOUR_API_KEY`, // You can make this dynamic based on provider
-        },
+        headers,
       });
       return response.data;
     } catch (error) {
-      this.handleError(error);
+      this.handleError(error, url);
+      throw error;
+    }
+  }
+
+  async getWithFullUrl<T>(
+    url: string,
+    params: Record<string, any> = {},
+    key?: string
+  ): Promise<T> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (key) {
+      headers.Authorization = `Bearer ${key}`;
+    }
+    try {
+      const response: AxiosResponse<T> = await axios.get(url, {
+        headers,
+        params, // Query parameters if needed
+      });
+
+      return response.data;
+    } catch (error) {
+      this.handleError(error, url);
       throw error;
     }
   }
 
   // Error handling method
-  private handleError(error: any): void {
-    console.error("API call failed:", error);
+  private handleError(error: any, url: string): void {
+    console.error("API call failed:", error?.response, url);
   }
 }
 
 // Example usage:
-const BASE_URL = "https://api.devdock.ai";
+const BASE_URL = "https://dapp.devdock.ai";
 const apiService = new ApiService(BASE_URL);
 
 export default apiService;

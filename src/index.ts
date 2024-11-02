@@ -30,7 +30,7 @@ import {
   DEVDOCK_COMMAND_NAME,
 } from "./common/constants";
 import { TemplateProvider } from "./extension/template-provider";
-import { ServerMessage } from "./common/types";
+import { ClientMessage, ServerMessage } from "./common/types";
 import { FileInteractionCache } from "./extension/file-interaction";
 import { getLineBreakCount } from "./webview/utils";
 import { socialLogin } from "./common/auth";
@@ -42,7 +42,11 @@ import {
   setIsLoggedIn,
   setUserData,
 } from "./extension/store";
-import { AlchemyProvider, ethers } from "ethers";
+import { AlchemyProvider, ethers, Wallet } from "ethers";
+import apiService from "./services/apiService";
+import { API_END_POINTS } from "./services/apiEndPoints";
+import { DevdockPoints, PointsEvents } from "./common/devdockPoints";
+import { submitBounty } from "./extension/bountySubmission/submitBounty";
 
 export async function activate(context: ExtensionContext) {
   setContext(context);
@@ -170,6 +174,8 @@ export async function activate(context: ExtensionContext) {
   }
 
   createAndShowTerminal();
+  // fetchUserActionsList();
+  const devdockPoints = DevdockPoints.getInstance(context);
 
   async function generateFilesFromResponse(
     response: string, // Assuming response is a JSON string
@@ -326,6 +332,18 @@ export async function activate(context: ExtensionContext) {
       DEVDOCK_COMMAND_NAME.devdockGetCurrentFocusFileNameCommand,
       () => {
         getCurrentFileOpenedName();
+      }
+    ),
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.devdockBountySubmitRequestCommand,
+      (response: ClientMessage) => {
+        console.log(
+          "DEVDOCK_COMMAND_NAME.devdockBountySubmitRequestCommand",
+          response
+        );
+        if (response?.data !== undefined) {
+          submitBountyRequest(response.data.toString());
+        }
       }
     ),
 
@@ -612,26 +630,168 @@ export async function activate(context: ExtensionContext) {
 
   // Register the URI handler to capture the callback
   vscode.window.registerUriHandler({
-    handleUri(uri: vscode.Uri) {
-      console.log("OnGithubLogin are we here...");
+    async handleUri(uri: vscode.Uri) {
+      console.log("OnGithubLogin are we here...", uri);
       if (uri.path === "/auth/callback") {
         // Parse the query parameters to extract the authorization code
         const fragment = uri.fragment; // This will get everything after `#`
 
         // Parse the fragment to get the access_token
         const params = new URLSearchParams(fragment); // Treat the fragment like query parameters
+        console.log("Github login params", params);
         const accessToken = params.get("access_token"); // Extract access_token
+
+        console.log("GithubAccessToken", accessToken);
 
         if (accessToken) {
           setIsLoggedIn(true);
 
-          const userData = getUserData();
-          const privateKey = userData?.privateKey;
+          const gitHubUserInfo: any = await fetchGithubUserDetails(accessToken);
 
-          if (privateKey != null) {
-            startTransactionRelatedStuff(privateKey);
-          } else {
-            createWalletForUser();
+          console.log("gitHubUserInfo", gitHubUserInfo);
+          // fetchAccessToken(id_token);
+          //save user gitHubUserInfo in localstorage so that it can be fetched thorough out
+
+          const createUserBodyData = {
+            github_id: gitHubUserInfo?.nickname,
+            username: gitHubUserInfo?.nickname,
+            github_username: gitHubUserInfo?.nickname,
+            email: gitHubUserInfo?.email,
+            rank: 0,
+          };
+
+          try {
+            apiService
+              .post(API_END_POINTS.CREATE_USER, createUserBodyData)
+              .then((response: any) => {
+                console.log("user created or logged in", response);
+
+                const userId = response.data.id;
+
+                devdockPoints.pointsEventDoneFor(PointsEvents.SIGNUP, userId);
+
+                console.log("User ID:", userId);
+
+                const userWallets = response.data.wallets;
+                const myPrivateKey = context.globalState.get("userPrivateKey");
+
+                if (
+                  myPrivateKey == undefined ||
+                  myPrivateKey == "" ||
+                  myPrivateKey == null
+                ) {
+                  createEthWalletForUser(
+                    (wallet: Wallet) => {
+                      console.log("wallet created", wallet.address);
+                      const bodyToCreateWallet = {
+                        user_id: userId,
+                        wallet_address: wallet.address,
+                        chain: "ETHEREUM",
+                        balance: 0,
+                      };
+
+                      apiService
+                        .post(API_END_POINTS.CREATE_WALLET, bodyToCreateWallet)
+                        .then((response: any) => {
+                          console.log(
+                            "Created wallet details posted to backend",
+                            response
+                          );
+
+                          console.log("fetch user info, load in local storage");
+
+                          fetchUserInfo(
+                            userId, //user id
+                            () => {
+                              console.log("OnSuccess");
+                            },
+                            () => {
+                              console.log("OnFailure");
+                            }
+                          );
+                        });
+                    },
+                    (error) => {
+                      console.log(
+                        "wallet details posting to backend failed",
+                        error
+                      );
+                    }
+                  );
+                } else {
+                  //user has already a private key
+                  console.log("user has private key store in localstorage");
+                  console.log("fetch user info, load in local storage");
+                  fetchUserInfo(
+                    userId, //user id
+                    () => {
+                      console.log("OnSuccess");
+                    },
+                    () => {
+                      console.log("OnFailure");
+                    }
+                  );
+                }
+                // if (userWallets.length > 0) {
+                //   //user has wallets no need to create
+
+                //   console.log("user has wallets");
+                //   fetchUserInfo(
+                //     userId, //user id
+                //     () => {
+                //       console.log("OnSuccess");
+                //     },
+                //     () => {
+                //       console.log("OnFailure");
+                //     }
+                //   );
+                // } else {
+                //   //user dont have wallet create one and post to backend
+                //   console.log("user has no wallets, creating now");
+                //   createEthWalletForUser(
+                //     (wallet: Wallet) => {
+                //       console.log("wallet created", wallet.address);
+                //       const bodyToCreateWallet = {
+                //         user_id: userId,
+                //         wallet_address: wallet.address,
+                //         chain: "ETHEREUM",
+                //         balance: 0,
+                //       };
+
+                //       apiService
+                //         .post(API_END_POINTS.CREATE_WALLET, bodyToCreateWallet)
+                //         .then((response: any) => {
+                //           console.log(
+                //             "Created wallet details posted to backend",
+                //             response
+                //           );
+
+                //           console.log("fetch user info, load in local storage");
+
+                //           fetchUserInfo(
+                //             userId, //user id
+                //             () => {
+                //               console.log("OnSuccess");
+                //             },
+                //             () => {
+                //               console.log("OnFailure");
+                //             }
+                //           );
+                //         });
+                //     },
+                //     (error) => {
+                //       console.log(
+                //         "wallet details posting to backend failed",
+                //         error
+                //       );
+                //     }
+                //   );
+                // }
+              });
+          } catch (error) {
+            //error in user creation
+            console.log("error in user creation", error);
+            //this means user already exist
           }
         } else {
           vscode.window.showErrorMessage(
@@ -642,7 +802,32 @@ export async function activate(context: ExtensionContext) {
     },
   });
 
-  const createWalletForUser = () => {
+  const fetchUserWallet = (
+    userId: number,
+    onSuccess: (response: any) => void,
+    onFailure: () => void
+  ) => {
+    apiService
+      .get(API_END_POINTS.FETCH_USER_WALLET + "/" + userId)
+      .then((response: any) => {
+        const { wallet_address, balance, chain } = response.data;
+        if (wallet_address) {
+          onSuccess(response.data);
+        } else {
+          onFailure();
+        }
+      });
+  };
+
+  //access the stored data in any other class
+  const getUserInfo = () => {
+    return context.globalState.get("userProfileInfo");
+  };
+
+  const createEthWalletForUser = (
+    onWalletCreated: (wallet: Wallet, privateKey: string) => void,
+    onFailure: (error: any) => void
+  ) => {
     console.log("createWalletForUser");
 
     const panel = vscode.window.createWebviewPanel(
@@ -662,41 +847,19 @@ export async function activate(context: ExtensionContext) {
       async (message) => {
         if (message.command === "signedData") {
           // Parse the JSON string received from the webview
-          const signedData = JSON.parse(message.data);
-          console.log("PrivateKey:", signedData.privateKey);
-          console.log("Wallet Address:", signedData.address);
 
-          type UserLoginData = {
-            profilePic?: string;
-            profileLabel?: string;
-            topWalletAddress?: string;
-            balance_lable?: string;
-            balance?: number;
-            unclaimed_cash_label?: string;
-            unclaimed_cash?: number;
-            claim_now_cta_text?: string;
-            other_Wallets_label?: string;
-            wallets?: string[];
-            my_contribution_icon_path?: string;
-            my_contribution_label?: string;
-            my_contribution_web_link?: string;
-            settings_icon_path?: string;
-            settings_label?: string;
-            logout_icon_path?: string;
-            logout_label?: string;
-            privateKey?: string;
-          };
-
-          const userData: UserLoginData = {
-            balance: 10,
-            topWalletAddress: signedData.address,
-            wallets: [signedData.address],
-            privateKey: signedData.privateKey,
-          };
-          setUserData(userData);
-          console.log("isUserLoggedInAuth0", isUserLoggedInAuth0());
-          console.log("userData", userData.topWalletAddress);
-          startTransactionRelatedStuff(signedData.privateKey);
+          try {
+            const signedData = JSON.parse(message.data);
+            console.log("PrivateKey:", signedData.privateKey);
+            const privateKey = signedData.privateKey;
+            const wallet = new ethers.Wallet(privateKey);
+            //ToDo return value of wallet in callback onWalletCreated
+            context.globalState.update("userPrivateKey", privateKey);
+            onWalletCreated(wallet, privateKey);
+            context.globalState.update("userPrivateKey", privateKey);
+          } catch (error) {
+            onFailure(error);
+          }
         }
 
         if (message.command === "closeWebview") {
@@ -826,6 +989,85 @@ export async function activate(context: ExtensionContext) {
         "startTransactionRelatedStuff Error signing or sending transaction:",
         error
       );
+    }
+  }
+
+  async function fetchGithubUserDetails(accessToken: string) {
+    const result = await apiService.getWithFullUrl(
+      `https://${process.env.ALCHEMY_AUTH0_DOMAIN}/userinfo`,
+      {},
+      accessToken
+    );
+    console.log("GitHub data:", result); // GitHub username
+    return result;
+  }
+  function fetchUserInfo(
+    userId: number,
+    onSuccess: (response: any) => void,
+    onFailure: () => void
+  ) {
+    console.log("fetchUserInfo called");
+
+    // fetchUserInfo(
+    //   13,//user id
+    //   () => {
+    //     console.log("OnSuccess");
+    //   },
+    //   () => {
+    //     console.log("OnFailure");
+    //   }
+    // );
+
+    apiService.get(API_END_POINTS.FETCH_USER + userId).then((response: any) => {
+      const { id } = response.data;
+      if (id) {
+        console.log(id);
+        onSuccess(response.data);
+
+        //store the response data
+        const responseVal = JSON.stringify(response.data);
+        context.globalState.update("userProfileInfo", responseVal);
+        console.log("userProfileInfo: " + getUserInfo());
+        sidebarProvider.view?.webview.postMessage({
+          type: EVENT_NAME.githubLoginDone,
+          value: {
+            data: response.data,
+          },
+        } as ServerMessage<string>);
+        //post message user logged in successfully with data
+        // userLoggedInSuccessFully();
+      } else {
+        onFailure();
+      }
+    });
+  }
+
+  async function submitBountyRequest(response: string) {
+    if (!response) {
+      console.log("submitBountyRequest bounty id is undefined");
+      return;
+    }
+    console.log("submitBountyRequest index.ts", response);
+    //get private key from localstorage
+    //fetch bounty id from response
+    const myPrivateKey = context.globalState.get(
+      "userPrivateKey"
+    ) as `0x${string}`;
+
+    const bountyId = response;
+    // const { reciept, hash } = await submitBounty(bountyId.toString(), "", "");
+    const result = await submitBounty(
+      bountyId.toString(),
+      // "0x1cf1271b12b5f7ebdc7a1f46160b2f15d7758f46b0a21a747f84d388bcc6c19c",
+      myPrivateKey,
+      `submitting bounty: ${response}, check my github link`
+    );
+    if (result) {
+      const { reciept, hash } = result;
+      // use reciept and hash here
+      console.log("reciept, hash", reciept, hash);
+    } else {
+      // handle the case where result is undefined
     }
   }
 }

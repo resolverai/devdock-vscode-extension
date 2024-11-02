@@ -49,6 +49,8 @@ import { Reranker } from "./reranker";
 import { SymmetryService } from "./symmetry-service";
 import { Logger } from "../common/logger";
 import { SessionManager } from "./session-manager";
+import { DevdockPoints, PointsEvents } from "../common/devdockPoints";
+import { apiProviders } from "symmetry-client";
 
 const logger = new Logger();
 
@@ -310,27 +312,94 @@ export class ChatService {
 
     if (!provider) return;
 
-    const requestOptions: StreamRequestOptions = {
-      hostname: provider.apiHostname,
-      port: Number(provider.apiPort),
-      path: provider.apiPath,
-      protocol: provider.apiProtocol,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${provider.apiKey}`,
-      },
-    };
+    //case for providers to create requestbody and options
 
-    const requestBody = createStreamRequestBody(provider.provider, {
-      model: provider.modelName,
-      numPredictChat: this._numPredictChat,
-      temperature: this._temperature,
-      messages,
-      keepAlive: this._keepAlive,
-    });
+    switch (provider.provider) {
+      case apiProviders.devDockProvider:
+        const requestOptions: StreamRequestOptions = {
+          hostname: provider.apiHostname,
+          port: Number(provider.apiPort),
+          path: provider.apiPath,
+          protocol: provider.apiProtocol,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Authorization: `Bearer ${provider.apiKey}`,
+            "x-api-key": "sk_db_GA91ePDIeHcPmDRW8iYO8MayNCp7EgKn",
+          },
+        };
+        let myMessages = undefined;
+        if (messages && messages?.length > 0) {
+          myMessages = this.updateMessagesForDevDockProvider(messages);
+        }
+        // myMessages = this.updateMessagesForDevDockProvider();
 
-    return { requestOptions, requestBody };
+        const requestBody: RequestBodyBase = {
+          message:
+            myMessages && myMessages.length > 0
+              ? myMessages[myMessages.length - 1].content
+              : "",
+          history:
+            myMessages && myMessages.length > 1
+              ? myMessages.slice(0, myMessages.length - 1)
+              : [],
+          stream: true,
+        };
+        return { requestOptions, requestBody };
+
+      default:
+        const defaultReOptions: StreamRequestOptions = {
+          hostname: provider.apiHostname,
+          port: Number(provider.apiPort),
+          path: provider.apiPath,
+          protocol: provider.apiProtocol,
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${provider.apiKey}`,
+            "x-api-key": "sk_db_GA91ePDIeHcPmDRW8iYO8MayNCp7EgKn",
+          },
+        };
+
+        const defaultReqBody = createStreamRequestBody(provider.provider, {
+          model: provider.modelName,
+          numPredictChat: this._numPredictChat,
+          temperature: this._temperature,
+          messages,
+          keepAlive: this._keepAlive,
+          message:
+            messages && messages.length > 0
+              ? messages[messages.length - 1]
+              : undefined,
+        });
+        return { defaultReOptions, defaultReqBody };
+    }
+
+    // return { requestOptions, requestBody };
+  }
+
+  private updateMessageForDevDockProvider(message: Message): Message {
+    if (message.role === "user") {
+      message.role = "human";
+    } else if (message.role === "assistant") {
+      message.role = "ai";
+    }
+    return message;
+  }
+
+  private updateMessagesForDevDockProvider(messages: Message[]): Message[] {
+    return messages
+      .filter((message) => {
+        return message.role !== "system";
+      })
+      .map((message) => {
+        if (message.role === "user") {
+          return { ...message, role: "human" };
+        } else if (message.role === "assistant") {
+          return { ...message, role: "ai" };
+        }
+        return message;
+      });
   }
 
   private onStreamData = (
@@ -339,6 +408,10 @@ export class ChatService {
   ) => {
     const provider = this.getProvider();
     if (!provider) return;
+    if (!streamResponse) {
+      console.log("response is not parseable", streamResponse);
+      return;
+    }
 
     try {
       const data = getChatDataFromProvider(provider.provider, streamResponse);
@@ -365,6 +438,8 @@ export class ChatService {
       EXTENSION_CONTEXT_NAME.devdockGeneratingText,
       false
     );
+    const devdockPoints = DevdockPoints.getInstance();
+    devdockPoints.pointsEventDoneFor(PointsEvents.PROMPT);
     if (onEnd) {
       onEnd(this._completion);
       this._view?.webview.postMessage({
@@ -617,7 +692,17 @@ export class ChatService {
     const request = this.buildStreamRequest(updatedMessages);
     if (!request) return;
     const { requestBody, requestOptions } = request;
-    return this.streamResponse({ requestBody, requestOptions });
+
+    if (requestBody) {
+      console.log("Request", requestBody, "requestOptions", requestOptions);
+      return this.streamResponse({ requestBody, requestOptions });
+    } else {
+      console.log(
+        "Request or requestOptions is undefined in streamChatCompletion"
+      );
+      // Handle the case when requestBody is undefined
+      // You can throw an error, log a message, or return a default value
+    }
   }
 
   public async streamBountyCompletion(
@@ -656,7 +741,7 @@ export class ChatService {
       "Provide me a response in a way where if in your response there is any code snippet is available then provide me a json response like this - " +
       expectedJsonResponseString +
       "\n\n" +
-      "\n Generate response as short as possible so that I can get response in only first stream of the response if stream is set to true for the request";
+      "\n Generate all relevant source files for the project which are required for a web3 project development, along with basic setup of code snippets";
 
     const ragContext = await this.getRagContext(text);
 
@@ -684,7 +769,16 @@ export class ChatService {
     const request = this.buildStreamRequest(updatedMessages);
     if (!request) return;
     const { requestBody, requestOptions } = request;
-    return this.streamResponse({ requestBody, requestOptions, onEnd });
+    if (requestBody) {
+      console.log("Request", requestBody, "requestOptions", requestOptions);
+      return this.streamResponse({ requestBody, requestOptions, onEnd });
+    } else {
+      console.log(
+        "Request or requestOptions is undefined in streamBountyCompletion"
+      );
+      // Handle the case when requestBody is undefined
+      // You can throw an error, log a message, or return a default value
+    }
   }
 
   public async getTemplateMessages(
@@ -761,7 +855,17 @@ export class ChatService {
 
     if (!request) return;
     const { requestBody, requestOptions } = request;
-    return this.streamResponse({ requestBody, requestOptions, onEnd });
+
+    if (requestBody) {
+      console.log("Request", requestBody, "requestOptions", requestOptions);
+      return this.streamResponse({ requestBody, requestOptions, onEnd });
+    } else {
+      console.log(
+        "Request or requestOptions is undefined in streamTemplateCompletion"
+      );
+      // Handle the case when requestBody is undefined
+      // You can throw an error, log a message, or return a default value
+    }
   }
 
   private updateConfig() {

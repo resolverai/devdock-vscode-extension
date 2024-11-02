@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { LOGIN_EVENT_NAME } from '../../common/constants';
 import WhiteCrossSvg from '../login/white_cross_svg';
 import ProfileThumbnailSVG from '../home/svgs/profile_thumbnail';
+import { log } from 'console';
+import { setIsLoggedIn } from '../../extension/store';
 
 interface UserGitHubLoggedInPopupProps {
     onClose: () => void;
     loginData?: UserLoginData;
+    onLogout?: () => void;
 }
 
 type UserLoginData = {
@@ -19,7 +22,7 @@ type UserLoginData = {
     unclaimed_cash: number,
     claim_now_cta_text: string,
     other_Wallets_label: string,
-    wallets: string[],
+    wallets: WalletType[],
     my_contribution_icon_path: string,
     my_contribution_label: string,
     my_contribution_web_link: string,
@@ -27,12 +30,28 @@ type UserLoginData = {
     settings_label: string,
     logout_icon_path: string,
     logout_label: string,
+    points: string,
 };
 
 
+interface WalletType {
+    id: string,
+    user_id: number,
+    wallet_address: string,
+    chain: string,
+    is_deleted: boolean,
+    balance: number,
+    currency: string,
+    created_at: string,
+    updated_at: string
+}
 
-const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClose, loginData }) => {
+
+const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClose, loginData, onLogout }) => {
+
+
     console.log("UserGitHubLoggedInPopup called", loginData);
+    console.log("loginData?.profilePic", loginData?.profilePic);
 
     const global = globalThis as any;
     function handleGithubLogin(): void {
@@ -40,6 +59,22 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
         global.vscode.postMessage({
             type: LOGIN_EVENT_NAME.initiateSocialLogin,
         });
+    }
+
+    const [userloginData, setLoginData] = useState<UserLoginData | undefined>(loginData);
+
+    useEffect(() => {
+        setLoginData(loginData); // Sync with prop updates
+    }, [loginData]);
+
+
+    function logoutUser(): void {
+        //
+        localStorage.setItem('userInfo', '');
+        console.log('user logged out');
+        onLogout ? onLogout() : null;
+        onClose();
+
     }
 
     return (
@@ -97,13 +132,10 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                 }
             }>
                 <div style={{ height: '10px' }}></div>
-                <div style={{ display: 'flex', flexDirection: 'row', height: '36px', width: '36px', borderRadius: '18px', background: 'linear-gradient(90deg, #A380FD 0%, #784CDB 100%)', }}>
-                    {loginData?.profilePic ?
+                <div style={{ display: 'flex', flexDirection: 'row', height: '36px', width: '36px', }}>
+                    {
 
-                        <div>
-                            <img src={loginData?.profilePic} ></img>
-                        </div>
-                        :
+
                         <div>
                             <ProfileThumbnailSVG></ProfileThumbnailSVG>
                         </div>
@@ -112,26 +144,53 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
 
                     <div style={{ flex: 'display', flexDirection: 'column', alignItems: 'center', marginLeft: '8px' }}>
                         <div><span>GithubID</span></div>
-                        <div><span>0x5852...8Fe1</span></div>
+                        <div>
+                            <span>
+                                {loginData?.wallets[0].wallet_address &&
+                                    `${loginData.wallets[0].wallet_address.slice(0, 4)}...${loginData.wallets[0].wallet_address.slice(-5)}`}
+                            </span>
+
+                        </div>
 
                     </div>
                 </div>
 
                 <div style={{ height: '20px' }}></div>
+                <div style={{ display: 'flex', flexDirection: 'row' }}>
 
-                <div style={{ height: '43px', display: 'flex', flexDirection: 'column' }}>
-                    <div>
-                        <span style={{ opacity: 0.5, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter' }}>
-                            Devcash balance
-                        </span>
+                    <div style={{ height: '43px', display: 'flex', flexDirection: 'column' }}>
+                        <div>
+                            <span style={{ opacity: 0.5, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter' }}>
+                                DevDock points
+                            </span>
+                        </div>
+                        <div>
+                            <span style={{ opacity: 1, fontSize: '20px', fontWeight: 'bold', color: '#ffffff' }}>
+                                {loginData?.points}
+                            </span>
+                        </div>
+
                     </div>
-                    <div>
-                        <span style={{ opacity: 1, fontSize: '20px', fontWeight: 'bold', color: '#ffffff' }}>
-                            375
-                        </span>
+
+                    <div style={{ width: '20px' }}></div>
+
+                    <div style={{ height: '43px', display: 'flex', flexDirection: 'column' }}>
+                        <div>
+                            <span style={{ opacity: 0.5, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter' }}>
+                                Devcash balance
+                            </span>
+                        </div>
+                        <div>
+                            <span style={{ opacity: 1, fontSize: '20px', fontWeight: 'bold', color: '#ffffff' }}>
+                                {loginData?.balance}
+                            </span>
+                        </div>
+
                     </div>
 
                 </div>
+
+
 
 
                 <div style={{ height: '20px' }}></div>
@@ -141,7 +200,7 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                     <div style={{ display: 'flex', flexDirection: 'row', }}>
                         <div>
                             <span style={{ marginLeft: '5px', opacity: 1, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
-                                4432
+                                {loginData?.unclaimed_cash}
                             </span>
                         </div>
                         <div >
@@ -158,6 +217,8 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                     </div>
 
                 </div>
+
+
                 <div style={{ height: '20px' }}></div>
                 <div style={{ height: '1px', backgroundColor: '#37373C' }}></div>
                 <div style={{ height: '20px' }}></div>
@@ -166,7 +227,23 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                         Other wallets connected
                     </span>
                 </div>
-                <div style={{ height: '20px' }}></div>
+
+
+                {loginData?.wallets.map((wallet: WalletType, index) => {
+                    const chain: string = wallet?.chain;
+
+                    return (
+                        <div key={index}>
+                            <div style={{ height: '5px' }}></div>
+                            <span style={{ opacity: 1, fontSize: '10px', fontWeight: 'normal', color: '#ffffff' }}>
+                                {wallet?.currency}:{wallet?.wallet_address}
+                            </span>
+                            <div style={{ height: '5px' }}></div>
+                        </div>
+
+                    )
+                })}
+                {/* <div style={{ height: '20px' }}></div>
                 <div>
                     <span style={{ opacity: 1, fontSize: '10px', fontWeight: 'normal', color: '#ffffff' }}>
                         EVM:0x2097490827
@@ -177,7 +254,7 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                     <span style={{ opacity: 1, fontSize: '10px', fontWeight: 'normal', color: '#ffffff' }}>
                         Starknet:0x2097490827
                     </span>
-                </div>
+                </div> */}
                 <div style={{ height: '20px' }}></div>
                 <div style={{ height: '1px', backgroundColor: '#37373C' }}></div>
                 <div style={{ height: '20px' }}></div>
@@ -193,7 +270,7 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                     </span>
                 </div>
                 <div style={{ height: '20px' }}></div>
-                <div>
+                <div onClick={logoutUser}>
                     <span style={{ opacity: 1, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
                         Logout
                     </span>
