@@ -324,7 +324,7 @@ export const getChatDataFromProvider = (
     case apiProviders.devDockProvider:
       const dataFromServer = data;
       console.log("devdock dataFromServer", dataFromServer);
-      return dataFromServer.message;
+      return dataFromServer?.message ? dataFromServer.message : "";
     case apiProviders.LiteLLM:
     default:
       if (data?.choices[0].delta.content === "undefined") return "";
