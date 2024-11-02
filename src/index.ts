@@ -673,26 +673,13 @@ export async function activate(context: ExtensionContext) {
                 console.log("User ID:", userId);
 
                 const userWallets = response.data.wallets;
-                if (userWallets.length > 0) {
-                  //user has wallets no need to create
-                  context.globalState.update(
-                    "userWallet",
-                    userWallets[0].wallet_address
-                  );
+                const myPrivateKey = context.globalState.get("userPrivateKey");
 
-                  console.log("user has wallets");
-                  fetchUserInfo(
-                    userId, //user id
-                    () => {
-                      console.log("OnSuccess");
-                    },
-                    () => {
-                      console.log("OnFailure");
-                    }
-                  );
-                } else {
-                  //user dont have wallet create one and post to backend
-                  console.log("user has no wallets, creating now");
+                if (
+                  myPrivateKey == undefined ||
+                  myPrivateKey == "" ||
+                  myPrivateKey == null
+                ) {
                   createEthWalletForUser(
                     (wallet: Wallet) => {
                       console.log("wallet created", wallet.address);
@@ -731,7 +718,75 @@ export async function activate(context: ExtensionContext) {
                       );
                     }
                   );
+                } else {
+                  //user has already a private key
+                  console.log("user has private key store in localstorage");
+                  console.log("fetch user info, load in local storage");
+                  fetchUserInfo(
+                    userId, //user id
+                    () => {
+                      console.log("OnSuccess");
+                    },
+                    () => {
+                      console.log("OnFailure");
+                    }
+                  );
                 }
+                // if (userWallets.length > 0) {
+                //   //user has wallets no need to create
+
+                //   console.log("user has wallets");
+                //   fetchUserInfo(
+                //     userId, //user id
+                //     () => {
+                //       console.log("OnSuccess");
+                //     },
+                //     () => {
+                //       console.log("OnFailure");
+                //     }
+                //   );
+                // } else {
+                //   //user dont have wallet create one and post to backend
+                //   console.log("user has no wallets, creating now");
+                //   createEthWalletForUser(
+                //     (wallet: Wallet) => {
+                //       console.log("wallet created", wallet.address);
+                //       const bodyToCreateWallet = {
+                //         user_id: userId,
+                //         wallet_address: wallet.address,
+                //         chain: "ETHEREUM",
+                //         balance: 0,
+                //       };
+
+                //       apiService
+                //         .post(API_END_POINTS.CREATE_WALLET, bodyToCreateWallet)
+                //         .then((response: any) => {
+                //           console.log(
+                //             "Created wallet details posted to backend",
+                //             response
+                //           );
+
+                //           console.log("fetch user info, load in local storage");
+
+                //           fetchUserInfo(
+                //             userId, //user id
+                //             () => {
+                //               console.log("OnSuccess");
+                //             },
+                //             () => {
+                //               console.log("OnFailure");
+                //             }
+                //           );
+                //         });
+                //     },
+                //     (error) => {
+                //       console.log(
+                //         "wallet details posting to backend failed",
+                //         error
+                //       );
+                //     }
+                //   );
+                // }
               });
           } catch (error) {
             //error in user creation
@@ -770,7 +825,7 @@ export async function activate(context: ExtensionContext) {
   };
 
   const createEthWalletForUser = (
-    onWalletCreated: (wallet: Wallet) => void,
+    onWalletCreated: (wallet: Wallet, privateKey: string) => void,
     onFailure: (error: any) => void
   ) => {
     console.log("createWalletForUser");
@@ -799,7 +854,9 @@ export async function activate(context: ExtensionContext) {
             const privateKey = signedData.privateKey;
             const wallet = new ethers.Wallet(privateKey);
             //ToDo return value of wallet in callback onWalletCreated
-            onWalletCreated(wallet);
+            context.globalState.update("userPrivateKey", privateKey);
+            onWalletCreated(wallet, privateKey);
+            context.globalState.update("userPrivateKey", privateKey);
           } catch (error) {
             onFailure(error);
           }
@@ -993,12 +1050,16 @@ export async function activate(context: ExtensionContext) {
     console.log("submitBountyRequest index.ts", response);
     //get private key from localstorage
     //fetch bounty id from response
+    const myPrivateKey = context.globalState.get(
+      "userPrivateKey"
+    ) as `0x${string}`;
 
     const bountyId = response;
     // const { reciept, hash } = await submitBounty(bountyId.toString(), "", "");
     const result = await submitBounty(
       bountyId.toString(),
-      "0x1cf1271b12b5f7ebdc7a1f46160b2f15d7758f46b0a21a747f84d388bcc6c19c",
+      // "0x1cf1271b12b5f7ebdc7a1f46160b2f15d7758f46b0a21a747f84d388bcc6c19c",
+      myPrivateKey,
       `submitting bounty: ${response}, check my github link`
     );
     if (result) {

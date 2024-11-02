@@ -234,11 +234,11 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
 
                     return (
                         <div key={index}>
-                            <div style={{ height: '20px' }}></div>
+                            <div style={{ height: '5px' }}></div>
                             <span style={{ opacity: 1, fontSize: '10px', fontWeight: 'normal', color: '#ffffff' }}>
                                 {wallet?.currency}:{wallet?.wallet_address}
                             </span>
-                            <div style={{ height: '20px' }}></div>
+                            <div style={{ height: '5px' }}></div>
                         </div>
 
                     )
