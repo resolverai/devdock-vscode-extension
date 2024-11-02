@@ -83,6 +83,7 @@ export const EVENT_NAME = {
   devdockBountyRequest: "devdock-bounty-request",
   githubLoginDone: "github-login-done",
   githubLogoutDone: "github-logout-done",
+  devdockBountySubmitRequest: "devdock-bounty-submit-request",
 };
 
 export const DEVDOCK_COMMAND_NAME = {
@@ -116,6 +117,7 @@ export const DEVDOCK_COMMAND_NAME = {
   hideCenterBlankUIFromChat: "devdock.hideCenterUIFromChat",
   devdockBountyFilesResponse: "devdock.sendBountyFilesResponse",
   devdockOpenSigner: "devdock.openSigner",
+  devdockBountySubmitRequestCommand: "devdock.bountySubmitRequestCommand",
 };
 
 export const CONVERSATION_EVENT_NAME = {

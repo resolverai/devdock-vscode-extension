@@ -30,7 +30,7 @@ import {
   DEVDOCK_COMMAND_NAME,
 } from "./common/constants";
 import { TemplateProvider } from "./extension/template-provider";
-import { ServerMessage } from "./common/types";
+import { ClientMessage, ServerMessage } from "./common/types";
 import { FileInteractionCache } from "./extension/file-interaction";
 import { getLineBreakCount } from "./webview/utils";
 import { socialLogin } from "./common/auth";
@@ -46,6 +46,7 @@ import { AlchemyProvider, ethers, Wallet } from "ethers";
 import apiService from "./services/apiService";
 import { API_END_POINTS } from "./services/apiEndPoints";
 import { DevdockPoints, PointsEvents } from "./common/devdockPoints";
+import { submitBounty } from "./extension/bountySubmission/submitBounty";
 
 export async function activate(context: ExtensionContext) {
   setContext(context);
@@ -331,6 +332,18 @@ export async function activate(context: ExtensionContext) {
       DEVDOCK_COMMAND_NAME.devdockGetCurrentFocusFileNameCommand,
       () => {
         getCurrentFileOpenedName();
+      }
+    ),
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.devdockBountySubmitRequestCommand,
+      (response: ClientMessage) => {
+        console.log(
+          "DEVDOCK_COMMAND_NAME.devdockBountySubmitRequestCommand",
+          response
+        );
+        if (response?.data !== undefined) {
+          submitBountyRequest(response.data.toString());
+        }
       }
     ),
 
@@ -662,6 +675,11 @@ export async function activate(context: ExtensionContext) {
                 const userWallets = response.data.wallets;
                 if (userWallets.length > 0) {
                   //user has wallets no need to create
+                  context.globalState.update(
+                    "userWallet",
+                    userWallets[0].wallet_address
+                  );
+
                   console.log("user has wallets");
                   fetchUserInfo(
                     userId, //user id
@@ -965,5 +983,31 @@ export async function activate(context: ExtensionContext) {
         onFailure();
       }
     });
+  }
+
+  async function submitBountyRequest(response: string) {
+    if (!response) {
+      console.log("submitBountyRequest bounty id is undefined");
+      return;
+    }
+    console.log("submitBountyRequest index.ts", response);
+    //get private key from localstorage
+    //fetch bounty id from response
+    const user_wallet = context.globalState.get("userWallet");
+
+    const bountyId = response;
+    // const { reciept, hash } = await submitBounty(bountyId.toString(), "", "");
+    const result = await submitBounty(
+      bountyId.toString(),
+      "0x1cf1271b12b5f7ebdc7a1f46160b2f15d7758f46b0a21a747f84d388bcc6c19c",
+      `submitting bounty: ${response}, check my github link`
+    );
+    if (result) {
+      const { reciept, hash } = result;
+      // use reciept and hash here
+      console.log("reciept, hash", reciept, hash);
+    } else {
+      // handle the case where result is undefined
+    }
   }
 }
