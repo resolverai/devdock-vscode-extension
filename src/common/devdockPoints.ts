@@ -132,8 +132,6 @@ export class DevdockPoints {
   }
 
   public pointsEventDoneFor(eventName: string, userId?: string) {
-    //fetch user id if not available from localstorage
-
     let myUserId;
     if (userId != null) {
       myUserId = userId;

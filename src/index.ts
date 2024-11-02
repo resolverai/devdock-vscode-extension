@@ -650,7 +650,7 @@ export async function activate(context: ExtensionContext) {
           try {
             apiService
               .post(API_END_POINTS.CREATE_USER, createUserBodyData)
-              .then(async (response: any) => {
+              .then((response: any) => {
                 console.log("user created or logged in", response);
 
                 const userId = response.data.id;
