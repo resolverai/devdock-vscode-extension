@@ -3,6 +3,9 @@ import { CodeLanguageDetails } from "./languages";
 import { ALL_BRACKETS, SYMMETRY_DATA_MESSAGE } from "./constants";
 
 export interface RequestBodyBase {
+  message?: string;
+  messages?: Message[];
+  history?: Message[];
   stream: boolean;
   n_predict?: number;
   temperature?: number;
@@ -11,14 +14,21 @@ export interface RequestBodyBase {
 export interface RequestOptionsOllama extends RequestBodyBase {
   model: string;
   keep_alive?: string | number;
-  messages?: Message[] | Message;
+  messages?: Message[];
   prompt: string;
   options: Record<string, unknown>;
 }
 
 export interface StreamBodyOpenAI extends RequestBodyBase {
-  messages?: Message[] | Message;
+  messages?: Message[];
+  message?: string;
   max_tokens: number;
+}
+
+export interface StreamBodyDevdockModel extends RequestBodyBase {
+  messages?: Message[];
+  max_tokens: number;
+  message?: string;
 }
 
 export interface PrefixSuffix {
@@ -166,6 +176,7 @@ export const apiProviders = {
   Ollama: "ollama",
   Oobabooga: "oobabooga",
   OpenWebUI: "openwebui",
+  devDockProvider: "devDock",
 } as const;
 
 export interface ApiModel {
