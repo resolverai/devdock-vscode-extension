@@ -232,21 +232,38 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                 <span style={{ opacity: '0.8', color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: '400' }}>{card.bountiesLeft}</span>
 
               </div>
-              {isUserLoggedIn && <div style={{
-                alignContent: 'center',
-                justifyContent: 'center',
-                color: 'green',
-                fontSize: '10px',
-                cursor: 'pointer',
-                marginLeft: '20px',
-                borderRadius: '10px',
-                fontStyle: 'bold'
+              {isUserLoggedIn && <div
+                style={{
+                  alignContent: 'center',
+                  justifyContent: 'center',
+                  // color: 'green',
+                  // backgroundColor: 'red',
+                  width: '10px',
+                  marginRight: '15px',
+                  fontSize: '10px',
+                  cursor: 'pointer',
+                  // marginLeft: '10px',
+                  // borderRadius: '10px',
+                  fontStyle: 'bold'
 
-              }}
+                }}
                 onClick={() => {
                   handleBountySubmit(card.id)
                 }}>
-                Submit
+                <span style={{
+                  alignContent: 'baseline',
+                  justifyContent: 'center',
+                  color: 'green',
+
+                  width: '10px',
+
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  // marginLeft: '10px',
+                  // borderRadius: '10px',
+                  fontStyle: 'bold'
+
+                }}>↑</span>
               </div>}
 
             </div>

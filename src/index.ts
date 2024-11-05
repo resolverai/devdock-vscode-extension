@@ -48,6 +48,12 @@ import { API_END_POINTS } from "./services/apiEndPoints";
 import { DevdockPoints, PointsEvents } from "./common/devdockPoints";
 import { submitBounty } from "./extension/bountySubmission/submitBounty";
 
+import * as fcl from "@onflow/fcl";
+import { authz } from "./extension/flow/authz";
+import { ec } from "elliptic";
+import { keyGen } from "./extension/flow/create_keypair";
+import { getFileExtensionMapping } from "./common/extensionsMapping";
+
 export async function activate(context: ExtensionContext) {
   setContext(context);
   const enabApiForTrackingEvents = true;
@@ -175,6 +181,20 @@ export async function activate(context: ExtensionContext) {
 
   createAndShowTerminal();
   // fetchUserActionsList();
+  const isPrivateKeyAvailable = context.globalState.get("flowWalletPrivateKey");
+  if (
+    isPrivateKeyAvailable === null ||
+    isPrivateKeyAvailable === undefined ||
+    isPrivateKeyAvailable === ""
+  ) {
+    initiateFlow();
+  }
+
+  getFileExtensionMapping().then((fileMappings: any) => {
+    console.log("getFileExtensionMapping", fileMappings);
+    context.globalState.update("getFileExtensionMapping", fileMappings);
+  });
+
   const devdockPoints = DevdockPoints.getInstance(context);
 
   async function generateFilesFromResponse(
@@ -680,12 +700,15 @@ export async function activate(context: ExtensionContext) {
                   myPrivateKey == "" ||
                   myPrivateKey == null
                 ) {
+                  const flowWalletAddress =
+                    context.globalState.get("flowWalletAddress");
                   createEthWalletForUser(
                     (wallet: Wallet) => {
                       console.log("wallet created", wallet.address);
                       const bodyToCreateWallet = {
                         user_id: userId,
                         wallet_address: wallet.address,
+                        flow_wallet_address: flowWalletAddress,
                         chain: "ETHEREUM",
                         balance: 0,
                       };
@@ -1066,8 +1089,81 @@ export async function activate(context: ExtensionContext) {
       const { reciept, hash } = result;
       // use reciept and hash here
       console.log("reciept, hash", reciept, hash);
+      vscode.window.showInformationMessage(
+        `Submission successful. \n Bounty Id: ${bountyId.toString()} \n Transaction Id: ${hash}`,
+        { modal: true }
+      );
     } else {
       // handle the case where result is undefined
     }
+  }
+
+  async function initiateFlow() {
+    const { privateKey, publicKey } = keyGen();
+    console.log("privateKey", privateKey, "publicKey", publicKey);
+
+    const authZVal = authz(
+      "0x9d2ade18cb6bea1a", //public address of master account on Flow
+      "0", //key id
+      "c82378d0b92011d574966e835b8027d3cc5e230bb05c26d728a0ed2c5d484889" // flow account private key of master account
+    );
+
+    fcl.config({
+      "flow.network": `${process.env.FLOWTESTNET}`,
+      "accessNode.api": `${process.env.AccessNodeTestAPI}`,
+    });
+    fcl
+      .mutate({
+        cadence: `
+        import Crypto
+
+transaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8) {
+	prepare(signer: auth(BorrowValue, Storage) &Account) {
+		pre {
+			signatureAlgorithm == 1 || signatureAlgorithm == 2:
+                "Cannot add Key: Must provide a signature algorithm raw value that corresponds to "
+                .concat("one of the available signature algorithms for Flow keys.")
+                .concat("You provided ").concat(signatureAlgorithm.toString())
+                .concat(" but the options are either 1 (ECDSA_P256) or 2 (ECDSA_secp256k1).")
+			hashAlgorithm == 1 || hashAlgorithm == 3:
+                "Cannot add Key: Must provide a hash algorithm raw value that corresponds to "
+                .concat("one of of the available hash algorithms for Flow keys.")
+                .concat("You provided ").concat(hashAlgorithm.toString())
+                .concat(" but the options are either 1 (SHA2_256) or 3 (SHA3_256).")
+		}
+
+		let publicKey = PublicKey(
+			publicKey: key.decodeHex(),
+			signatureAlgorithm: SignatureAlgorithm(rawValue: signatureAlgorithm)!
+		)
+
+		let account = Account(payer: signer)
+
+		account.keys.add(publicKey: publicKey, hashAlgorithm: HashAlgorithm(rawValue: hashAlgorithm)!, weight: 1000.0)
+	}
+}
+             `,
+        args: (arg: any, t: any) => [
+          arg(publicKey, t.String),
+          arg(1, t.UInt8),
+          arg(3, t.UInt8),
+        ],
+        // args: master_wallet_address, "keyId", "user private key"
+        proposer: authZVal,
+        payer: authZVal,
+        authorizations: [authZVal],
+        limit: 100, // Setting an explicit compute limit for consistency
+      })
+      .then(async (tx_id) => {
+        console.log("Transaction ID:", tx_id);
+        const transactiondata = await fcl.tx(tx_id).onceSealed();
+        // console.log("Transactions Data: ", transactiondata);
+        const address = transactiondata["events"][14]["data"]["address"];
+        context.globalState.update("flowWalletAddress", address);
+        context.globalState.update("flowWalletPrivateKey", privateKey);
+
+        console.log("Flow Address: ", address);
+      });
+    // .then(fcl.decode);
   }
 }
