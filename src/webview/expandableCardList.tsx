@@ -136,7 +136,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
         bulletsArray: item.bulletsArray ? item.bulletsArray : [item.platform, item.category, item.scope_result],
         bottomDescription: item.num_submissions_left > 0 ? 'You can make multiple submissions' : 'No more submissions allowed',
         bottomHeading: item.num_submissions_left > 0 ? `${item.num_submissions_left} Submissions left` : 'Submissions closed',
-        description: `Mission\n${item.description}\n\nBounty amount: ${item.amount || 'Not specified'}\nBounty Description: ${item.description}\npublic/private bounty: ${item.scope_result}\nbounty smart contract address: ${item.smart_contract_address}\nCreated By: ${item.created_by}\nBounties left: ${item.num_submissions_left} and deadline: ${new Date(item.updated_at).toLocaleDateString()}\n`,
+        description: `<b>Mission</b></br>${item.description}</br><b>Bounty amount:</b> ${item.amount || 'Not specified'}</br><b>Bounty Description:</b> ${item.description}</br><b>public/private bounty:</b> ${item.scope_result}</br><b>bounty smart contract address:</b> ${item.smart_contract_address}</br><b>Created By:</b> ${item.created_by}</br><b>Bounties left:</b> ${item.num_submissions_left} and <b>deadline:</b> ${new Date(item.updated_at).toLocaleDateString()}\n`,
         bountyPrice: `${item.amount || '0'} ${item.token || 'Devcash'}`,
         bountiesLeft: `${item.num_submissions_left || '0'} Bounties left`
       };
@@ -284,8 +284,21 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
               ))}
               <div style={{ height: '20px', }} />
 
-              <span style={{ color: '#ffffff', lineHeight: '15px', fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', }}>
-                {card.description}</span>
+              {/* <span style={{ color: '#ffffff', lineHeight: '15px', 
+                fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', 
+                fontStyle: 'normal', }}>
+                {card.description}</span> */}
+
+              <div style={{
+                color: '#ffffff', lineHeight: '15px',
+                fontWeight: 'lighter', fontSize: '10px', alignContent: 'center',
+                fontStyle: 'normal',
+              }} dangerouslySetInnerHTML={{
+                __html:
+
+                  card.description
+
+              }} />
 
 
               <div style={{ height: '10px', fontWeight: 'normal' }} />
