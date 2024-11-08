@@ -180,6 +180,7 @@ export async function activate(context: ExtensionContext) {
   }
 
   createAndShowTerminal();
+  fetchDevDockRags();
   // fetchUserActionsList();
   const isPrivateKeyAvailable = context.globalState.get("flowWalletPrivateKey");
   if (
@@ -448,6 +449,14 @@ export async function activate(context: ExtensionContext) {
       Analytics.trackEvent(AnalyticsEvents.GithubIconClicked);
     }),
 
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.devdockLogoutUser,
+      async () => {
+        console.log("index.ts logout command executed");
+        context.globalState.update("userProfileInfo", "");
+      }
+    ),
+
     commands.registerCommand(DEVDOCK_COMMAND_NAME.manageProviders, async () => {
       commands.executeCommand(
         "setContext",
@@ -692,8 +701,18 @@ export async function activate(context: ExtensionContext) {
 
                 console.log("User ID:", userId);
 
-                const userWallets = response.data.wallets;
+                // const userWallets = response.data.wallets;
                 const myPrivateKey = context.globalState.get("userPrivateKey");
+                // const flowPrivateKey = context.globalState.get(
+                //   "flowWalletPrivateKey"
+                // );
+                // const ethWallet = getWalletFromPrivateKey(
+                //   myPrivateKey as string
+                // );
+
+                // const flowWallet = getWalletFromPrivateKey(
+                //   flowPrivateKey as string
+                // );
 
                 if (
                   myPrivateKey == undefined ||
@@ -702,19 +721,32 @@ export async function activate(context: ExtensionContext) {
                 ) {
                   const flowWalletAddress =
                     context.globalState.get("flowWalletAddress");
+
                   createEthWalletForUser(
                     (wallet: Wallet) => {
                       console.log("wallet created", wallet.address);
-                      const bodyToCreateWallet = {
-                        user_id: userId,
-                        wallet_address: wallet.address,
-                        flow_wallet_address: flowWalletAddress,
-                        chain: "ETHEREUM",
-                        balance: 0,
-                      };
+                      const bodyToCreateWallet = [
+                        {
+                          user_id: userId,
+                          wallet_address: wallet.address,
+                          currency: "ETH",
+                          chain: "ETHEREUM",
+                          balance: 0,
+                        },
+                        {
+                          user_id: userId,
+                          wallet_address: flowWalletAddress,
+                          currency: "FLOW",
+                          chain: "FLOW",
+                          balance: 0,
+                        },
+                      ];
 
                       apiService
-                        .post(API_END_POINTS.CREATE_WALLET, bodyToCreateWallet)
+                        .post(
+                          API_END_POINTS.CREATE_MULTIPLE_WALLETS,
+                          bodyToCreateWallet
+                        )
                         .then((response: any) => {
                           console.log(
                             "Created wallet details posted to backend",
@@ -1165,5 +1197,17 @@ transaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8) {
         console.log("Flow Address: ", address);
       });
     // .then(fcl.decode);
+  }
+
+  async function fetchDevDockRags() {
+    apiService
+      .getWithFullUrl("https://api.devdock.ai/api/v1/bot/api-details")
+      .then((response) => {
+        console.log("fetchDevDockRags", response);
+      });
+  }
+  function getWalletFromPrivateKey(privateKey: string) {
+    const wallet = new ethers.Wallet(privateKey);
+    return wallet.address;
   }
 }

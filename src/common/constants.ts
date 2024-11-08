@@ -118,6 +118,7 @@ export const DEVDOCK_COMMAND_NAME = {
   devdockBountyFilesResponse: "devdock.sendBountyFilesResponse",
   devdockOpenSigner: "devdock.openSigner",
   devdockBountySubmitRequestCommand: "devdock.bountySubmitRequestCommand",
+  devdockLogoutUser: "devdock.logoutUser",
 };
 
 export const CONVERSATION_EVENT_NAME = {

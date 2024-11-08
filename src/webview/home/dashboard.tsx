@@ -29,6 +29,7 @@ const Dashboard: React.FC = () => {
     const [userLoggedInData, setUserLoginData] = useState<UserLoginData>();
     const [userId, setUserID] = useState<number>(0);
 
+    const global = globalThis as any
 
     type UserLoginData = {
         id: string,
@@ -94,13 +95,9 @@ const Dashboard: React.FC = () => {
         if (message?.type === EVENT_NAME.githubLogoutDone) {
             console.log("githubLogoutDone dashboard.tsx");
             setUserLoggedin(false);
-            localStorage.setItem('userProfileInfo', '');
 
 
         }
-
-
-
 
         return () => window.removeEventListener('message', handler)
     }
@@ -126,6 +123,10 @@ const Dashboard: React.FC = () => {
 
                     setUserLoginData(undefined);
                     setUserLoggedin(false);
+                    localStorage.setItem('userProfileInfo', '');
+                    global.vscode.postMessage({
+                        type: EVENT_NAME.githubLogoutDone,
+                    })
 
                 }}></UserGitHubLoggedInPopup>
             );
@@ -148,9 +149,9 @@ const Dashboard: React.FC = () => {
 
         // localStorage.setItem('userProfileInfo', '');
         const myUserData = localStorage.getItem('userProfileInfo');
-        console.log('myUserData in dashboard.tsx', myUserData);
+        // console.log('myUserData in dashboard.tsx', typeof myUserData);
         let userId;
-        if (myUserData != null) {
+        if (myUserData && myUserData != null) {
             userId = JSON.parse(myUserData).id;
             console.log('myUserData in dashboard.tsx userId', userId);
         }
