@@ -438,8 +438,7 @@ export class ChatService {
       EXTENSION_CONTEXT_NAME.devdockGeneratingText,
       false
     );
-    const devdockPoints = DevdockPoints.getInstance();
-    devdockPoints.pointsEventDoneFor(PointsEvents.PROMPT);
+   
     if (onEnd) {
       onEnd(this._completion);
       this._view?.webview.postMessage({

@@ -24,6 +24,15 @@ interface CardItem {
   bountiesLeft: string;
 }
 
+interface MyBounty {
+  card?: CardItem;
+  platform?: string;
+  smart_contract_address?: string;
+  created_by?: string;
+  expiry?: string;
+
+}
+
 const myCardData: CardItem[] = [
   {
     id: 1,
@@ -82,27 +91,39 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
   };
 
   function handleClaimBountyClick(id: number): void {
-    console.log("clicked bounty id:" + id);
-    setClaimBountyClicked(true);
-    const selectedCard = cardData!.find(card => card.id === id);
 
-    if (selectedCard) {
-      setCardDataById(selectedCard); // Save only the selected card data in the global store
+    const isBountyClicked = localStorage.getItem(`bounty_${id}`) === 'true';
+    if (isBountyClicked) {
+      //this is submit bounty flow
+      console.log("this is submit bounty flow for id:", id);
+
+    } else {
+      localStorage.setItem(`bounty_${id}`, 'true');
+      console.log("clicked bounty id:" + id);
+
+      setClaimBountyClicked(true);
+      const selectedCard = cardData!.find(card => card.id === id);
+
+      if (selectedCard) {
+        setCardDataById(selectedCard); // Save only the selected card data in the global store
+      }
+
+      // onBountiesClickedFromList ? onBountiesClickedFromList(id) : null;
+
+      if (!isUserLoggedIn) {
+        setGitHubPopupVisible(true);
+        console.log("user not loggedin and claim button clicked");
+      }
+      else {
+        //start bounty process
+        // setLoggedInUserPopupVisible(true);
+        console.log("user loggedin and claim button clicked");
+        onBountiesClickedFromList ? onBountiesClickedFromList(id) : null;
+
+      }
     }
 
-    // onBountiesClickedFromList ? onBountiesClickedFromList(id) : null;
 
-    if (!isUserLoggedIn) {
-      setGitHubPopupVisible(true);
-      console.log("user not loggedin and claim button clicked");
-    }
-    else {
-      //start bounty process
-      // setLoggedInUserPopupVisible(true);
-      console.log("user loggedin and claim button clicked");
-      onBountiesClickedFromList ? onBountiesClickedFromList(id) : null;
-
-    }
 
   }
 
@@ -111,11 +132,13 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
     console.log('called fetchAllBounties');
     const response = await apiService.get(API_END_POINTS.FETCH_BOUNTIES);
     console.log(JSON.stringify(response));
-    const CardItem = mapApiResponseToCardData(response);
+    const [cardItems, myBounties] = mapApiResponseToCardData(response);
+    const CardItem = cardItems;
+    localStorage.setItem('myBounties', JSON.stringify(myBounties));
+
     console.log('CardItem[0]', CardItem[0]);
-    //convert response to CardItems so that carditem can be shown as expandable cards
-    //once data parsing is done set state of data so that re-rendering can happen
-    //while re-rendering use this updated data object to show data on the list
+    console.log('MyBounty[0]', myBounties[0]);
+
     if (CardItem.length > 0)
       setIsDataLoadedAndParsed(CardItem);
 
@@ -128,19 +151,37 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
     setExpandedCardId(cardData[0].id);
   }, [cardData])
 
-  function mapApiResponseToCardData(apiResponse: any): CardItem[] {
-    return apiResponse.data.map((item: any) => {
-      return {
-        id: item.id, // Assuming `item.id` is unique for each bounty
-        title: `[${item.platform.toUpperCase()} BOUNTY] ${item.title}`,
-        bulletsArray: item.bulletsArray ? item.bulletsArray : [item.platform, item.category, item.scope_result],
-        bottomDescription: item.num_submissions_left > 0 ? 'You can make multiple submissions' : 'No more submissions allowed',
-        bottomHeading: item.num_submissions_left > 0 ? `${item.num_submissions_left} Submissions left` : 'Submissions closed',
-        description: `<b>Mission</b></br>${item.description}</br><b>Bounty amount:</b> ${item.amount || 'Not specified'}</br><b>Bounty Description:</b> ${item.description}</br><b>public/private bounty:</b> ${item.scope_result}</br><b>bounty smart contract address:</b> ${item.smart_contract_address}</br><b>Created By:</b> ${item.created_by}</br><b>Bounties left:</b> ${item.num_submissions_left} and <b>deadline:</b> ${new Date(item.updated_at).toLocaleDateString()}\n`,
-        bountyPrice: `${item.amount || '0'} ${item.token || 'Devcash'}`,
-        bountiesLeft: `${item.num_submissions_left || '0'} Bounties left`
-      };
-    });
+  function mapApiResponseToCardData(apiResponse: any): [CardItem[], MyBounty[]] {
+
+    const cardItems: CardItem[] = [];
+    const myBounties: MyBounty[] = [];
+
+    apiResponse.data.forEach(
+      (item: any) => {
+        const myBounty: MyBounty = {};
+
+        const cardItem: CardItem = {
+          id: item.id, // Assuming `item.id` is unique for each bounty
+          title: `[${item.platform.toUpperCase()} BOUNTY] ${item.title}`,
+          bulletsArray: item.bulletsArray ? item.bulletsArray : [item.platform, item.category, item.scope_result],
+          bottomDescription: item.num_submissions_left > 0 ? 'You can make multiple submissions' : 'No more submissions allowed',
+          bottomHeading: item.num_submissions_left > 0 ? `${item.num_submissions_left} Submissions left` : 'Submissions closed',
+          description: `<b>Mission</b></br>${item.description}</br><b>Bounty amount:</b> ${item.amount || 'Not specified'}</br><b>Bounty Description:</b> ${item.description}</br><b>public/private bounty:</b> ${item.scope_result}</br><b>bounty smart contract address:</b> ${item.smart_contract_address}</br><b>Created By:</b> ${item.created_by}</br><b>Bounties left:</b> ${item.num_submissions_left} and <b>deadline:</b> ${new Date(item.updated_at).toLocaleDateString()}\n`,
+          bountyPrice: `${item.amount || '0'} ${item.token || 'Devcash'}`,
+          bountiesLeft: `${item.num_submissions_left || '0'} Bounties left`
+        };
+
+        myBounty.card = cardItem;
+        myBounty.platform = item.platform;
+        myBounty.smart_contract_address = item.smart_contract_address;
+        myBounty.created_by = item.created_by;
+        myBounty.expiry = item.expiry;
+
+        cardItems.push(cardItem);
+        myBounties.push(myBounty);
+      });
+
+    return [cardItems, myBounties];
   }
 
 
@@ -178,185 +219,177 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
   return (
     <div style={styles.parentCard}>
-      {cardData!.map(card =>
-      (
-        (card.bountyPrice && parseInt(card.bountyPrice) > 0 && <div key={card.id} style={styles.card}>
-          <div style={styles.cardHeader} onClick={() => toggleCard(card.id)}>
+      {cardData!.map(card => {
+        const isBountyClicked = localStorage.getItem(`bounty_${card.id}`) === 'true';
 
-            <span style={
-              {
-                color: '#ffffff',
-                fontSize: '12px', alignContent: 'center',
-                fontStyle: 'normal', fontWeight: 'normal'
-              }}>
-              {card.title}
-            </span>
+        return (
+          (card.bountyPrice && parseInt(card.bountyPrice) > 0 && <div key={card.id} style={styles.card}>
+            <div style={styles.cardHeader} onClick={() => toggleCard(card.id)}>
 
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: isUserLoggedIn ? '350px' : '258px' }}>
-              <div style={
+              <span style={
                 {
-                  display: 'flex',
-                  flexDirection: 'row',
-                  backgroundColor: '#7A71F3',
-                  borderRadius: '24px',
-                  width: '110px',
-                  padding: '4px',
-                  marginBottom: '10px',
-                  marginTop: '10px',
-                  alignContent: 'center',
-                  justifyContent: 'center'
-                }
-              }>
-                <DevCashSVG></DevCashSVG>
-                <div style={{ width: '10px', }}></div>
-                <span style={{ color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal' }}>{card.bountyPrice}</span>
-
-              </div>
-              <div style={{ width: '30px' }}></div>
-              <div style={
-                {
-                  display: 'flex',
-                  flexDirection: 'row',
-                  backgroundColor: '#252527',
-                  borderRadius: '24px',
-                  width: '110px',
-                  padding: '4px',
-                  marginBottom: '10px',
-                  marginTop: '10px',
-                  alignContent: 'center',
-                  justifyContent: 'center'
-                }
-              }>
-                <BountiesLeftIcon></BountiesLeftIcon>
-                <div style={{ width: '10px' }}></div>
-                <span style={{ opacity: '0.8', color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: '400' }}>{card.bountiesLeft}</span>
-
-              </div>
-              {isUserLoggedIn && <div
-                style={{
-                  alignContent: 'center',
-                  justifyContent: 'center',
-                  // color: 'green',
-                  // backgroundColor: 'red',
-                  width: '10px',
-                  marginRight: '15px',
-                  fontSize: '10px',
-                  cursor: 'pointer',
-                  // marginLeft: '10px',
-                  // borderRadius: '10px',
-                  fontStyle: 'bold'
-
-                }}
-                onClick={() => {
-                  handleBountySubmit(card.id)
+                  color: '#ffffff',
+                  fontSize: '12px', alignContent: 'center',
+                  fontStyle: 'normal', fontWeight: 'normal'
                 }}>
-                <span style={{
-                  alignContent: 'baseline',
-                  justifyContent: 'center',
-                  color: 'green',
+                {card.title}
+              </span>
 
-                  width: '10px',
+              <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: isUserLoggedIn ? '350px' : '258px' }}>
+                <div style={
+                  {
+                    display: 'flex',
+                    flexDirection: 'row',
+                    backgroundColor: '#7A71F3',
+                    borderRadius: '24px',
+                    width: '110px',
+                    padding: '4px',
+                    marginBottom: '10px',
+                    marginTop: '10px',
+                    alignContent: 'center',
+                    justifyContent: 'center'
+                  }
+                }>
+                  <DevCashSVG></DevCashSVG>
+                  <div style={{ width: '10px', }}></div>
+                  <span style={{ color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal' }}>{card.bountyPrice}</span>
 
-                  fontSize: '20px',
-                  cursor: 'pointer',
-                  // marginLeft: '10px',
-                  // borderRadius: '10px',
-                  fontStyle: 'bold'
+                </div>
+                <div style={{ width: '30px' }}></div>
+                <div style={
+                  {
+                    display: 'flex',
+                    flexDirection: 'row',
+                    backgroundColor: '#252527',
+                    borderRadius: '24px',
+                    width: '110px',
+                    padding: '4px',
+                    marginBottom: '10px',
+                    marginTop: '10px',
+                    alignContent: 'center',
+                    justifyContent: 'center'
+                  }
+                }>
+                  <BountiesLeftIcon></BountiesLeftIcon>
+                  <div style={{ width: '10px' }}></div>
+                  <span style={{ opacity: '0.8', color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: '400' }}>{card.bountiesLeft}</span>
 
-                }}>↑</span>
-              </div>}
+                </div>
+                {isUserLoggedIn && <div
+                  style={{
+                    alignContent: 'center',
+                    justifyContent: 'center',
+                    // color: 'green',
+                    // backgroundColor: 'red',
+                    width: '10px',
+                    marginRight: '15px',
+                    fontSize: '10px',
+                    cursor: 'pointer',
+                    // marginLeft: '10px',
+                    // borderRadius: '10px',
+                    fontStyle: 'bold'
+
+                  }}
+                  onClick={() => {
+                    handleBountySubmit(card.id)
+                  }}>
+
+                </div>}
+
+              </div>
 
             </div>
+            <div style={{ height: 1, width: '100%', backgroundColor: "#37373C" }}></div>
 
-          </div>
-          <div style={{ height: 1, width: '100%', backgroundColor: "#37373C" }}></div>
+            {expandedCardId === card.id && (
+              <div style={styles.cardBody}>
+                {card.bulletsArray.map((bullet, index) => (
 
-          {expandedCardId === card.id && (
-            <div style={styles.cardBody}>
-              {card.bulletsArray.map((bullet, index) => (
+                  <li key={index}>
 
-                <li key={index}>
+                    <span style={{ color: '#ffffff', lineHeight: '15px', fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', }}>
+                      {bullet}
+                    </span>
+                  </li> // Display each bullet as a list item
+                ))}
+                <div style={{ height: '20px', }} />
 
-                  <span style={{ color: '#ffffff', lineHeight: '15px', fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', }}>
-                    {bullet}
-                  </span>
-                </li> // Display each bullet as a list item
-              ))}
-              <div style={{ height: '20px', }} />
-
-              {/* <span style={{ color: '#ffffff', lineHeight: '15px', 
+                {/* <span style={{ color: '#ffffff', lineHeight: '15px', 
                 fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', 
                 fontStyle: 'normal', }}>
                 {card.description}</span> */}
 
-              <div style={{
-                color: '#ffffff', lineHeight: '15px',
-                fontWeight: 'lighter', fontSize: '10px', alignContent: 'center',
-                fontStyle: 'normal',
-              }} dangerouslySetInnerHTML={{
-                __html:
+                <div style={{
+                  color: '#ffffff', lineHeight: '15px',
+                  fontWeight: 'lighter', fontSize: '10px', alignContent: 'center',
+                  fontStyle: 'normal',
+                }} dangerouslySetInnerHTML={{
+                  __html:
 
-                  card.description
+                    card.description
 
-              }} />
-
-
-              <div style={{ height: '10px', fontWeight: 'normal' }} />
-              <span style={{ color: '#ffffff', lineHeight: '15px', fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', }}>
-                {card.bottomHeading}
-              </span>
-
-              <div style={{ height: '10px', fontWeight: 'normal' }} />
-
-              <span style={{ color: '#ffffff', lineHeight: '15px', fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', }}>
-                {card.bottomDescription}
-              </span>
-              <div style={{ height: '10px' }} />
-              <div
-                onClick={() => {
-                  handleClaimBountyClick(card.id);
-                }}
-                style={{
-
-                  width: '258px',
-                  height: '25px',
-                  borderRadius: '30px',
-                  padding: "8px 16px",
-                  // background: 'linear-gradient(90deg, #3172FC 0%, #5738BE 100%)', // Gradient background
-                  background: "white",
-                  color: 'white', // Optional: Set text color if needed for contrast
-                  display: 'flex', // To center the text
-                  flexDirection: 'column',
-                  alignItems: 'center', // Vertically center the text
-                  justifyContent: 'center', // Horizontally center the text
-                  cursor: 'pointer',
-
-                }}>
-                {/* <span style={{ color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal' }}>Submit Entry</span> */}
+                }} />
 
 
-                <span
-                  style={{
-                    color: '#000000',
-                    fontSize: '12px',
-                    alignContent: 'center',
-                    fontStyle: 'normal',
-                    fontWeight: 'normal',
-                    opacity: '0.8',
-                    cursor: 'pointer',
-                  }}>
-                  Claim {card.bountyPrice}
+                <div style={{ height: '10px', fontWeight: 'normal' }} />
+                <span style={{ color: '#ffffff', lineHeight: '15px', fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', }}>
+                  {card.bottomHeading}
                 </span>
 
+                <div style={{ height: '10px', fontWeight: 'normal' }} />
+
+                <span style={{ color: '#ffffff', lineHeight: '15px', fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', }}>
+                  {card.bottomDescription}
+                </span>
+                <div style={{ height: '10px' }} />
+                <div
+                  onClick={() => {
+                    handleClaimBountyClick(card.id);
+                  }}
+                  style={{
+
+                    width: '258px',
+                    height: '25px',
+                    borderRadius: '30px',
+                    padding: "8px 16px",
+                    // background: 'linear-gradient(90deg, #3172FC 0%, #5738BE 100%)', // Gradient background
+                    background: "white",
+                    color: 'white', // Optional: Set text color if needed for contrast
+                    display: 'flex', // To center the text
+                    flexDirection: 'column',
+                    alignItems: 'center', // Vertically center the text
+                    justifyContent: 'center', // Horizontally center the text
+                    cursor: 'pointer',
+
+                  }}>
+                  {/* <span style={{ color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal' }}>Submit Entry</span> */}
+
+
+                  <span
+                    style={{
+                      color: '#000000',
+                      fontSize: '12px',
+                      alignContent: 'center',
+                      fontStyle: 'normal',
+                      fontWeight: 'normal',
+                      opacity: '0.8',
+                      cursor: 'pointer',
+                    }}>
+                    {isBountyClicked ? 'Submit bounty' : `Attempt bounty for ${card.bountyPrice} Devcash`}
+
+                  </span>
+
+
+                </div>
 
               </div>
 
-            </div>
+            )}
+          </div>)
 
-          )}
-        </div>)
-
-      ))}
+        )
+      }
+      )}
       {isGitHubPopupVisible && <GitHubLoginPopup onClose={closePopup}></GitHubLoginPopup>}
       {isLoggedInPopupVisible && <UserGitHubLoggedInPopup onClose={closeLoggedinPopup}></UserGitHubLoggedInPopup>}
 

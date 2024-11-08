@@ -35,6 +35,7 @@ import { SymmetryService } from "../symmetry-service";
 import { SessionManager } from "../session-manager";
 import { Logger } from "../../common/logger";
 import analytics from "../../common/analytics";
+import { DevdockPoints, PointsEvents } from "../../common/devdockPoints";
 
 const logger = new Logger();
 
@@ -361,6 +362,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         )
       );
     }
+    //allocate points to use chat service
+    const devdockPoints = DevdockPoints.getInstance();
+    devdockPoints.pointsEventDoneFor(PointsEvents.PROMPT);
 
     this.chatService?.streamChatCompletion(data.data || []);
   };

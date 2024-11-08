@@ -113,8 +113,6 @@ const Dashboard: React.FC = () => {
 
 
     const showPopupForUser = () => {
-
-
         if (isUserLoggedIn && showLoggedInUserPopup) {
             console.log('isUserLoggedIn', isUserLoggedIn, userLoggedInData);
             return (
@@ -123,7 +121,8 @@ const Dashboard: React.FC = () => {
 
                     setUserLoginData(undefined);
                     setUserLoggedin(false);
-                    localStorage.setItem('userProfileInfo', '');
+                    localStorage.removeItem('userProfileInfo');
+                    localStorage.removeItem('myBounties');
                     global.vscode.postMessage({
                         type: EVENT_NAME.githubLogoutDone,
                     })
