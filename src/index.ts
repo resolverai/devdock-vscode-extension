@@ -1221,17 +1221,15 @@ export async function activate(context: ExtensionContext) {
       }
     } else {
       //fetch flowWallet private key
-      myPrivateKey = context.globalState.get(
-        "flowWalletPrivateKey"
-      ) as `0x${string}`;
+      myPrivateKey = context.globalState.get("flowWalletPrivateKey") as string;
 
-      if (!myPrivateKey.startsWith("0x")) {
-        myPrivateKey = "0x" + myPrivateKey;
-        //handle devdock bounty submit
-      }
+      // if (!myPrivateKey.startsWith("0x")) {
+      //   myPrivateKey = "0x" + myPrivateKey;
+      //   //handle devdock bounty submit
+      // }
       const userFlowWallet = context.globalState.get(
         "flowWalletAddress"
-      ) as `0x${string}`;
+      ) as string;
       // context.globalState.update("flowWalletAddress", address);
       // bountyId: string,
       // postMssage?: string,
