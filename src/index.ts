@@ -53,7 +53,7 @@ import { authz } from "./extension/flow/authz";
 import { ec } from "elliptic";
 import { keyGen } from "./extension/flow/create_keypair";
 import { getFileExtensionMapping } from "./common/extensionsMapping";
-import { createDevdockBounty } from "./extension/bountyCreation/devdockBounty";
+import { createDevdockBounty } from "./extension/bountyCreation/devdockCreateBounty";
 import { submitDevdockBounty } from "./extension/bountySubmission/devdockSubmitBounty";
 
 let sidebarProvider: SidebarProvider;
@@ -369,6 +369,10 @@ export async function activate(context: ExtensionContext) {
           response
         );
         if (response?.data !== undefined) {
+          vscode.commands.executeCommand(
+            DEVDOCK_COMMAND_NAME.showCommonLoader,
+            "Loading Data..."
+          );
           submitBountyRequest(response.data.toString());
         }
       }
@@ -565,6 +569,23 @@ export async function activate(context: ExtensionContext) {
         } as ServerMessage<string>);
       }
     ),
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.showCommonLoader,
+      (dataVals) => {
+        sidebarProvider.view?.webview.postMessage({
+          type: EVENT_NAME.showCommonLoader,
+          value: {
+            data: dataVals,
+          },
+        } as ServerMessage<string>);
+      }
+    ),
+
+    commands.registerCommand(DEVDOCK_COMMAND_NAME.hideCommonLoader, () => {
+      sidebarProvider.view?.webview.postMessage({
+        type: EVENT_NAME.hideCommonLoader,
+      } as ServerMessage<string>);
+    }),
 
     commands.registerCommand(DEVDOCK_COMMAND_NAME.hideBackButton, () => {
       commands.executeCommand(
@@ -1182,6 +1203,7 @@ export async function activate(context: ExtensionContext) {
         data.description
       );
       if (result) {
+        vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.hideCommonLoader);
         const { reciept, hash } = result;
         // use reciept and hash here
         console.log("reciept, hash", reciept, hash);
@@ -1221,9 +1243,7 @@ export async function activate(context: ExtensionContext) {
       }
     } else {
       //fetch flowWallet private key
-      myPrivateKey = context.globalState.get(
-        "flowWalletPrivateKey"
-      ) as `0x${string}`;
+      myPrivateKey = context.globalState.get("flowWalletPrivateKey") as string;
 
       if (!myPrivateKey.startsWith("0x")) {
         myPrivateKey = "0x" + myPrivateKey;
@@ -1231,7 +1251,8 @@ export async function activate(context: ExtensionContext) {
       }
       const userFlowWallet = context.globalState.get(
         "flowWalletAddress"
-      ) as `0x${string}`;
+      ) as string;
+
       // context.globalState.update("flowWalletAddress", address);
       // bountyId: string,
       // postMssage?: string,

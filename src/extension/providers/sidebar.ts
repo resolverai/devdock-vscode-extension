@@ -172,6 +172,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         [EVENT_NAME.githubLogoutDone]: this.logoutUser,
         [EVENT_NAME.showCommonPopup]: this.showCommonPopup,
         [EVENT_NAME.showBountyCreationPopUp]: this.showBountyCreationPopup,
+        [EVENT_NAME.showCommonLoader]: this.showCommonLoader,
+        [EVENT_NAME.hideCommonLoader]: this.hideCommonLoader,
       };
       eventHandlers[message.type as string]?.(message);
     });
@@ -576,7 +578,15 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.showCommonPopup);
   }
   private showBountyCreationPopup() {
-    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.showBountyCreationPopup);
+    vscode.commands.executeCommand(
+      DEVDOCK_COMMAND_NAME.showBountyCreationPopup
+    );
+  }
+  private showCommonLoader() {
+    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.showCommonLoader);
+  }
+  private hideCommonLoader() {
+    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.hideCommonLoader);
   }
 
   private eventSenderFromUI(message: ClientMessage) {

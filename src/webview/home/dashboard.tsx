@@ -78,6 +78,8 @@ const Dashboard: React.FC = () => {
     };
 
     const handleOpenDevDockPopup = () => setIsDevdockBountyPopupOpen(true);
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
 
     useEffect(() => {
         console.log('useEffect showCommonPopup', showCommonPopup);
@@ -168,16 +170,8 @@ const Dashboard: React.FC = () => {
         }
         if (message?.type === EVENT_NAME.showBountyCreationPopUp) {
             console.log("showBountyCreationPopUp dashboard.tsx");
-
             setIsDevdockBountyPopupOpen(true);
-
-
         }
-
-
-
-
-
 
         return () => window.removeEventListener('message', handler)
     }
@@ -201,6 +195,7 @@ const Dashboard: React.FC = () => {
             type: EVENT_NAME.devdockBountyCreationRequest,
             data: JSON.stringify(myData),
         }) as ClientMessage;
+
 
     }
 
@@ -325,6 +320,8 @@ const Dashboard: React.FC = () => {
         // Set both bounties and devdockChat opacity to 0.5 when bounties is clicked
         setBountiesClicked(true);
         // setTopTabClicked(false);
+        setMessage("Please wait!! we are processing your request");
+        setLoading(true);
 
     };
 
