@@ -3,6 +3,8 @@ import mixpanel, { Mixpanel } from "mixpanel-browser";
 import { AnalyticsEvents } from "./analyticsEventKeys";
 import axios, { AxiosRequestConfig } from "axios";
 
+import * as vscode from "vscode";
+
 class Analytics {
   private static instance: Analytics;
   private isInitialized = false;
@@ -59,6 +61,23 @@ class Analytics {
         this.postEvent(eventName, myData);
       } else {
         this.postEvent(eventName, data);
+        if (eventName == AnalyticsEvents.CPisRAGContextClickedEnabled) {
+          if (data.isEnabled) {
+            vscode.window.showInformationMessage(
+              "Workspace has been added in the chat context",
+              {
+                modal: false,
+              }
+            );
+          } else {
+            vscode.window.showInformationMessage(
+              "Workspace has been removed from the chat context",
+              {
+                modal: false,
+              }
+            );
+          }
+        }
       }
     } else {
       this.postEvent(eventName);
