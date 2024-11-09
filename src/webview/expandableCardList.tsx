@@ -104,6 +104,12 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
   };
   function handleClaimBountyClick(id: number): void {
 
+    if (!isUserLoggedIn) {
+      setGitHubPopupVisible(true);
+      return;
+    }
+
+
     const isBountyClicked = localStorage.getItem(`bounty_${id}`) === 'true';
     if (isBountyClicked) {
       //this is submit bounty flow

@@ -12,6 +12,7 @@ interface CommonPopupProps {
     heading?: string;
     description?: string;
     isReward?: boolean;
+    centered?: boolean;
 }
 
 const CommonPopup: React.FC<CommonPopupProps> = ({ isOpen, handleCloseClick, handleSubmit, ctaText, heading, description, isReward }) => {
@@ -22,31 +23,30 @@ const CommonPopup: React.FC<CommonPopupProps> = ({ isOpen, handleCloseClick, han
             {isOpen && (
                 <div style={{
                     position: 'fixed',
-                    top: 0,
-                    left: 0,
+                    top: '0',
+                    left: '0',
                     width: '100vw',
                     height: '100vh',
+                    background: 'rgba(18, 18, 18, 0.9)',
                     display: 'flex',
-                    alignItems: 'center',
+                    flexDirection: 'column',
                     justifyContent: 'center',
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    zIndex: 1000,
-                    backdropFilter: 'blur(3px)',
-                    padding: '20px', // Buffer padding to ensure the popup stays within the view
-                    justifyItems: 'center'
+                    alignItems: 'center',
+                    zIndex: '1000'
+
                 }}>
                     <div style={{ position: 'relative' }}>
 
 
                         <div style={
                             {
-                                width: '350px',
+                                width: '360px',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'end',
                                 alignContent: 'flex-end',
                                 backgroundColor: 'transparent',
-                                // padding: '15px 5px 5px 15px',
+                                padding: '15px 5px 5px 15px',
 
                             }}>
 
@@ -58,7 +58,7 @@ const CommonPopup: React.FC<CommonPopupProps> = ({ isOpen, handleCloseClick, han
                                     backgroundColor: 'transparent',
                                     alignContent: "center",
                                     alignItems: 'center',
-                                    marginRight: '5px',
+                                    marginRight: '25px',
 
                                 }}>
                                 <WhiteCrossSvg></WhiteCrossSvg>
@@ -70,9 +70,11 @@ const CommonPopup: React.FC<CommonPopupProps> = ({ isOpen, handleCloseClick, han
                             padding: '20px',
                             backgroundColor: '#252527',
                             borderRadius: '16px',
-                            width: '330px',
+                            width: '280px',
                             maxHeight: 'calc(100vh - 100px)', // Limit height to viewport with buffer space
                             overflowY: 'auto', // Enable scrolling when content exceeds max height
+                            alignContent: 'center',
+                            alignItems: 'center'
                         }}>
 
                             <div style={{ alignContent: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column' }}>

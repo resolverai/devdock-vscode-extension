@@ -10,10 +10,8 @@ import GitHubLoginPopup from '../login/github_login_popup';
 import UserGitHubLoggedInPopup from '../user/github_user_loggedin_popup';
 import { ServerMessage } from '../../common/types';
 import { EVENT_NAME, WEBUI_TABS } from '../../common/constants';
-import { isUserLoggedInAuth0 } from '../../extension/store';
 import { API_END_POINTS } from '../../services/apiEndPoints';
 import apiService from '../../services/apiService';
-import { stringify } from 'querystring';
 import CommonPopup from '../common_popup';
 
 
@@ -30,6 +28,9 @@ const Dashboard: React.FC = () => {
     const [userLoggedInData, setUserLoginData] = useState<UserLoginData>();
     const [userId, setUserID] = useState<number>(0);
     const [showCommonPopup, setShowCommonPopup] = useState<boolean>(false);
+    const [headingCommonPopup, setHeadingCommonPopup] = useState<string>('');
+    const [descriptionCommonPopup, setDescriptionCommonPopup] = useState<string>('');
+    const [isRewardCommonPopup, setRewardCommonPopup] = useState<boolean>(false);
 
     const global = globalThis as any
 
@@ -66,6 +67,17 @@ const Dashboard: React.FC = () => {
         created_at: string,
         updated_at: string
     }
+
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const handleClosePopup = () => setIsPopupOpen(false);
+
+    const handleSubmit = () => {
+        setIsPopupOpen(false); // Close popup after submission
+
+    };
+
+
+
     useEffect(() => {
         console.log('useEffect showCommonPopup', showCommonPopup);
     }, [showCommonPopup]);
@@ -114,10 +126,32 @@ const Dashboard: React.FC = () => {
             if (message.value !== undefined) {
                 const myData = message.value.data as string;
                 const data = JSON.parse(myData);
-                const id = data?.id;
-                const hash = data?.hash;
-                setShowCommonPopup(true);
-                console.log('show poup for common popup for bounty', hash, id);
+                console.log('EVENT_NAME.showCommonPopup dashboard', data);
+                const type = data.type;
+                if (type == 'bounty') {
+                    const id = data?.id;
+                    const hash = data?.hash;
+                    setHeadingCommonPopup('Your submission has been completed');
+                    setDescriptionCommonPopup('You will receive Devcash in your wallet, once your submission is approved');
+                    setRewardCommonPopup(false);
+                    setShowCommonPopup(true);
+                    setIsPopupOpen(true);
+
+                    console.log('show poup for common popup for bounty', hash, id);
+                }
+                else if (type == 'points') {
+
+                    const description = data?.description;
+                    const heading = data?.heading;
+                    setHeadingCommonPopup('Your submission has been completed');
+                    setDescriptionCommonPopup(description);
+                    setHeadingCommonPopup(heading);
+                    setRewardCommonPopup(true);
+                    setShowCommonPopup(true);
+
+                    setIsPopupOpen(true);
+                }
+
             }
 
         }
@@ -387,8 +421,8 @@ const Dashboard: React.FC = () => {
                     isDashboardInView={bountiesClicked}
                 />}
 
-                {showCommonPopup && <CommonPopup isReward={false} handleSubmit={() => { }} isOpen={true} handleCloseClick={() => { }} ctaText='ok' description='You will receive Devcash in your wallet, once your submission is approved' heading='Your submission has been completed' ></CommonPopup>}
-
+                {showCommonPopup && <CommonPopup isReward={isRewardCommonPopup} handleSubmit={handleSubmit} isOpen={isPopupOpen} handleCloseClick={handleClosePopup} ctaText='ok' description={descriptionCommonPopup} heading={headingCommonPopup} ></CommonPopup>}
+                {/* {<CommonPopup isReward={false} handleSubmit={() => { }} isOpen={true} handleCloseClick={() => { }} ctaText='ok' description='You will receive Devcash in your wallet, once your submission is approved' heading='Your submission has been completed' centered={true}></CommonPopup>} */}
                 <div style={{ height: '125px' }}></div>
             </div >
 

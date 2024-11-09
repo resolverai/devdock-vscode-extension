@@ -2,6 +2,9 @@ import { API_END_POINTS } from "../services/apiEndPoints";
 import apiService from "../services/apiService";
 import { ExtensionContext } from "vscode";
 import * as vscode from "vscode";
+import { EVENT_NAME } from "./constants";
+import { ServerMessage } from "./types";
+import { sendMessageToWebview } from "..";
 
 export enum PointsEvents {
   PROMPT = "PROMPT",
@@ -9,9 +12,12 @@ export enum PointsEvents {
   BOUNTYSUBMIT = "BOUNTYSUBMIT",
   BUGSUBMISSION = "BUGSUBMISSION",
   SIGNUP = "SIGNUP",
+  DAILYLOGIN = "DAILYLOGIN",
   REFERRAL = "REFERRAL",
+  DATACONTRIBUTION = "DATACONTRIBUTION",
   REFERRALBOUNTIES = "REFERRALBOUNTIES",
 }
+const global = globalThis as any;
 export class DevdockPoints {
   private static instance: DevdockPoints;
   private actions: { [action: string]: number } = {};
@@ -106,12 +112,24 @@ export class DevdockPoints {
         console.log("API_END_POINTS.SUBMIT_POINTS_FOR_ACTIONS", response);
         const points = response?.data?.points;
         if (points > 0) {
-          vscode.window.showInformationMessage(
-            `You've Earned ${points} DevDock points for ${actionDone}`,
-            {
-              modal: true,
-            }
-          );
+          if (actionDone == PointsEvents.SIGNUP) {
+            const popupData = {
+              type: "points",
+              description: `You've Earned ${points} DevDock points for ${actionDone}`,
+              heading: `Congratulations`,
+            };
+
+            const message = JSON.stringify(popupData);
+
+            sendMessageToWebview(message, EVENT_NAME.showCommonPopup);
+          } else {
+            vscode.window.showInformationMessage(
+              `You've Earned ${points} DevDock points for ${actionDone}`,
+              {
+                modal: false,
+              }
+            );
+          }
         }
       });
   }

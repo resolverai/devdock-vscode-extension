@@ -54,6 +54,7 @@ import { ec } from "elliptic";
 import { keyGen } from "./extension/flow/create_keypair";
 import { getFileExtensionMapping } from "./common/extensionsMapping";
 
+let sidebarProvider: SidebarProvider;
 export async function activate(context: ExtensionContext) {
   setContext(context);
   const enabApiForTrackingEvents = true;
@@ -77,7 +78,7 @@ export async function activate(context: ExtensionContext) {
     await db.connect();
   }
 
-  const sidebarProvider = new SidebarProvider(
+  sidebarProvider = new SidebarProvider(
     statusBar,
     context,
     templateDir,
@@ -139,6 +140,7 @@ export async function activate(context: ExtensionContext) {
     });
     context.subscriptions.push(watcher);
   }
+
   function getCurrentFileOpenedName() {
     console.log("getCurrentFileOpenedName called");
 
@@ -181,6 +183,7 @@ export async function activate(context: ExtensionContext) {
 
   createAndShowTerminal();
   fetchDevDockRags();
+
   // fetchUserActionsList();
   const isPrivateKeyAvailable = context.globalState.get("flowWalletPrivateKey");
   if (
@@ -197,6 +200,7 @@ export async function activate(context: ExtensionContext) {
   });
 
   const devdockPoints = DevdockPoints.getInstance(context);
+  // context.globalState.update("signupPointsAlloted", "NO");
 
   async function generateFilesFromResponse(
     response: string, // Assuming response is a JSON string
@@ -454,6 +458,7 @@ export async function activate(context: ExtensionContext) {
       async () => {
         console.log("index.ts logout command executed");
         context.globalState.update("userProfileInfo", "");
+        // context.globalState.update("signupPointsAlloted", "NO");
       }
     ),
 
@@ -710,7 +715,24 @@ export async function activate(context: ExtensionContext) {
 
                 const userId = response.data.id;
 
-                devdockPoints.pointsEventDoneFor(PointsEvents.SIGNUP, userId);
+                const signupPointsAllotedEarlier = context.globalState.get(
+                  "signupPointsAlloted"
+                );
+                if (
+                  signupPointsAllotedEarlier &&
+                  signupPointsAllotedEarlier == "YES"
+                ) {
+                  //allocate login points
+                  devdockPoints.pointsEventDoneFor(
+                    PointsEvents.DAILYLOGIN,
+                    userId
+                  );
+                } else {
+                  //assign signup points and save assign points
+                  context.globalState.update("signupPointsAlloted", "YES");
+                  //allocate signup points
+                  devdockPoints.pointsEventDoneFor(PointsEvents.SIGNUP, userId);
+                }
 
                 console.log("User ID:", userId);
 
@@ -932,7 +954,9 @@ export async function activate(context: ExtensionContext) {
 
         if (message.command === "closeWebview") {
           console.log("Closing webview...");
-          panel.dispose(); // Close the webview when the message is received
+          if (panel) {
+            panel.dispose(); // Close the webview when the message is received
+          }
         }
       },
       undefined,
@@ -1137,7 +1161,9 @@ export async function activate(context: ExtensionContext) {
       //   { modal: true }
       // );
 
-      const bountyData = { id: bountyId, hash: hash };
+      devdockPoints.pointsEventDoneFor(PointsEvents.BOUNTYSUBMIT);
+
+      const bountyData = { type: "bounty", id: bountyId, hash: hash };
       sidebarProvider.view?.webview.postMessage({
         type: EVENT_NAME.showCommonPopup,
         value: {
@@ -1225,8 +1251,22 @@ transaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8) {
         console.log("fetchDevDockRags", response);
       });
   }
-  function getWalletFromPrivateKey(privateKey: string) {
-    const wallet = new ethers.Wallet(privateKey);
-    return wallet.address;
+}
+
+export function sendMessageToWebview(message: string, type: string) {
+  console.log("index.ts sendMessageToWebview");
+  if (sidebarProvider.view) {
+    console.log("index.ts sendMessageToWebview, panel found");
+    sidebarProvider.view?.webview.postMessage({
+      type: type,
+      value: {
+        data: message,
+      },
+    } as ServerMessage<string>);
+  } else {
+    console.log(
+      "index.ts sendMessageToWebview, panel not found",
+      sidebarProvider.view
+    );
   }
 }
