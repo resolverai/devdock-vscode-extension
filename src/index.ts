@@ -522,6 +522,19 @@ export async function activate(context: ExtensionContext) {
       } as ServerMessage<string>);
       Analytics.trackEvent(AnalyticsEvents.ManageTemplatesClicked);
     }),
+
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.showCommonPopup,
+      async (dataVals) => {
+        sidebarProvider.view?.webview.postMessage({
+          type: EVENT_NAME.showCommonPopup,
+          value: {
+            data: dataVals,
+          },
+        } as ServerMessage<string>);
+      }
+    ),
+
     commands.registerCommand(DEVDOCK_COMMAND_NAME.hideBackButton, () => {
       commands.executeCommand(
         "setContext",
@@ -1102,29 +1115,35 @@ export async function activate(context: ExtensionContext) {
       console.log("submitBountyRequest bounty id is undefined");
       return;
     }
-    console.log("submitBountyRequest index.ts", response);
+    const data = JSON.parse(response);
+    console.log("submitBountyRequest index.ts", response, data);
     //get private key from localstorage
     //fetch bounty id from response
     const myPrivateKey = context.globalState.get(
       "userPrivateKey"
     ) as `0x${string}`;
 
-    const bountyId = response;
+    const bountyId = data.id;
+
     // const { reciept, hash } = await submitBounty(bountyId.toString(), "", "");
-    const result = await submitBounty(
-      bountyId.toString(),
-      // "0x1cf1271b12b5f7ebdc7a1f46160b2f15d7758f46b0a21a747f84d388bcc6c19c",
-      myPrivateKey,
-      `submitting bounty: ${response}, check my github link`
-    );
+    const result = await submitBounty(bountyId, myPrivateKey, data.description);
     if (result) {
       const { reciept, hash } = result;
       // use reciept and hash here
       console.log("reciept, hash", reciept, hash);
-      vscode.window.showInformationMessage(
-        `Submission successful. \n Bounty Id: ${bountyId.toString()} \n Transaction Id: ${hash}`,
-        { modal: true }
-      );
+
+      // vscode.window.showInformationMessage(
+      //   `Submission successful. \n Bounty Id: ${bountyId.toString()} \n Transaction Id: ${hash}`,
+      //   { modal: true }
+      // );
+
+      const bountyData = { id: bountyId, hash: hash };
+      sidebarProvider.view?.webview.postMessage({
+        type: EVENT_NAME.showCommonPopup,
+        value: {
+          data: JSON.stringify(bountyData),
+        },
+      } as ServerMessage<string>);
     } else {
       // handle the case where result is undefined
     }

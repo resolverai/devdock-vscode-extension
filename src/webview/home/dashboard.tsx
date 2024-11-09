@@ -14,6 +14,7 @@ import { isUserLoggedInAuth0 } from '../../extension/store';
 import { API_END_POINTS } from '../../services/apiEndPoints';
 import apiService from '../../services/apiService';
 import { stringify } from 'querystring';
+import CommonPopup from '../common_popup';
 
 
 
@@ -28,6 +29,7 @@ const Dashboard: React.FC = () => {
     const [serverMessageForTab, setServerMessageForTab] = useState<string | undefined>();
     const [userLoggedInData, setUserLoginData] = useState<UserLoginData>();
     const [userId, setUserID] = useState<number>(0);
+    const [showCommonPopup, setShowCommonPopup] = useState<boolean>(false);
 
     const global = globalThis as any
 
@@ -64,6 +66,9 @@ const Dashboard: React.FC = () => {
         created_at: string,
         updated_at: string
     }
+    useEffect(() => {
+        console.log('useEffect showCommonPopup', showCommonPopup);
+    }, [showCommonPopup]);
 
     const handler = (event: MessageEvent) => {
         const message: ServerMessage<string | undefined> = event.data
@@ -95,9 +100,29 @@ const Dashboard: React.FC = () => {
         if (message?.type === EVENT_NAME.githubLogoutDone) {
             console.log("githubLogoutDone dashboard.tsx");
             setUserLoggedin(false);
+        }
 
+        if (message?.type === EVENT_NAME.showCommonPopup) {
+            console.log('show poup for common popup for bounty');
+
+            if (!message.value) {
+                console.log("submitBountyRequest bounty id is undefined");
+                return;
+            }
+
+
+            if (message.value !== undefined) {
+                const myData = message.value.data as string;
+                const data = JSON.parse(myData);
+                const id = data?.id;
+                const hash = data?.hash;
+                setShowCommonPopup(true);
+                console.log('show poup for common popup for bounty', hash, id);
+            }
 
         }
+
+
 
         return () => window.removeEventListener('message', handler)
     }
@@ -362,6 +387,7 @@ const Dashboard: React.FC = () => {
                     isDashboardInView={bountiesClicked}
                 />}
 
+                {showCommonPopup && <CommonPopup isReward={false} handleSubmit={() => { }} isOpen={true} handleCloseClick={() => { }} ctaText='ok' description='You will receive Devcash in your wallet, once your submission is approved' heading='Your submission has been completed' ></CommonPopup>}
 
                 <div style={{ height: '125px' }}></div>
             </div >

@@ -11,6 +11,7 @@ import apiService from '../services/apiService';
 import { API_END_POINTS } from '../services/apiEndPoints';
 import { EVENT_NAME } from '../common/constants';
 import { ClientMessage } from '../common/types';
+import BountyPopup from './bounty_popup';
 
 
 interface CardItem {
@@ -89,13 +90,27 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
   const toggleCard = (id: number) => {
     setExpandedCardId(prevId => (prevId === id ? null : id));
   };
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [bountyPopupId, setBountyPoupID] = useState('');
 
+  const handleOpenPopup = () => setIsPopupOpen(true);
+  const handleClosePopup = () => setIsPopupOpen(false);
+
+  const handleSubmit = (id: string, text: string) => {
+    console.log('Submit action performed', id, text);
+    setIsPopupOpen(false); // Close popup after submission
+    handleBountySubmit(parseInt(id), text);
+
+  };
   function handleClaimBountyClick(id: number): void {
 
     const isBountyClicked = localStorage.getItem(`bounty_${id}`) === 'true';
     if (isBountyClicked) {
       //this is submit bounty flow
       console.log("this is submit bounty flow for id:", id);
+      setBountyPoupID(`${id}`);
+      handleOpenPopup();
+
 
     } else {
       localStorage.setItem(`bounty_${id}`, 'true');
@@ -197,7 +212,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
 
 
-  function handleBountySubmit(bountyId: number) {
+  function handleBountySubmit(bountyId: number, message: string) {
 
     if (isUserLoggedIn) {
       console.log(`Submit clicked for bountyId ${bountyId}`);
@@ -207,9 +222,10 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
       // }
       // const postMessageVal = JSON.stringify(myBountyMessage);
       // console.log('postMessageVal', postMessageVal);
+      const myData = { id: bountyId, description: message }
       global.vscode.postMessage({
         type: EVENT_NAME.devdockBountySubmitRequest,
-        data: bountyId.toString(),
+        data: JSON.stringify(myData),
       }) as ClientMessage;
 
     }
@@ -372,6 +388,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
       )}
       {isGitHubPopupVisible && <GitHubLoginPopup onClose={closePopup}></GitHubLoginPopup>}
       {isLoggedInPopupVisible && <UserGitHubLoggedInPopup onClose={closeLoggedinPopup}></UserGitHubLoggedInPopup>}
+      <BountyPopup isOpen={isPopupOpen} handleCloseClick={handleClosePopup} handleSubmit={handleSubmit} bountyId={bountyPopupId} />
 
 
     </div >

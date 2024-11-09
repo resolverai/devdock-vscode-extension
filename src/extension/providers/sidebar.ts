@@ -168,6 +168,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           this.hideCenterUIFromChatScreen,
         [EVENT_NAME.devdockBountySubmitRequest]: this.bountySubmitRequest,
         [EVENT_NAME.githubLogoutDone]: this.logoutUser,
+        [EVENT_NAME.showCommonPopup]: this.showCommonPopup,
       };
       eventHandlers[message.type as string]?.(message);
     });
@@ -560,6 +561,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   }
   private logoutUser() {
     vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.devdockLogoutUser);
+  }
+  private showCommonPopup() {
+    vscode.commands.executeCommand(DEVDOCK_COMMAND_NAME.showCommonPopup);
   }
 
   private eventSenderFromUI(message: ClientMessage) {

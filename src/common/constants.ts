@@ -84,6 +84,7 @@ export const EVENT_NAME = {
   githubLoginDone: "github-login-done",
   githubLogoutDone: "github-logout-done",
   devdockBountySubmitRequest: "devdock-bounty-submit-request",
+  showCommonPopup: "devdock-showCommonPopup",
 };
 
 export const DEVDOCK_COMMAND_NAME = {
@@ -119,6 +120,7 @@ export const DEVDOCK_COMMAND_NAME = {
   devdockOpenSigner: "devdock.openSigner",
   devdockBountySubmitRequestCommand: "devdock.bountySubmitRequestCommand",
   devdockLogoutUser: "devdock.logoutUser",
+  showCommonPopup: "devdock.showCommonPopup",
 };
 
 export const CONVERSATION_EVENT_NAME = {
