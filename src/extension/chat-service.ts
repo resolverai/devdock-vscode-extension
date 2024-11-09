@@ -325,7 +325,7 @@ export class ChatService {
           headers: {
             "Content-Type": "application/json",
             // Authorization: `Bearer ${provider.apiKey}`,
-            "x-api-key": "sk_db_GA91ePDIeHcPmDRW8iYO8MayNCp7EgKn",
+            "x-api-key": `${provider.apiKey}`,
           },
         };
         let myMessages = undefined;
@@ -438,7 +438,7 @@ export class ChatService {
       EXTENSION_CONTEXT_NAME.devdockGeneratingText,
       false
     );
-   
+
     if (onEnd) {
       onEnd(this._completion);
       this._view?.webview.postMessage({
