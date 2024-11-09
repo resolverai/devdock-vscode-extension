@@ -9,7 +9,7 @@ export const API_END_POINTS = {
   SUBMIT_POINTS_FOR_ACTIONS: "/v1/users/devdock-points",
   FETCH_BOUNTIES: "/v1/master/bounties?status=active",
   FETCH_RAGS: "/v1/bot/api-details",
-  //v1/users/user-bulk-wallets
-  //
-  // v1/users/devdock-points
+  BOUNTY_SUBMITTED: "/v1/users/bounties/submission",
+
+  //v1/users/bounties/submission
 };

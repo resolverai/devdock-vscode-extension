@@ -1162,6 +1162,22 @@ export async function activate(context: ExtensionContext) {
       // );
 
       devdockPoints.pointsEventDoneFor(PointsEvents.BOUNTYSUBMIT);
+      const userDetails = context.globalState.get("userProfileInfo") as any;
+
+      const userDetailsObject = JSON.parse(userDetails as string);
+      const myUserId = userDetailsObject?.id;
+
+      const bountySubmissionData = {
+        user_id: myUserId,
+        bounty_id: bountyId,
+        submission_hash: hash,
+        platform: "Devdock",
+      };
+      apiService
+        .post(API_END_POINTS.BOUNTY_SUBMITTED, bountySubmissionData)
+        .then((response) => {
+          console.log("API_END_POINTS.BOUNTY_SUBMITTED resposne", response);
+        });
 
       const bountyData = { type: "bounty", id: bountyId, hash: hash };
       sidebarProvider.view?.webview.postMessage({
