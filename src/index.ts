@@ -554,6 +554,17 @@ export async function activate(context: ExtensionContext) {
         } as ServerMessage<string>);
       }
     ),
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.showBountyCreationPopup,
+      async (dataVals) => {
+        sidebarProvider.view?.webview.postMessage({
+          type: EVENT_NAME.showBountyCreationPopUp,
+          value: {
+            data: dataVals,
+          },
+        } as ServerMessage<string>);
+      }
+    ),
 
     commands.registerCommand(DEVDOCK_COMMAND_NAME.hideBackButton, () => {
       commands.executeCommand(
@@ -1190,7 +1201,7 @@ export async function activate(context: ExtensionContext) {
           user_id: myUserId,
           bounty_id: bountyId,
           submission_hash: hash,
-          platform: "Devdock",
+          platform: data.platform,
         };
         apiService
           .post(API_END_POINTS.BOUNTY_SUBMITTED, bountySubmissionData)
@@ -1228,7 +1239,71 @@ export async function activate(context: ExtensionContext) {
       // flowWalletAddress?: string
       const postMessage = data.description;
       const bountyId = data.id;
-      submitDevdockBounty(bountyId, postMessage, myPrivateKey, userFlowWallet);
+      const result = await submitDevdockBounty(
+        bountyId,
+        postMessage,
+        myPrivateKey,
+        userFlowWallet
+      );
+      console.log("submitDevdockBounty result", result);
+
+      if (result) {
+        const { transactionHash } = result;
+        // use reciept and hash here
+        console.log("transactionHash", transactionHash);
+
+        // vscode.window.showInformationMessage(
+        //   `Submission successful. \n Bounty Id: ${bountyId.toString()} \n Transaction Id: ${hash}`,
+        //   { modal: true }
+        // );
+
+        if (transactionHash) {
+          devdockPoints.pointsEventDoneFor(PointsEvents.BOUNTYSUBMIT);
+          const userDetails = context.globalState.get("userProfileInfo") as any;
+
+          const userDetailsObject = JSON.parse(userDetails as string);
+          const myUserId = userDetailsObject?.id;
+
+          const bountySubmissionData = {
+            user_id: myUserId,
+            bounty_id: bountyId,
+            submission_hash: transactionHash,
+            platform: data.platform,
+          };
+          apiService
+            .post(API_END_POINTS.BOUNTY_SUBMITTED, bountySubmissionData)
+            .then((response) => {
+              console.log("API_END_POINTS.BOUNTY_SUBMITTED resposne", response);
+            });
+
+          const bountyData = {
+            type: "bounty",
+            id: bountyId,
+            hash: transactionHash,
+          };
+          sidebarProvider.view?.webview.postMessage({
+            type: EVENT_NAME.showCommonPopup,
+            value: {
+              data: JSON.stringify(bountyData),
+            },
+          } as ServerMessage<string>);
+        } else {
+          vscode.window.showInformationMessage(
+            "Something went wrong with the bounty submission",
+            {
+              modal: false,
+            }
+          );
+        }
+      } else {
+        // handle the case where result is undefined
+        vscode.window.showInformationMessage(
+          "Something went wrong with the bounty submission result",
+          {
+            modal: false,
+          }
+        );
+      }
     }
   }
 
@@ -1243,13 +1318,26 @@ export async function activate(context: ExtensionContext) {
       "flowWalletAddress"
     ) as string;
 
-    createDevdockBounty(
+    const result = await createDevdockBounty(
       bountyContent,
       500,
       5,
       flowPrivateKey,
       flowWalletAddress
     );
+    console.log("createDevdockBounty result", result);
+
+    const bountyCreationData = {
+      type: "bountyCreated",
+      id: result.bountyId,
+      hash: result.transactionHash,
+    };
+    sidebarProvider.view?.webview.postMessage({
+      type: EVENT_NAME.showCommonPopup,
+      value: {
+        data: JSON.stringify(bountyCreationData),
+      },
+    } as ServerMessage<string>);
   }
 
   async function initiateFlow() {

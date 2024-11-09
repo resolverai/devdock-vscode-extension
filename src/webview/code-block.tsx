@@ -6,7 +6,7 @@ import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { ASSISTANT, EVENT_NAME } from '../common/constants'
 
 import styles from './index.module.css'
-import { LanguageType, Theme, ThemeType } from '../common/types'
+import { ClientMessage, LanguageType, Theme, ThemeType } from '../common/types'
 import { getLanguageMatch } from './utils'
 
 interface CodeBlockProps {
@@ -37,11 +37,12 @@ export const CodeBlock = (props: CodeBlockProps) => {
     })
   }
   const handleBountyCreation = () => {
-    // global.vscode.postMessage({
-    //   type: EVENT_NAME.devdockNewDocument,
-    //   data: String(children).replace(/^\n/, '')
-    // })
-    console.log('create bounty request');
+
+    console.log('create bounty request', props);
+
+    global.vscode.postMessage({
+      type: EVENT_NAME.showBountyCreationPopUp,
+    }) as ClientMessage;
 
   }
 

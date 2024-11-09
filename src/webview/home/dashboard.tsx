@@ -8,11 +8,12 @@ import { Main } from '../main';
 import { Chat } from '../chat';
 import GitHubLoginPopup from '../login/github_login_popup';
 import UserGitHubLoggedInPopup from '../user/github_user_loggedin_popup';
-import { ServerMessage } from '../../common/types';
+import { ClientMessage, ServerMessage } from '../../common/types';
 import { EVENT_NAME, WEBUI_TABS } from '../../common/constants';
 import { API_END_POINTS } from '../../services/apiEndPoints';
 import apiService from '../../services/apiService';
 import CommonPopup from '../common_popup';
+import DevdockBountyPopup from '../devdock_bounty_popup';
 
 
 
@@ -31,7 +32,7 @@ const Dashboard: React.FC = () => {
     const [headingCommonPopup, setHeadingCommonPopup] = useState<string>('');
     const [descriptionCommonPopup, setDescriptionCommonPopup] = useState<string>('');
     const [isRewardCommonPopup, setRewardCommonPopup] = useState<boolean>(false);
-
+    const [isDevdockBountyPopupOpen, setIsDevdockBountyPopupOpen] = useState(false);//make it false, true is for testing purpose
     const global = globalThis as any
 
     type UserLoginData = {
@@ -76,7 +77,7 @@ const Dashboard: React.FC = () => {
 
     };
 
-
+    const handleOpenDevDockPopup = () => setIsDevdockBountyPopupOpen(true);
 
     useEffect(() => {
         console.log('useEffect showCommonPopup', showCommonPopup);
@@ -143,7 +144,7 @@ const Dashboard: React.FC = () => {
 
                     const description = data?.description;
                     const heading = data?.heading;
-                    setHeadingCommonPopup('Your submission has been completed');
+
                     setDescriptionCommonPopup(description);
                     setHeadingCommonPopup(heading);
                     setRewardCommonPopup(true);
@@ -151,10 +152,29 @@ const Dashboard: React.FC = () => {
 
                     setIsPopupOpen(true);
                 }
+                else if (type == 'bountyCreated') {
+
+                    const heading = 'Your bounty has been posted successfully';
+                    const description = 'We will notify you about responses ';
+                    setDescriptionCommonPopup(description);
+                    setHeadingCommonPopup(heading);
+                    setRewardCommonPopup(false);
+                    setShowCommonPopup(true);
+                    setIsPopupOpen(true);
+                }
 
             }
 
         }
+        if (message?.type === EVENT_NAME.showBountyCreationPopUp) {
+            console.log("showBountyCreationPopUp dashboard.tsx");
+
+            setIsDevdockBountyPopupOpen(true);
+
+
+        }
+
+
 
 
 
@@ -170,7 +190,19 @@ const Dashboard: React.FC = () => {
         console.log("Top Tab clicked in dashboard.tsx topTabsClicked", topTabsClicked);
     }, [topTabsClicked])
 
+    const initiateBountyCreationFlow = (content: string) => {
+        setIsDevdockBountyPopupOpen(false);
 
+        console.log('bounty creation flow', content);
+        //call backend to create a bounty for the content
+
+        const myData = { description: content }
+        global.vscode.postMessage({
+            type: EVENT_NAME.devdockBountyCreationRequest,
+            data: JSON.stringify(myData),
+        }) as ClientMessage;
+
+    }
 
     const showPopupForUser = () => {
         if (isUserLoggedIn && showLoggedInUserPopup) {
@@ -424,7 +456,17 @@ const Dashboard: React.FC = () => {
 
                 {showCommonPopup && <CommonPopup isReward={isRewardCommonPopup} handleSubmit={handleSubmit} isOpen={isPopupOpen} handleCloseClick={handleClosePopup} ctaText='ok' description={descriptionCommonPopup} heading={headingCommonPopup} ></CommonPopup>}
                 {/* {<CommonPopup isReward={false} handleSubmit={() => { }} isOpen={true} handleCloseClick={() => { }} ctaText='ok' description='You will receive Devcash in your wallet, once your submission is approved' heading='Your submission has been completed' centered={true}></CommonPopup>} */}
+
+                {isDevdockBountyPopupOpen && <DevdockBountyPopup isDevdockBountyPopupOpen={isDevdockBountyPopupOpen} handleCloseClick={() => {
+                    setIsDevdockBountyPopupOpen(false);
+
+                }} handleSubmit={(content) => {
+
+                    initiateBountyCreationFlow(content);
+                }} />}
+
                 <div style={{ height: '125px' }}></div>
+
             </div >
 
         )

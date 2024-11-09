@@ -86,6 +86,7 @@ export const EVENT_NAME = {
   devdockBountySubmitRequest: "devdock-bounty-submit-request",
   devdockBountyCreationRequest: "devdock-bounty-create-request",
   showCommonPopup: "devdock-showCommonPopup",
+  showBountyCreationPopUp: "devdock-showBountyCreationPopup",
 };
 
 export const DEVDOCK_COMMAND_NAME = {
@@ -123,6 +124,7 @@ export const DEVDOCK_COMMAND_NAME = {
   devdockBountyCreateRequestCommand: "devdock.bountyCreateRequestCommand",
   devdockLogoutUser: "devdock.logoutUser",
   showCommonPopup: "devdock.showCommonPopup",
+  showBountyCreationPopup: "devdock.BountyCreationPopup",
 };
 
 export const CONVERSATION_EVENT_NAME = {

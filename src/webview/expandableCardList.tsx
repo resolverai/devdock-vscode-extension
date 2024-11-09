@@ -10,7 +10,7 @@ import { setCardDataById } from '../extension/store';
 import apiService from '../services/apiService';
 import { API_END_POINTS } from '../services/apiEndPoints';
 import { EVENT_NAME } from '../common/constants';
-import { ClientMessage } from '../common/types';
+import { ClientMessage, ServerMessage } from '../common/types';
 import BountyPopup from './bounty_popup';
 import DevdockBountyPopup from './devdock_bounty_popup';
 
@@ -51,6 +51,7 @@ const myCardData: CardItem[] = [
 interface CardProps {
   isUserLoggedIn?: boolean;
   onBountiesClickedFromList?: (id: number) => void;
+  showBountyCreationPopUp?: boolean;
 }
 
 const global = globalThis as any
@@ -66,14 +67,14 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
     setExpandedCardId(prevId => (prevId === id ? null : id));
   };
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isDevdockBountyPopupOpen, setIsDevdockBountyPopupOpen] = useState(true);//make it false, true is for testing purpose
+  
 
   const [bountyPopupId, setBountyPoupID] = useState('');
 
   const handleOpenPopup = () => setIsPopupOpen(true);
   const handleClosePopup = () => setIsPopupOpen(false);
 
-  const handleOpenDevDockPopup = () => setIsDevdockBountyPopupOpen(true);
+
 
   const handleSubmit = (id: string, text: string) => {
     console.log('Submit action performed', id, text);
@@ -88,23 +89,20 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
         handleBountySubmit(parseInt(id), text, myBounty.platform);
       }
     }
-
-
   };
 
+  // showBountyCreationPopUp
 
-  const initiateBountyCreationFlow = (content: string) => {
-    setIsDevdockBountyPopupOpen(false);
-    console.log('bounty creation flow', content);
-    //call backend to create a bounty for the content
-
-    const myData = { description: content }
-    global.vscode.postMessage({
-      type: EVENT_NAME.devdockBountyCreationRequest,
-      data: JSON.stringify(myData),
-    }) as ClientMessage;
-
+  const handler = (event: MessageEvent) => {
+    const message: ServerMessage<string | undefined> = event.data
+   
+    return () => window.removeEventListener('message', handler)
   }
+
+  useEffect(() => {
+    window.addEventListener('message', handler)
+  }, [])
+
 
 
 
@@ -424,12 +422,13 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
       {isGitHubPopupVisible && <GitHubLoginPopup onClose={closePopup}></GitHubLoginPopup>}
       {isLoggedInPopupVisible && <UserGitHubLoggedInPopup onClose={closeLoggedinPopup}></UserGitHubLoggedInPopup>}
       <BountyPopup isOpen={isPopupOpen} handleCloseClick={handleClosePopup} handleSubmit={handleSubmit} bountyId={bountyPopupId} />
-      {<DevdockBountyPopup isDevdockBountyPopupOpen={isDevdockBountyPopupOpen} handleCloseClick={() => {
+      {/* {isDevdockBountyPopupOpen && <DevdockBountyPopup isDevdockBountyPopupOpen={isDevdockBountyPopupOpen} handleCloseClick={() => {
         setIsDevdockBountyPopupOpen(false);
+
       }} handleSubmit={(content) => {
-        // setIsDevdockBountyPopupOpen(false); // Close popup after submission
+
         initiateBountyCreationFlow(content);
-      }} />}
+      }} />} */}
 
 
     </div >

@@ -3,8 +3,8 @@ import React from 'react';
 import {
     WORKSPACE_STORAGE_KEY,
     EVENT_NAME,
- 
-  } from '../common/constants'
+
+} from '../common/constants'
 // Define the ClientMessage interface for consistency
 interface ClientMessage {
     type: string;

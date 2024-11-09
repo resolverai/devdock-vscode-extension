@@ -628,7 +628,13 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       isRagEnabledObject.isEnabled = false;
     }
     EventSender.sendEvent(AnalyticsEvents.CPisRAGContextClickedEnabled, isRagEnabledObject);
+    // vscode.window.showInformationMessage(`Terminal output: ${lastLine}`);
+
+
   }
+
+  // Trigger the message to VS Code from React
+
 
   useEffect(() => {
     window.addEventListener('message', messageEventHandler)
