@@ -28,6 +28,7 @@ const Dashboard: React.FC = () => {
     const [userLoggedInData, setUserLoginData] = useState<UserLoginData>();
     const [userId, setUserID] = useState<number>(0);
     const [showCommonPopup, setShowCommonPopup] = useState<boolean>(false);
+    const [showBountyCreationPopup, setBountyCreationPopup] = useState<boolean>(false);
     const [headingCommonPopup, setHeadingCommonPopup] = useState<string>('');
     const [descriptionCommonPopup, setDescriptionCommonPopup] = useState<string>('');
     const [isRewardCommonPopup, setRewardCommonPopup] = useState<boolean>(false);
@@ -155,6 +156,11 @@ const Dashboard: React.FC = () => {
             }
 
         }
+        if (true) {
+            // showBountyCreationPopup
+            setBountyCreationPopup(true);
+        }
+
 
 
 

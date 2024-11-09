@@ -57,6 +57,7 @@ import CenterLogoOnBlankScreen from './home/svgs/center_log_blank_screen'
 import GreenRoundWithTick from './home/svgs/green_tick'
 import CurrentFileSymbol from './home/svgs/current_file_symbol'
 import { getCardData } from '../extension/store'
+import DevdockBountyPopup from './devdock_bounty_popup'
 
 
 interface ChatProps {
@@ -1009,6 +1010,12 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
                   </div>
                 </div>}
+                {/* {true && <DevdockBountyPopup isDevdockBountyPopupOpen={isDevdockBountyPopupOpen} handleCloseClick={() => {
+                  setIsDevdockBountyPopupOpen(false);
+                }} handleSubmit={(content) => {
+                  // setIsDevdockBountyPopupOpen(false); // Close popup after submission
+                  initiateBountyCreationFlow(content);
+                }} />} */}
 
                 <div
                   role="button"

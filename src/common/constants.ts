@@ -84,6 +84,7 @@ export const EVENT_NAME = {
   githubLoginDone: "github-login-done",
   githubLogoutDone: "github-logout-done",
   devdockBountySubmitRequest: "devdock-bounty-submit-request",
+  devdockBountyCreationRequest: "devdock-bounty-create-request",
   showCommonPopup: "devdock-showCommonPopup",
 };
 
@@ -119,6 +120,7 @@ export const DEVDOCK_COMMAND_NAME = {
   devdockBountyFilesResponse: "devdock.sendBountyFilesResponse",
   devdockOpenSigner: "devdock.openSigner",
   devdockBountySubmitRequestCommand: "devdock.bountySubmitRequestCommand",
+  devdockBountyCreateRequestCommand: "devdock.bountyCreateRequestCommand",
   devdockLogoutUser: "devdock.logoutUser",
   showCommonPopup: "devdock.showCommonPopup",
 };

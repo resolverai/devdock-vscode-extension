@@ -12,6 +12,7 @@ import { API_END_POINTS } from '../services/apiEndPoints';
 import { EVENT_NAME } from '../common/constants';
 import { ClientMessage } from '../common/types';
 import BountyPopup from './bounty_popup';
+import DevdockBountyPopup from './devdock_bounty_popup';
 
 
 interface CardItem {
@@ -45,39 +46,13 @@ const myCardData: CardItem[] = [
     bountyPrice: 'Loading ...',
     bountiesLeft: 'Loading ...'
   },
-  // {
-  //   id: 2,
-  //   title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
-  //   bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
-  //   bottomDescription: 'You can make multiple submissions',
-  //   bottomHeading: 'Top 10 Submissions will be approved',
-  //   description:
-  //     "1. Install Metamask and set up your wallet (metamask.io)\n" +
-  //     "2. Connect your Metamask to Gnosis Chain using chainlist.org \n" +
-  //     "3. Receive a small amount of xDAI. You can either join the Dev Discord and request a small amount, or purchase it yourself \n" +
-  //     "4. Make a submission on this bounty. Add a constructive or humorous comment \n" +
-  //     "5. Wait for review and acceptance \n" +
-  //     "6. Check your Devcash Balance \n",
-  //   bountyPrice: '900 Devcash',
-  //   bountiesLeft: '3 Bounties left'
-  // },
-  // {
-  //   id: 3,
-  //   title: '[BEAST BOUNTY] Bitcoin Entertainment Ideas',
-  //   bulletsArray: ["Bitcoin Entertainment", "Bitcoin Education", "Bitcoin Philanthropy",],
-  //   bottomDescription: 'You can make multiple submissions',
-  //   bottomHeading: 'Top 10 Submissions will be approved',
-  //   description: 'Mission\nWrite a Javascript program to scrape each bounty (e.g. https://devcash.dev/bountyplatform/bounty/192)\nShould get\n\nBounty amount\nBounty Description\npublic/private bounty\nbounty smart contract addresss\nCreated By\nBounties left and deadline\n\nThen we need an API to serve all this info.\n',
-  //   bountyPrice: '800 Devcash',
-  //   bountiesLeft: '2 Bounties left'
-  // },
-
 
 ];
 interface CardProps {
   isUserLoggedIn?: boolean;
   onBountiesClickedFromList?: (id: number) => void;
 }
+
 const global = globalThis as any
 const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesClickedFromList }) => {
   console.log('ExpandableCardList isUserLoggedIn', isUserLoggedIn);
@@ -91,17 +66,48 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
     setExpandedCardId(prevId => (prevId === id ? null : id));
   };
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isDevdockBountyPopupOpen, setIsDevdockBountyPopupOpen] = useState(true);//make it false, true is for testing purpose
+
   const [bountyPopupId, setBountyPoupID] = useState('');
 
   const handleOpenPopup = () => setIsPopupOpen(true);
   const handleClosePopup = () => setIsPopupOpen(false);
 
+  const handleOpenDevDockPopup = () => setIsDevdockBountyPopupOpen(true);
+
   const handleSubmit = (id: string, text: string) => {
     console.log('Submit action performed', id, text);
+
+    const storedMyBounties = localStorage.getItem('myBounties');
     setIsPopupOpen(false); // Close popup after submission
-    handleBountySubmit(parseInt(id), text);
+    if (storedMyBounties) {
+      const myBountiesArray = JSON.parse(storedMyBounties);
+      const myBounty = myBountiesArray.find((myBounty: MyBounty) => myBounty?.card?.id === parseInt(id));
+      if (myBounty) {
+        console.log('MyBounty found:', myBounty);
+        handleBountySubmit(parseInt(id), text, myBounty.platform);
+      }
+    }
+
 
   };
+
+
+  const initiateBountyCreationFlow = (content: string) => {
+    setIsDevdockBountyPopupOpen(false);
+    console.log('bounty creation flow', content);
+    //call backend to create a bounty for the content
+
+    const myData = { description: content }
+    global.vscode.postMessage({
+      type: EVENT_NAME.devdockBountyCreationRequest,
+      data: JSON.stringify(myData),
+    }) as ClientMessage;
+
+  }
+
+
+
   function handleClaimBountyClick(id: number): void {
 
     if (!isUserLoggedIn) {
@@ -109,14 +115,37 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
       return;
     }
 
-
     const isBountyClicked = localStorage.getItem(`bounty_${id}`) === 'true';
+
+
+    // const storedMyBounties = localStorage.getItem('myBounties');
+    // if (storedMyBounties) {
+    //   const myBountiesArray = JSON.parse(storedMyBounties);
+    //   const myBounty = myBountiesArray.find((myBounty: MyBounty) => myBounty?.card?.id === id);
+    //   if (myBounty) {
+    //     console.log('MyBounty found:', myBounty);
+    //     if (myBounty.platform == 'Devcash') {
+    //       //this is a devcash bounty
+    //       handleOpenPopup();
+    //     } else if (myBounty.platform == 'Devdock') {
+    //       //this is a devdock bounty
+    //       handleOpenDevDockPopup();
+    //     }
+    //     else {
+    //       console.log('Something wrong with the platform of bounty');
+    //     }
+    //   } else {
+    //     console.log('MyBounty not found');
+    //   }
+    // } else {
+    //   console.log('No myBounties stored in local storage');
+    // }
+
     if (isBountyClicked) {
       //this is submit bounty flow
       console.log("this is submit bounty flow for id:", id);
       setBountyPoupID(`${id}`);
       handleOpenPopup();
-
 
     } else {
       localStorage.setItem(`bounty_${id}`, 'true');
@@ -218,7 +247,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
 
 
-  function handleBountySubmit(bountyId: number, message: string) {
+  function handleBountySubmit(bountyId: number, message: string, platform: string) {
 
     if (isUserLoggedIn) {
       console.log(`Submit clicked for bountyId ${bountyId}`);
@@ -228,7 +257,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
       // }
       // const postMessageVal = JSON.stringify(myBountyMessage);
       // console.log('postMessageVal', postMessageVal);
-      const myData = { id: bountyId, description: message }
+      const myData = { id: bountyId, description: message, platform: platform }
       global.vscode.postMessage({
         type: EVENT_NAME.devdockBountySubmitRequest,
         data: JSON.stringify(myData),
@@ -377,7 +406,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                       opacity: '0.8',
                       cursor: 'pointer',
                     }}>
-                    {isBountyClicked ? 'Submit bounty' : `Attempt bounty for ${card.bountyPrice} Devcash`}
+                    {isBountyClicked ? 'Submit bounty' : `Attempt bounty for ${card.bountyPrice}`}
 
                   </span>
 
@@ -395,6 +424,12 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
       {isGitHubPopupVisible && <GitHubLoginPopup onClose={closePopup}></GitHubLoginPopup>}
       {isLoggedInPopupVisible && <UserGitHubLoggedInPopup onClose={closeLoggedinPopup}></UserGitHubLoggedInPopup>}
       <BountyPopup isOpen={isPopupOpen} handleCloseClick={handleClosePopup} handleSubmit={handleSubmit} bountyId={bountyPopupId} />
+      {<DevdockBountyPopup isDevdockBountyPopupOpen={isDevdockBountyPopupOpen} handleCloseClick={() => {
+        setIsDevdockBountyPopupOpen(false);
+      }} handleSubmit={(content) => {
+        // setIsDevdockBountyPopupOpen(false); // Close popup after submission
+        initiateBountyCreationFlow(content);
+      }} />}
 
 
     </div >

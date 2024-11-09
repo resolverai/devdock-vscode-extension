@@ -36,6 +36,15 @@ export const CodeBlock = (props: CodeBlockProps) => {
       data: String(children).replace(/^\n/, '')
     })
   }
+  const handleBountyCreation = () => {
+    // global.vscode.postMessage({
+    //   type: EVENT_NAME.devdockNewDocument,
+    //   data: String(children).replace(/^\n/, '')
+    // })
+    console.log('create bounty request');
+
+  }
+
 
   const handleAccept = () => {
     global.vscode.postMessage({
@@ -74,6 +83,13 @@ export const CodeBlock = (props: CodeBlockProps) => {
               appearance="icon"
             >
               <span className="codicon codicon-new-file"></span>
+            </VSCodeButton>
+            <VSCodeButton
+              title="Create bounty"
+              onClick={handleBountyCreation}
+              appearance="icon"
+            >
+              <span className="codicon codicon-broadcast"></span>
             </VSCodeButton>
           </div>
         </>

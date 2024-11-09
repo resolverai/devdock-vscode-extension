@@ -53,6 +53,8 @@ import { authz } from "./extension/flow/authz";
 import { ec } from "elliptic";
 import { keyGen } from "./extension/flow/create_keypair";
 import { getFileExtensionMapping } from "./common/extensionsMapping";
+import { createDevdockBounty } from "./extension/bountyCreation/devdockBounty";
+import { submitDevdockBounty } from "./extension/bountySubmission/devdockSubmitBounty";
 
 let sidebarProvider: SidebarProvider;
 export async function activate(context: ExtensionContext) {
@@ -368,6 +370,19 @@ export async function activate(context: ExtensionContext) {
         );
         if (response?.data !== undefined) {
           submitBountyRequest(response.data.toString());
+        }
+      }
+    ),
+
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.devdockBountyCreateRequestCommand,
+      (response: ClientMessage) => {
+        console.log(
+          "DEVDOCK_COMMAND_NAME.devdockBountyCreateRequestCommand",
+          response
+        );
+        if (response?.data !== undefined) {
+          createDevDockBounty(response.data.toString());
         }
       }
     ),
@@ -1143,52 +1158,98 @@ export async function activate(context: ExtensionContext) {
     console.log("submitBountyRequest index.ts", response, data);
     //get private key from localstorage
     //fetch bounty id from response
-    const myPrivateKey = context.globalState.get(
-      "userPrivateKey"
-    ) as `0x${string}`;
+    let myPrivateKey;
+    if (data.platform == "Devcash") {
+      myPrivateKey = context.globalState.get("userPrivateKey") as `0x${string}`;
 
-    const bountyId = data.id;
+      const bountyId = data.id;
 
-    // const { reciept, hash } = await submitBounty(bountyId.toString(), "", "");
-    const result = await submitBounty(bountyId, myPrivateKey, data.description);
-    if (result) {
-      const { reciept, hash } = result;
-      // use reciept and hash here
-      console.log("reciept, hash", reciept, hash);
+      // const { reciept, hash } = await submitBounty(bountyId.toString(), "", "");
+      const result = await submitBounty(
+        bountyId,
+        myPrivateKey,
+        data.description
+      );
+      if (result) {
+        const { reciept, hash } = result;
+        // use reciept and hash here
+        console.log("reciept, hash", reciept, hash);
 
-      // vscode.window.showInformationMessage(
-      //   `Submission successful. \n Bounty Id: ${bountyId.toString()} \n Transaction Id: ${hash}`,
-      //   { modal: true }
-      // );
+        // vscode.window.showInformationMessage(
+        //   `Submission successful. \n Bounty Id: ${bountyId.toString()} \n Transaction Id: ${hash}`,
+        //   { modal: true }
+        // );
 
-      devdockPoints.pointsEventDoneFor(PointsEvents.BOUNTYSUBMIT);
-      const userDetails = context.globalState.get("userProfileInfo") as any;
+        devdockPoints.pointsEventDoneFor(PointsEvents.BOUNTYSUBMIT);
+        const userDetails = context.globalState.get("userProfileInfo") as any;
 
-      const userDetailsObject = JSON.parse(userDetails as string);
-      const myUserId = userDetailsObject?.id;
+        const userDetailsObject = JSON.parse(userDetails as string);
+        const myUserId = userDetailsObject?.id;
 
-      const bountySubmissionData = {
-        user_id: myUserId,
-        bounty_id: bountyId,
-        submission_hash: hash,
-        platform: "Devdock",
-      };
-      apiService
-        .post(API_END_POINTS.BOUNTY_SUBMITTED, bountySubmissionData)
-        .then((response) => {
-          console.log("API_END_POINTS.BOUNTY_SUBMITTED resposne", response);
-        });
+        const bountySubmissionData = {
+          user_id: myUserId,
+          bounty_id: bountyId,
+          submission_hash: hash,
+          platform: "Devdock",
+        };
+        apiService
+          .post(API_END_POINTS.BOUNTY_SUBMITTED, bountySubmissionData)
+          .then((response) => {
+            console.log("API_END_POINTS.BOUNTY_SUBMITTED resposne", response);
+          });
 
-      const bountyData = { type: "bounty", id: bountyId, hash: hash };
-      sidebarProvider.view?.webview.postMessage({
-        type: EVENT_NAME.showCommonPopup,
-        value: {
-          data: JSON.stringify(bountyData),
-        },
-      } as ServerMessage<string>);
+        const bountyData = { type: "bounty", id: bountyId, hash: hash };
+        sidebarProvider.view?.webview.postMessage({
+          type: EVENT_NAME.showCommonPopup,
+          value: {
+            data: JSON.stringify(bountyData),
+          },
+        } as ServerMessage<string>);
+      } else {
+        // handle the case where result is undefined
+      }
     } else {
-      // handle the case where result is undefined
+      //fetch flowWallet private key
+      myPrivateKey = context.globalState.get(
+        "flowWalletPrivateKey"
+      ) as `0x${string}`;
+
+      if (!myPrivateKey.startsWith("0x")) {
+        myPrivateKey = "0x" + myPrivateKey;
+        //handle devdock bounty submit
+      }
+      const userFlowWallet = context.globalState.get(
+        "flowWalletAddress"
+      ) as `0x${string}`;
+      // context.globalState.update("flowWalletAddress", address);
+      // bountyId: string,
+      // postMssage?: string,
+      // privateKey?: string,
+      // flowWalletAddress?: string
+      const postMessage = data.description;
+      const bountyId = data.id;
+      submitDevdockBounty(bountyId, postMessage, myPrivateKey, userFlowWallet);
     }
+  }
+
+  async function createDevDockBounty(response: string) {
+    console.log("createDevDockBounty request for ", response);
+    const bountyContent = JSON.parse(response).description;
+    console.log("createDevDockBounty bountyContent  ", bountyContent);
+    const flowPrivateKey = context.globalState.get(
+      "flowWalletPrivateKey"
+    ) as string;
+    const flowWalletAddress = context.globalState.get(
+      "flowWalletAddress"
+    ) as string;
+
+    createDevdockBounty(
+      bountyContent,
+      500,
+      5,
+      flowPrivateKey,
+      flowWalletAddress
+    );
   }
 
   async function initiateFlow() {
@@ -1254,6 +1315,7 @@ transaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8) {
         const address = transactiondata["events"][14]["data"]["address"];
         context.globalState.update("flowWalletAddress", address);
         context.globalState.update("flowWalletPrivateKey", privateKey);
+        context.globalState.update("flowWalletPublicKey", publicKey);
 
         console.log("Flow Address: ", address);
       });
