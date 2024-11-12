@@ -5,6 +5,7 @@ import WhiteCrossSvg from '../login/white_cross_svg';
 import ProfileThumbnailSVG from '../home/svgs/profile_thumbnail';
 import { log } from 'console';
 import { setIsLoggedIn } from '../../extension/store';
+import CopyButton from '../CopyButton';
 
 interface UserGitHubLoggedInPopupProps {
     onClose: () => void;
@@ -145,10 +146,12 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                     <div style={{ flex: 'display', flexDirection: 'column', alignItems: 'center', marginLeft: '8px' }}>
                         <div><span>GithubID</span></div>
                         <div>
-                            <span>
-                                {loginData?.wallets[0].wallet_address &&
-                                    `${loginData.wallets[0].wallet_address.slice(0, 4)}...${loginData.wallets[0].wallet_address.slice(-5)}`}
-                            </span>
+                            <div>
+                                <span>
+                                    {loginData?.wallets[0].wallet_address &&
+                                        `${loginData.wallets[0].wallet_address.slice(0, 4)}...${loginData.wallets[0].wallet_address.slice(-5)}`}
+                                </span>
+                            </div>
 
                         </div>
 
@@ -233,14 +236,21 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                     const chain: string = wallet?.chain;
 
                     return (
-                        <div key={index}>
+                        <div key={index} >
                             <div style={{ height: '5px' }}></div>
-                            <span style={{ opacity: 1, fontSize: '10px', fontWeight: 'normal', color: '#ffffff' }}>
-                                {wallet?.currency}:{wallet?.wallet_address}
-                            </span>
-                            <div style={{ height: '5px' }}></div>
-                        </div>
+                            <div style={{ display: "flex", flexDirection: 'row', }}>
 
+                                <span style={{ opacity: 0.8, fontSize: '14px', fontWeight: 'normal', color: '#ffffff', marginRight: '10px' }}>
+                                    {wallet?.currency}: {wallet?.wallet_address &&
+                                        `${wallet?.wallet_address.slice(0, 4)}...${wallet?.wallet_address.slice(-5)}`}
+
+                                </span>
+
+                                <div>
+                                    <CopyButton textToCopy={wallet?.wallet_address ?? ''}></CopyButton>
+                                </div>
+                            </div>
+                        </div>
                     )
                 })}
                 {/* <div style={{ height: '20px' }}></div>
