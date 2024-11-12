@@ -58,6 +58,8 @@ import GreenRoundWithTick from './home/svgs/green_tick'
 import CurrentFileSymbol from './home/svgs/current_file_symbol'
 import { getCardData } from '../extension/store'
 import DevdockBountyPopup from './devdock_bounty_popup'
+import apiService from '../services/apiService'
+import { API_END_POINTS } from '../services/apiEndPoints'
 
 
 interface ChatProps {
@@ -130,6 +132,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   const [isAddFocusPopupVisible, setIsAddFocusPopupVisible] = useState(false);
   const [hideCenterUIFromChatScreen, setHideCenterUIFromChatScreen] = useState(false);
   const [isTopTabsClicked, setTopTabsClicked] = useState<boolean | null>(null);
+  const [ragName, setRagName] = useState<string>('');
 
 
   // Handle clicks outside the popup
@@ -169,6 +172,50 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       setIsAddFocusPopupVisible(false); // Close the popup
     }
   }, [onBountiesClicked]);
+
+
+  useEffect(() => {
+
+    if (ragName != null && ragName != '') {
+      console.log('ragName updated', ragName);
+
+      const input = editor?.getText();
+      if (fileNameRef.current) {
+        // console.log('Ask button clicked with file name in focus with some user message');
+        //in this case add context about the file content
+
+        setMessages((prevMessages) => {
+          const updatedMessages = [
+            ...(prevMessages || []),
+            { isInFocusFile: true, role: USER, content: input + '\n\n\n' + '@file attached- ' + fileNameRef.current },
+          ]
+          global.vscode.postMessage({
+            type: EVENT_NAME.devdockChatMessage,
+            data: updatedMessages
+          } as ClientMessage)
+          return updatedMessages
+        })
+      } else {
+        setMessages((prevMessages) => {
+          const updatedMessages = [
+            ...(prevMessages || []),
+            { role: USER, content: input }
+          ]
+          global.vscode.postMessage({
+            type: EVENT_NAME.devdockChatMessage,
+            data: updatedMessages
+          } as ClientMessage)
+          return updatedMessages
+        })
+      }
+
+      setTimeout(() => {
+        if (markdownRef.current) {
+          markdownRef.current.scrollTop = markdownRef.current.scrollHeight
+        }
+      }, 200)
+    }
+  }, [ragName]);
 
   const handleBountyclickForChat = (bountyId: number | null) => {
     if (bountyId) {
@@ -374,7 +421,18 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         setTimeout(() => {
           stopRef.current = false
         }, 1000)
+        break;
       }
+
+      case EVENT_NAME.getRagForQuery: {
+        console.log('EVENT_NAME.getRagForQuery chat.tsx', message.value.data);
+        const ragValue = JSON.stringify(message?.value?.data);
+        setRagName(ragValue);
+        break;
+
+      }
+
+
 
 
     }
@@ -450,47 +508,14 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     })
   }
 
-  const handleSubmitForm = () => {
+  const handleSubmitForm = async () => {
     onDevChatClick();
     setTopTabsClicked(false);
     const input = editor?.getText()
     if (input) {
       setIsLoading(true)
       clearEditor()
-      if (fileNameRef.current) {
-        // console.log('Ask button clicked with file name in focus with some user message');
-        //in this case add context about the file content
-
-        setMessages((prevMessages) => {
-          const updatedMessages = [
-            ...(prevMessages || []),
-            { isInFocusFile: true, role: USER, content: input + '\n\n\n' + '@file attached- ' + fileNameRef.current },
-          ]
-          global.vscode.postMessage({
-            type: EVENT_NAME.devdockChatMessage,
-            data: updatedMessages
-          } as ClientMessage)
-          return updatedMessages
-        })
-      } else {
-        setMessages((prevMessages) => {
-          const updatedMessages = [
-            ...(prevMessages || []),
-            { role: USER, content: input }
-          ]
-          global.vscode.postMessage({
-            type: EVENT_NAME.devdockChatMessage,
-            data: updatedMessages
-          } as ClientMessage)
-          return updatedMessages
-        })
-      }
-
-      setTimeout(() => {
-        if (markdownRef.current) {
-          markdownRef.current.scrollTop = markdownRef.current.scrollHeight
-        }
-      }, 200)
+      checkRagForQuery(input);
     }
     else {
       console.log('input is empty, fileName val', fileNameRef.current)
@@ -1068,5 +1093,14 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       {showAddFocusPopup()}
     </VSCodePanelView >
   )
+}
+
+function checkRagForQuery(userQuery: string) {
+
+  global.vscode.postMessage({
+    type: EVENT_NAME.getRagForQuery,
+    data: userQuery,
+  } as ClientMessage);
+
 }
 

@@ -162,10 +162,59 @@ class ApiService {
   private handleError(error: any, url: string): void {
     console.error("API call failed:", error?.response, url);
   }
+  // Method to send a query to ChatGPT-4 API
+  // Method to send a question to ChatGPT-4 and get an answer
+  async askChatGPT(
+    question: string,
+    model: string = "gpt-4",
+    temperature: number = 0.7,
+    listOfChains: string
+  ): Promise<string> {
+    const url = "https://api.openai.com/v1/chat/completions";
+
+    // Log API key and post body for debugging
+    console.log("API Key:", process.env.CHATGPT_API_KEY); // Ensure API key is printed correctly (remove after testing)
+
+    const postBody = {
+      model,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a web3 helper, based on the user query you have to tell from which chain it belongs. The list of chains is as follows: " +
+            listOfChains +
+            ". You have to reply in just one word, and the answer should be one from the array of chains provided. If you think that the answer is not in the list, reply with 'Others'.",
+        },
+        { role: "user", content: question },
+      ],
+      temperature,
+    };
+
+    console.log("Post Body:", JSON.stringify(postBody, null, 2)); // Log post body to ensure correct structure
+
+    try {
+      const response: AxiosResponse = await axios.post(url, postBody, {
+        headers: {
+          Authorization: `Bearer ${process.env.CHATGPT_API_KEY}`, // Ensure API key is set in environment
+          "Content-Type": "application/json",
+        },
+      });
+
+      const answer = response.data.choices[0].message.content.trim();
+      return answer;
+    } catch (error: any) {
+      console.error("Error querying ChatGPT-4 API:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+      }
+      throw error;
+    }
+  }
 }
 
 // Example usage:
 const BASE_URL = "https://dapp.devdock.ai";
+const OPENAI_BASE_URL = "https://api.openai.com";
 const apiService = new ApiService(BASE_URL);
 
 export default apiService;

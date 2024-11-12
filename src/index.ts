@@ -143,6 +143,45 @@ export async function activate(context: ExtensionContext) {
     context.subscriptions.push(watcher);
   }
 
+  async function getRagForQuery(dataVals: any) {
+    const userQuery = dataVals.data;
+    const web3Chains = context.globalState.get("web3Chains") as string;
+    console.log("web3Chains", web3Chains);
+    const chainKeyBasedOnUserQuery = await apiService.askChatGPT(
+      userQuery,
+      "gpt-4",
+      0.7,
+      web3Chains
+    );
+    console.log(
+      "getRagForQuery chainKeyBasedOnUserQuery",
+      chainKeyBasedOnUserQuery
+    );
+
+    context.globalState.update(
+      "chatGPTProviderChainKey",
+      chainKeyBasedOnUserQuery
+    );
+    const devdockRagData = context.globalState.get("devdockRagData") as any;
+
+    const providerBasedOnQuery = getBotByChain(
+      devdockRagData?.data,
+      chainKeyBasedOnUserQuery
+    );
+    console.log("devdockRagData based on Query ", providerBasedOnQuery);
+    context.globalState.update(
+      "devDockProviderBasedOnUserQuery",
+      providerBasedOnQuery
+    );
+
+    sidebarProvider.view?.webview.postMessage({
+      type: EVENT_NAME.getRagForQuery,
+      value: {
+        data: chainKeyBasedOnUserQuery,
+      },
+    } as ServerMessage<string>);
+  }
+
   function getCurrentFileOpenedName() {
     console.log("getCurrentFileOpenedName called");
 
@@ -563,6 +602,12 @@ export async function activate(context: ExtensionContext) {
             data: dataVals,
           },
         } as ServerMessage<string>);
+      }
+    ),
+    commands.registerCommand(
+      DEVDOCK_COMMAND_NAME.getRagForQuery,
+      (dataVals) => {
+        getRagForQuery(dataVals);
       }
     ),
 
@@ -1411,9 +1456,40 @@ transaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8) {
   async function fetchDevDockRags() {
     apiService
       .getWithFullUrl("https://api.devdock.ai/api/v1/bot/api-details")
-      .then((response) => {
+      .then((response: any) => {
         console.log("fetchDevDockRags", response);
+
+        const uniqueChains = getUniqueChains(response?.data);
+        console.log("fetchDevDockRags chainList", uniqueChains);
+        context.globalState.update("devdockRagData", response);
+        context.globalState.update("web3Chains", JSON.stringify(uniqueChains));
+
+        // console.log(
+        //   "fetchDevDockRags web3Chains",
+        //   context.globalState.get("web3Chains")
+        // );
       });
+  }
+
+  type BotData = {
+    bot_id: string;
+    api_key: string;
+    domain: string;
+    uri: string;
+    header_key: string;
+    chain: string;
+    protocal: string;
+  };
+
+  function getBotByChain(data: any, chainName: string): BotData {
+    return data.find((bot: BotData) => bot.chain === chainName);
+  }
+
+  // Method to get unique chains from response data
+  function getUniqueChains(data: BotData[]): string[] {
+    const chains = data.map((bot) => bot.chain); // Extract chain values
+    const uniqueChains = Array.from(new Set(chains)); // Create a unique set
+    return uniqueChains;
   }
 }
 

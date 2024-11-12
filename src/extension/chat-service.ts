@@ -53,6 +53,16 @@ import { DevdockPoints, PointsEvents } from "../common/devdockPoints";
 import { apiProviders } from "symmetry-client";
 
 const logger = new Logger();
+type BotData = {
+  bot_id: string;
+  api_key: string;
+  domain: string;
+  uri: string;
+  header_key: string;
+  chain: string;
+  protocal: string;
+  portNumber: number;
+};
 
 export class ChatService {
   private _completion = "";
@@ -308,72 +318,35 @@ export class ChatService {
   };
 
   private buildStreamRequest(messages?: Message[] | Message[]) {
-    const provider = this.getProvider();
+    const myProvider = this._context?.globalState.get(
+      "devDockProviderBasedOnUserQuery"
+    ) as BotData;
 
-    if (!provider) return;
+    const requestOptions: StreamRequestOptions = {
+      hostname: myProvider.domain,
+      port: 443,
+      path: myProvider.uri,
+      protocol: myProvider.protocal,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${myProvider.api_key}`,
+        "x-api-key": myProvider.api_key,
+      },
+    };
 
-    //case for providers to create requestbody and options
-
-    switch (provider.provider) {
-      case apiProviders.devDockProvider:
-        const requestOptions: StreamRequestOptions = {
-          hostname: provider.apiHostname,
-          port: Number(provider.apiPort),
-          path: provider.apiPath,
-          protocol: provider.apiProtocol,
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Authorization: `Bearer ${provider.apiKey}`,
-            "x-api-key": `${provider.apiKey}`,
-          },
-        };
-        let myMessages = undefined;
-        if (messages && messages?.length > 0) {
-          myMessages = this.updateMessagesForDevDockProvider(messages);
-        }
-        // myMessages = this.updateMessagesForDevDockProvider();
-
-        const requestBody: RequestBodyBase = {
-          message:
-            myMessages && myMessages.length > 0
-              ? myMessages[myMessages.length - 1].content
-              : "",
-          history:
-            myMessages && myMessages.length > 1
-              ? myMessages.slice(0, myMessages.length - 1)
-              : [],
-          stream: true,
-        };
-        return { requestOptions, requestBody };
-
-      default:
-        const defaultReOptions: StreamRequestOptions = {
-          hostname: provider.apiHostname,
-          port: Number(provider.apiPort),
-          path: provider.apiPath,
-          protocol: provider.apiProtocol,
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${provider.apiKey}`,
-            "x-api-key": "sk_db_GA91ePDIeHcPmDRW8iYO8MayNCp7EgKn",
-          },
-        };
-
-        const defaultReqBody = createStreamRequestBody(provider.provider, {
-          model: provider.modelName,
-          numPredictChat: this._numPredictChat,
-          temperature: this._temperature,
-          messages,
-          keepAlive: this._keepAlive,
-          message:
-            messages && messages.length > 0
-              ? messages[messages.length - 1]
-              : undefined,
-        });
-        return { defaultReOptions, defaultReqBody };
-    }
+    const requestBody = createStreamRequestBody("devDock", {
+      model: "gpt-4o",
+      numPredictChat: this._numPredictChat,
+      temperature: this._temperature,
+      messages,
+      keepAlive: this._keepAlive,
+      message:
+        messages && messages.length > 0
+          ? messages[messages.length - 1]
+          : undefined,
+    });
+    return { requestOptions, requestBody };
 
     // return { requestOptions, requestBody };
   }
