@@ -1,38 +1,46 @@
+import axios from "axios";
 import { StreamRequest } from "../common/types";
-import { logStreamOptions, safeParseJsonResponse } from "./utils";
+import apiService from "../services/apiService";
+import { safeParseJsonResponse } from "./utils";
+import https from "https";
+import http from 'http';
 
 export async function streamResponse(request: StreamRequest) {
-  // logStreamOptions(request);
   const { body, options, onData, onEnd, onError, onStart } = request;
-  const controller = new AbortController();
-  const { signal } = controller;
 
   try {
-    const url = `${options.protocol}://${options.hostname}:${options.port}${options.path}`;
+    const url = `https://${options.hostname}:${options.port}${options.path}`;
     const fetchOptions = {
       method: options.method,
       headers: options.headers,
       body: JSON.stringify(body),
-      signal: controller.signal,
     };
 
-    const response = await fetch(url, fetchOptions);
-
-    if (!response.ok) {
+    // const response = await fetch(url, fetchOptions);
+    const response = await axios.post(url, body, {
+      headers: options.headers,
+      timeout: 60000, // Increased timeout to 60 seconds
+      maxRedirects: 0, // Disable redirects if not needed
+      maxContentLength: Infinity, // remove content-length restrictions if needed
+      maxBodyLength: Infinity, // remove body-length restrictions if needed
+      httpsAgent: new https.Agent({ keepAlive: true }),
+      httpAgent: new http.Agent({ keepAlive: true }),
+    });
+    if (response.status !== 200) {
       throw new Error(
-        `Server responded with status: ${JSON.stringify(response)}`
+        `Server responded with status: ${JSON.stringify(response.status)}`
       );
     }
 
-    if (!response.body) {
+    if (!response.data) {
       throw new Error("Failed to get a ReadableStream from the response");
     }
 
     let buffer = "";
 
-    onStart?.(controller);
+    onStart?.();
 
-    const reader = response.body
+    const reader = response.data
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(
         new TransformStream({
@@ -67,25 +75,15 @@ export async function streamResponse(request: StreamRequest) {
       )
       .getReader();
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
-      if (signal.aborted) break;
       const { done } = await reader.read();
       if (done) break;
     }
 
-    controller.abort();
     onEnd?.();
     reader.releaseLock();
   } catch (error: unknown) {
-    controller.abort();
-    if (error instanceof Error) {
-      if (error.name === "AbortError") {
-        onEnd?.();
-      } else {
-        console.error("Fetch error:", error);
-      }
-    }
+    console.error("Fetch error:", error);
   }
 }
 
@@ -113,7 +111,6 @@ export async function fetchEmbedding(request: StreamRequest) {
     }
 
     const data = await response.json();
-
     onData(data);
   } catch (error: unknown) {
     if (error instanceof Error) {

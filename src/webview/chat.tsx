@@ -81,7 +81,7 @@ const CustomKeyMap = Extension.create({
           return false
         }
         this.options.handleSubmitForm()
-        this.options.clearEditor()
+        // this.options.clearEditor()
         return true
       },
       'Mod-Enter': ({ editor }) => {
@@ -132,7 +132,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   const [isAddFocusPopupVisible, setIsAddFocusPopupVisible] = useState(false);
   const [hideCenterUIFromChatScreen, setHideCenterUIFromChatScreen] = useState(false);
   const [isTopTabsClicked, setTopTabsClicked] = useState<boolean | null>(null);
-  const [ragName, setRagName] = useState<string>('');
+  // const [ragName, setRagName] = useState<any>('');
+  const [ragName, setRagName] = useState({ value: "", timestamp: Date.now() });
 
 
   // Handle clicks outside the popup
@@ -175,15 +176,17 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
 
   useEffect(() => {
+    console.log('inside ragName updated', ragName);
 
-    if (ragName != null && ragName != '') {
+    if (ragName.value != null && ragName.value != '') {
       console.log('ragName updated', ragName);
 
       const input = editor?.getText();
+      console.log('After Ragname, user input message', input);
       if (fileNameRef.current) {
         // console.log('Ask button clicked with file name in focus with some user message');
         //in this case add context about the file content
-
+        console.log('if case fileNameRef.current', input);
         setMessages((prevMessages) => {
           const updatedMessages = [
             ...(prevMessages || []),
@@ -195,7 +198,9 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           } as ClientMessage)
           return updatedMessages
         })
+        setRagName({ value: '', timestamp: Date.now() });
       } else {
+        console.log('else case fileNameRef.current', input);
         setMessages((prevMessages) => {
           const updatedMessages = [
             ...(prevMessages || []),
@@ -208,12 +213,15 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           return updatedMessages
         })
       }
-
+      // clearEditor()
       setTimeout(() => {
         if (markdownRef.current) {
           markdownRef.current.scrollTop = markdownRef.current.scrollHeight
         }
       }, 200)
+    }
+    else {
+      console.log('RagNAme is null', ragName);
     }
   }, [ragName]);
 
@@ -427,7 +435,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       case EVENT_NAME.getRagForQuery: {
         console.log('EVENT_NAME.getRagForQuery chat.tsx', message.value.data);
         const ragValue = JSON.stringify(message?.value?.data);
-        setRagName(ragValue);
+        setRagName({ value: ragValue, timestamp: Date.now() });
+
         break;
 
       }
@@ -514,7 +523,6 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     const input = editor?.getText()
     if (input) {
       setIsLoading(true)
-      clearEditor()
       checkRagForQuery(input);
     }
     else {

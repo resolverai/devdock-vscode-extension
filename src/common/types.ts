@@ -160,7 +160,7 @@ export interface StreamRequest {
   body: RequestBodyBase | StreamBodyOpenAI;
   options: StreamRequestOptions;
   onEnd?: () => void;
-  onStart?: (controller: AbortController) => void;
+  onStart?: (controller?: AbortController) => void;
   onError?: (error: Error) => void;
   onData: <T = StreamResponse>(streamResponse: T) => void;
 }

@@ -334,18 +334,22 @@ export class ChatService {
         "x-api-key": myProvider.api_key,
       },
     };
-
-    const requestBody = createStreamRequestBody("devDock", {
-      model: "gpt-4o",
-      numPredictChat: this._numPredictChat,
-      temperature: this._temperature,
-      messages,
-      keepAlive: this._keepAlive,
+    let myMessages: any = undefined;
+    if (messages && messages?.length > 0) {
+      myMessages = this.updateMessagesForDevDockProvider(messages);
+    }
+    // myMessages = this.updateMessagesForDevDockProvider();
+    const requestBody: RequestBodyBase = {
       message:
-        messages && messages.length > 0
-          ? messages[messages.length - 1]
-          : undefined,
-    });
+        myMessages && myMessages.length > 0
+          ? myMessages[myMessages.length - 1].content
+          : "",
+      history:
+        myMessages && myMessages.length > 1
+          ? myMessages.slice(0, myMessages.length - 1)
+          : [],
+      stream: true,
+    };
     return { requestOptions, requestBody };
 
     // return { requestOptions, requestBody };
@@ -439,7 +443,7 @@ export class ChatService {
     } as ServerMessage);
   };
 
-  private onStreamStart = (controller: AbortController) => {
+  private onStreamStart = (controller?: AbortController) => {
     this._controller = controller;
     commands.executeCommand(
       "setContext",
