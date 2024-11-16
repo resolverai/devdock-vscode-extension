@@ -170,7 +170,7 @@ const DevdockBountyPopup: React.FC<DevdockBountyPopupProps> = ({ isDevdockBounty
                                 <div style={{ height: '1px' }}></div>
                                 <div>
                                     <span style={{ opacity: '0.5', color: '#ffffff', lineHeight: '15px', fontWeight: 'lighter', fontSize: '12px', alignContent: 'center', fontStyle: 'normal', }}>
-                                        {10}</span>
+                                        {100}</span>
                                 </div>
                             </div>
 
