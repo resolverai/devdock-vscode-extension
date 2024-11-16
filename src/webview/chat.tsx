@@ -978,6 +978,15 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
                 placeholder="How can devdock help you today?"
                 className={styles.tiptap}
                 editor={editor}
+                onInput={(e) => {
+                  const target: any = e.target;
+
+                  // Adjust height dynamically
+                  target.style.height = 'auto'; // Reset height to calculate new height
+                  const newHeight = Math.min(target.scrollHeight, 300); // Max height: 300px
+                  target.style.height = `${newHeight}px`;
+
+                }}
               />
 
               <div style={{ display: 'flex', flexDirection: 'row', alignContent: 'space-between' }}>

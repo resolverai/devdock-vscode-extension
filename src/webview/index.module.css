@@ -178,15 +178,13 @@ pre code {
 }
 
 .chatBox {
-  /* margin-top: 7px; */
   position: relative;
   width: 100%;
   color: var(--input-foreground);
-
-   /* height: 150px;Set a fixed height based on your design */
+  overflow-y: hidden; /* Prevent outer scrolling */
   overflow-y: auto; /* Enable vertical scrolling */
   display: flex;
-  flex-direction: column-reverse; /* Make the content appear from the bottom and push upwards */  
+  flex-direction: column; /* Stack elements vertically */
 }
 
 .tiptap {
@@ -207,12 +205,22 @@ pre code {
   font-family: var(--vscode-font-family);
   resize: none;
   font-size: 14px;
-  overflow: hidden;
   outline: none;
   padding-right: 30px;
-  height: 70px;
-  
 
+  /* Dynamic height properties */
+  min-height: 70px;
+  max-height: 300px;
+  height: auto;
+
+  /* Scroll behavior */
+  overflow-y: auto; /* Enable scrolling */
+  scrollbar-width: none; /* Hide scrollbar in Firefox */
+
+  /* For Chrome, Edge, and Safari */
+  ::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .chatSubmit {
