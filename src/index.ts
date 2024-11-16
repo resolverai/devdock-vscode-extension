@@ -55,6 +55,7 @@ import { keyGen } from "./extension/flow/create_keypair";
 import { getFileExtensionMapping } from "./common/extensionsMapping";
 import { createDevdockBounty } from "./extension/bountyCreation/devdockBounty";
 import { submitDevdockBounty } from "./extension/bountySubmission/devdockSubmitBounty";
+import { enable_axon_vault_for_user } from "./extension/axon_vault_enable/axon_vault_creation";
 
 let sidebarProvider: SidebarProvider;
 export async function activate(context: ExtensionContext) {
@@ -226,14 +227,20 @@ export async function activate(context: ExtensionContext) {
   fetchDevDockRags();
 
   // fetchUserActionsList();
-  const isPrivateKeyAvailable = context.globalState.get("flowWalletPrivateKey");
+  const isPrivateKeyAvailable = context.globalState.get(
+    "flowWalletPrivateKey"
+  ) as string;
   if (
     isPrivateKeyAvailable === null ||
     isPrivateKeyAvailable === undefined ||
     isPrivateKeyAvailable === ""
   ) {
     initiateFlow();
+  } else {
+    console.log("FlowPrivateKey is available, not creating again");
   }
+
+  checkAndEnableAxonVault();
 
   getFileExtensionMapping().then((fileMappings: any) => {
     console.log("getFileExtensionMapping", fileMappings);
@@ -785,6 +792,7 @@ export async function activate(context: ExtensionContext) {
                 console.log("user created or logged in", response);
 
                 const userId = response.data.id;
+                context.globalState.update("userID", userId);
 
                 const signupPointsAllotedEarlier = context.globalState.get(
                   "signupPointsAlloted"
@@ -827,6 +835,12 @@ export async function activate(context: ExtensionContext) {
                 ) {
                   const flowWalletAddress =
                     context.globalState.get("flowWalletAddress");
+
+                  try {
+                    checkAndEnableAxonVault();
+                  } catch (error) {
+                    console.log("checkAndEnableAxonVault error ", error);
+                  }
 
                   createEthWalletForUser(
                     (wallet: Wallet) => {
@@ -1453,8 +1467,78 @@ transaction(key: String, signatureAlgorithm: UInt8, hashAlgorithm: UInt8) {
         context.globalState.update("flowWalletPublicKey", publicKey);
 
         console.log("Flow Address: ", address);
+        // enableAxonVaultForUser(privateKey, address);
+        checkAndEnableAxonVault();
       });
     // .then(fcl.decode);
+  }
+
+  async function enableAxonVaultForUser(
+    privateKey: string,
+    flowWalletAddress: string
+  ) {
+    const response = await enable_axon_vault_for_user(
+      privateKey,
+      flowWalletAddress
+    );
+    const { result } = response as any;
+    if (result != null && result != undefined) {
+      //vault enablement is successfull
+      console.log("enable_axon_vault_for_user success", result);
+      await context.globalState.update("AXON_VAULT_ENABLED", true);
+    } else {
+      console.log("enable_axon_vault_for_user failure", result);
+      await context.globalState.update("AXON_VAULT_ENABLED", false);
+    }
+    //  .then(
+    //     (response) => {
+    //       console.log("enable_axon_vault_for_user response", response);
+    //       const { result } = response as any;
+    //       if (result != null && result != undefined) {
+    //         //vault enablement is successfull
+    //         console.log("enable_axon_vault_for_user success", result);
+    //         context.globalState.update("AXON_VAULT_ENABLED", true);
+    //       } else {
+    //         console.log("enable_axon_vault_for_user failure", result);
+    //         context.globalState.update("AXON_VAULT_ENABLED", false);
+    //       }
+    //     }
+    //   );
+  }
+
+  function checkAndEnableAxonVault() {
+    const isVaultEnabled = context.globalState.get(
+      "AXON_VAULT_ENABLED"
+    ) as boolean;
+    console.log("AXON_VAULT_ENABLED", isVaultEnabled);
+    console.log("isVaultEnabled", isVaultEnabled);
+    if (!isVaultEnabled) {
+      const flowWalletAddress = context.globalState.get(
+        "flowWalletAddress"
+      ) as string;
+
+      const flowPrivateKey = context.globalState.get(
+        "flowWalletPrivateKey"
+      ) as string;
+
+      if (
+        flowPrivateKey !== null &&
+        flowPrivateKey !== undefined &&
+        flowPrivateKey !== "" &&
+        flowWalletAddress !== null &&
+        flowWalletAddress !== undefined &&
+        flowWalletAddress !== ""
+      ) {
+        enableAxonVaultForUser(flowPrivateKey, flowWalletAddress);
+        // checkAndEnableAxonVault();
+      } else {
+        console.log(
+          "FlowPrivateKey or flow address is not available, cannot enable_axon_vault_for_user"
+        );
+      }
+    } else {
+      console.log("AXON Vault already enabled ");
+    }
   }
 
   async function fetchDevDockRags() {
