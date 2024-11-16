@@ -353,7 +353,6 @@ export class ChatService {
       return { requestOptions, requestBody };
     } else {
     }
-    
 
     // return { requestOptions, requestBody };
   }
@@ -368,17 +367,21 @@ export class ChatService {
   }
 
   private updateMessagesForDevDockProvider(messages: Message[]): Message[] {
+    console.log("updateMessagesForDevDockProvider", JSON.stringify(messages));
     return messages
       .filter((message) => {
         return message.role !== "system";
       })
       .map((message) => {
+        const updatedMessage = { ...message, text: message.content };
+        // delete updatedMessage.content;
+
         if (message.role === "user") {
-          return { ...message, role: "human" };
+          return { ...updatedMessage, role: "human" };
         } else if (message.role === "assistant") {
-          return { ...message, role: "ai" };
+          return { ...updatedMessage, role: "ai" };
         }
-        return message;
+        return updatedMessage;
       });
   }
 
