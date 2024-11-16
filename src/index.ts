@@ -267,23 +267,23 @@ export async function activate(context: ExtensionContext) {
     let workspaceUri: vscode.Uri;
 
     // Logic for where to create the devcash folder
-    if (createInCurrentWorkspace) {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    console.log("workspaceFolders", workspaceFolders);
+    // if (!workspaceFolders) {
+    //   vscode.window.showErrorMessage(
+    //     "No workspace folder is open. Please open a workspace and try again."
+    //   );
+    //   return;
+    // }
+    if (workspaceFolders) {
       // Ensure workspace folders are available
-      const workspaceFolders = vscode.workspace.workspaceFolders;
-      console.log("workspaceFolders", workspaceFolders);
-      if (!workspaceFolders) {
-        vscode.window.showErrorMessage(
-          "No workspace folder is open. Please open a workspace and try again."
-        );
-        return;
-      }
 
       // Use the current workspace's first folder
       workspaceUri = vscode.Uri.joinPath(workspaceFolders[0].uri, "devcash");
     } else {
       // Create a new folder in the user's home directory (or other location)
       const homeDir = require("os").homedir();
-      const newWorkspacePath = path.join(homeDir, "newWorkspaceForDevcash");
+      const newWorkspacePath = path.join(homeDir, "Devcash");
 
       // Ensure the new folder exists
       if (!fs.existsSync(newWorkspacePath)) {
@@ -1247,6 +1247,8 @@ export async function activate(context: ExtensionContext) {
           bounty_id: bountyId,
           submission_hash: hash,
           platform: data.platform,
+          submission_data: data.description,
+          bounty_language: "SOLIDITY",
         };
         apiService
           .post(API_END_POINTS.BOUNTY_SUBMITTED, bountySubmissionData)
@@ -1312,6 +1314,8 @@ export async function activate(context: ExtensionContext) {
             bounty_id: bountyId,
             submission_hash: transactionHash,
             platform: data.platform,
+            submission_data: data.description,
+            bounty_language: "CADENCE",
           };
           apiService
             .post(API_END_POINTS.BOUNTY_SUBMITTED, bountySubmissionData)

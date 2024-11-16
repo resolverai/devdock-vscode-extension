@@ -25,23 +25,19 @@ export const createDevdockBounty = async (
   try {
     const tx_id = await fcl.mutate({
       cadence: `
-import BountyReward from 0x9d2ade18cb6bea1a // Change the address
+        import BountyContract from 0x9d2ade18cb6bea1a //Change the address
 
-transaction(description: String, title: String, total_bounty: UInt, allowed_bounties: UInt) {
-  prepare(acct: &Account) {
-    log(acct.address)
-  }
+        transaction(description:String,title:String,total_bounty:UInt,allowed_bounties:UInt) {
 
-  execute {
-    let loggable = BountyReward.create_bounty(
-      description: description,
-      title: title,
-      total_bounty: total_bounty,
-      allowed_bounties: allowed_bounties
-    )
-    log(loggable)
-  }
-}
+          prepare(acct: &Account) {
+            log(acct.address)
+          }
+
+          execute {
+            let loggable=BountyContract.create_bounty(description:description,title:title,bounty_amount:total_bounty,allowed_bounties:allowed_bounties)
+            log(loggable)
+          }
+        }
       `,
       args: (arg: any, t: any) => [
         arg(description, t.String),

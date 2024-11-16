@@ -22,7 +22,7 @@ export const submitDevdockBounty = async (
     try {
       const tx_id = await fcl.mutate({
         cadence: `
-        import BountyReward from 0x9d2ade18cb6bea1a
+        import BountyContract from 0x9d2ade18cb6bea1a
 
         transaction(id: UInt, submit_string: String) {
 
@@ -31,7 +31,7 @@ export const submitDevdockBounty = async (
           }
 
           execute {
-            BountyReward.submit_bounty(id: id, submit_string: submit_string)
+            BountyContract.submit_bounty(id: id, submit_string: submit_string)
           }
         }
         `,

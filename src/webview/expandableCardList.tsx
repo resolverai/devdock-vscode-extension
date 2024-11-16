@@ -67,7 +67,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
     setExpandedCardId(prevId => (prevId === id ? null : id));
   };
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  
+
 
   const [bountyPopupId, setBountyPoupID] = useState('');
 
@@ -95,7 +95,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<string | undefined> = event.data
-   
+
     return () => window.removeEventListener('message', handler)
   }
 
@@ -341,7 +341,8 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                     </span>
                   </li> // Display each bullet as a list item
                 ))}
-                <div style={{ height: '20px', }} />
+                {card.bulletsArray.length > 0 && (<div style={{ height: '20px', }} />)}
+
 
                 {/* <span style={{ color: '#ffffff', lineHeight: '15px', 
                 fontWeight: 'lighter', fontSize: '10px', alignContent: 'center', 

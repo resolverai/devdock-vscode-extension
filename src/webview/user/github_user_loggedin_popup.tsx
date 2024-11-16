@@ -145,13 +145,10 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                     }
 
                     <div style={{ flex: 'display', flexDirection: 'column', alignItems: 'center', marginLeft: '8px' }}>
-                        <div style={{ width: '290px' }}>Github id:<span> {loginData?.github_id}</span></div>
+                        <div style={{ width: '290px' }}>Github id:</div>
                         <div>
                             <div>
-                                <span>
-                                    {loginData?.wallets[0].wallet_address &&
-                                        `${loginData.wallets[0].wallet_address.slice(0, 4)}...${loginData.wallets[0].wallet_address.slice(-5)}`}
-                                </span>
+                                <span> {loginData?.github_id}</span>
                             </div>
 
                         </div>
