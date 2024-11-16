@@ -3,87 +3,76 @@ import { StreamRequest } from "../common/types";
 import apiService from "../services/apiService";
 import { safeParseJsonResponse } from "./utils";
 import https from "https";
-import http from 'http';
+import http from "http";
 
 export async function streamResponse(request: StreamRequest) {
   const { body, options, onData, onEnd, onError, onStart } = request;
 
   try {
-    const url = `https://${options.hostname}:${options.port}${options.path}`;
+    const url = `${options.hostname}:${options.port}${options.path}`;
+
+    // https://api.devdock.ai:443/bot/d0e809f1-dc89-4c91-8542-4eb9938526d2/api
+    console.log("streamResponse", url);
     const fetchOptions = {
       method: options.method,
       headers: options.headers,
       body: JSON.stringify(body),
     };
 
-    // const response = await fetch(url, fetchOptions);
-    const response = await axios.post(url, body, {
+    // Configure axios with extended timeout and streaming support
+    const response = await axios({
+      method: "post",
+      url,
+      data: body,
       headers: options.headers,
-      timeout: 60000, // Increased timeout to 60 seconds
-      maxRedirects: 0, // Disable redirects if not needed
-      maxContentLength: Infinity, // remove content-length restrictions if needed
-      maxBodyLength: Infinity, // remove body-length restrictions if needed
+      timeout: 0, // No timeout (wait indefinitely)
+      responseType: "stream", // Stream the response
       httpsAgent: new https.Agent({ keepAlive: true }),
       httpAgent: new http.Agent({ keepAlive: true }),
     });
-    if (response.status !== 200) {
-      throw new Error(
-        `Server responded with status: ${JSON.stringify(response.status)}`
-      );
-    }
 
-    if (!response.data) {
-      throw new Error("Failed to get a ReadableStream from the response");
+    if (response.status !== 200) {
+      throw new Error(`Server responded with status: ${response.status}`);
     }
 
     let buffer = "";
 
     onStart?.();
 
-    const reader = response.data
-      .pipeThrough(new TextDecoderStream())
-      .pipeThrough(
-        new TransformStream({
-          start() {
-            buffer = "";
-          },
-          transform(chunk) {
-            buffer += chunk;
-            let position;
-            while ((position = buffer.indexOf("\n")) !== -1) {
-              const line = buffer.substring(0, position);
-              buffer = buffer.substring(position + 1);
-              try {
-                const json = safeParseJsonResponse(line);
-                if (json) onData(json);
-              } catch (e) {
-                onError?.(new Error("Error parsing JSON data from event"));
-              }
-            }
-          },
-          flush() {
-            if (buffer) {
-              try {
-                const json = safeParseJsonResponse(buffer);
-                onData(json);
-              } catch (e) {
-                onError?.(new Error("Error parsing JSON data from event"));
-              }
-            }
-          },
-        })
-      )
-      .getReader();
+    // Read the stream data
+    response.data.on("data", (chunk: Buffer) => {
+      buffer += chunk.toString();
+      let position;
+      while ((position = buffer.indexOf("\n")) !== -1) {
+        const line = buffer.substring(0, position);
+        buffer = buffer.substring(position + 1);
+        try {
+          const json = safeParseJsonResponse(line);
+          if (json) onData(json);
+        } catch (e) {
+          onError?.(new Error("Error parsing JSON data from event"));
+        }
+      }
+    });
 
-    while (true) {
-      const { done } = await reader.read();
-      if (done) break;
-    }
+    response.data.on("end", () => {
+      if (buffer) {
+        try {
+          const json = safeParseJsonResponse(buffer);
+          onData(json);
+        } catch (e) {
+          onError?.(new Error("Error parsing JSON data from event"));
+        }
+      }
+      onEnd?.();
+    });
 
-    onEnd?.();
-    reader.releaseLock();
+    response.data.on("error", (err: Error) => {
+      onError?.(err);
+    });
   } catch (error: unknown) {
     console.error("Fetch error:", error);
+    onError?.(error as Error);
   }
 }
 
