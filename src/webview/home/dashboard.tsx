@@ -54,7 +54,8 @@ const Dashboard: React.FC = () => {
         settings_label: string,
         logout_icon_path: string,
         logout_label: string,
-        points: string
+        points: string,
+        github_id: string,
     };
 
     interface WalletType {

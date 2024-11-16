@@ -32,6 +32,7 @@ type UserLoginData = {
     logout_icon_path: string,
     logout_label: string,
     points: string,
+    github_id: string,
 };
 
 
@@ -144,7 +145,7 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                     }
 
                     <div style={{ flex: 'display', flexDirection: 'column', alignItems: 'center', marginLeft: '8px' }}>
-                        <div><span>GithubID</span></div>
+                        <div style={{ width: '290px' }}>Github id:<span> {loginData?.github_id}</span></div>
                         <div>
                             <div>
                                 <span>
@@ -213,7 +214,14 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                         </div>
                     </div>
 
-                    <div>
+                    <div style={{ cursor: 'pointer' }} onClick={() => {
+                        console.log('Claim now clicked, redirect it to web');
+                        const url = 'https://google.com'; // Replace with your desired URL
+                        // global.vscode.postMessage({ type: 'openExternal', url });
+                        window.open(url, '_blank'); // Opens in a new tab
+
+
+                    }}>
                         <span style={{ opacity: 1, fontSize: '12px', color: '#94FB48', fontWeight: 'normal', marginLeft: '5px', marginRight: '10px' }}>
                             Claim now
                         </span>
@@ -224,10 +232,10 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
 
                 <div style={{ height: '20px' }}></div>
                 <div style={{ height: '1px', backgroundColor: '#37373C' }}></div>
-                <div style={{ height: '20px' }}></div>
+                <div style={{ height: '10px' }}></div>
                 <div>
                     <span style={{ opacity: 0.5, fontSize: '12px', color: '#ffffff', fontWeight: 'lighter' }}>
-                        Other wallets connected
+                        Connected Wallets
                     </span>
                 </div>
 
@@ -269,18 +277,20 @@ const UserGitHubLoggedInPopup: React.FC<UserGitHubLoggedInPopupProps> = ({ onClo
                 <div style={{ height: '1px', backgroundColor: '#37373C' }}></div>
                 <div style={{ height: '20px' }}></div>
                 <div>
-                    <span style={{ opacity: 1, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
+                    <span style={{ opacity: 0.5, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
                         My contributions
                     </span>
                 </div>
                 <div style={{ height: '20px' }}></div>
-                <div>
+                {/* <div>
                     <span style={{ opacity: 1, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
                         Settings
                     </span>
-                </div>
+                </div> 
                 <div style={{ height: '20px' }}></div>
-                <div onClick={logoutUser}>
+                */}
+
+                <div style={{ cursor: 'pointer' }} onClick={logoutUser}>
                     <span style={{ opacity: 1, fontSize: '12px', fontWeight: 'normal', color: '#ffffff' }}>
                         Logout
                     </span>

@@ -185,6 +185,7 @@ pre code {
   overflow-y: auto; /* Enable vertical scrolling */
   display: flex;
   flex-direction: column; /* Stack elements vertically */
+
 }
 
 .tiptap {
@@ -207,6 +208,7 @@ pre code {
   font-size: 14px;
   outline: none;
   padding-right: 30px;
+  padding-bottom: 30px;
 
   /* Dynamic height properties */
   min-height: 70px;

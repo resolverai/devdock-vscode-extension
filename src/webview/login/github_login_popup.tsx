@@ -26,6 +26,7 @@ type UserLoginData = {
     settings_label: string,
     logout_icon_path: string,
     logout_label: string,
+    github_id: string,
 };
 
 const GitHubLoginPopup: React.FC<GitHubLoginPopupProps> = ({ onClose, loginData }) => {

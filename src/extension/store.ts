@@ -48,6 +48,7 @@ type UserLoginData = {
   logout_icon_path?: string;
   logout_label?: string;
   privateKey?: string;
+  github_id?: string;
 };
 
 let userData: UserLoginData | null = null;
