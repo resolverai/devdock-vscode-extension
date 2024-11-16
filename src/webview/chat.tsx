@@ -213,7 +213,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           return updatedMessages
         })
       }
-      // clearEditor()
+      clearEditor()
       setTimeout(() => {
         if (markdownRef.current) {
           markdownRef.current.scrollTop = markdownRef.current.scrollHeight

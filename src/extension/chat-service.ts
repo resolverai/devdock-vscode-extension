@@ -321,36 +321,39 @@ export class ChatService {
     const myProvider = this._context?.globalState.get(
       "devDockProviderBasedOnUserQuery"
     ) as BotData;
-
-    const requestOptions: StreamRequestOptions = {
-      hostname: myProvider.domain,
-      port: 443,
-      path: myProvider.uri,
-      protocol: myProvider.protocal,
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${myProvider.api_key}`,
-        "x-api-key": myProvider.api_key,
-      },
-    };
-    let myMessages: any = undefined;
-    if (messages && messages?.length > 0) {
-      myMessages = this.updateMessagesForDevDockProvider(messages);
+    if (myProvider != undefined) {
+      const requestOptions: StreamRequestOptions = {
+        hostname: myProvider.domain,
+        port: 443,
+        path: myProvider.uri,
+        protocol: myProvider.protocal,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${myProvider.api_key}`,
+          "x-api-key": myProvider.api_key,
+        },
+      };
+      let myMessages: any = undefined;
+      if (messages && messages?.length > 0) {
+        myMessages = this.updateMessagesForDevDockProvider(messages);
+      }
+      // myMessages = this.updateMessagesForDevDockProvider();
+      const requestBody: RequestBodyBase = {
+        message:
+          myMessages && myMessages.length > 0
+            ? myMessages[myMessages.length - 1].content
+            : "",
+        history:
+          myMessages && myMessages.length > 1
+            ? myMessages.slice(0, myMessages.length - 1)
+            : [],
+        stream: true,
+      };
+      return { requestOptions, requestBody };
+    } else {
     }
-    // myMessages = this.updateMessagesForDevDockProvider();
-    const requestBody: RequestBodyBase = {
-      message:
-        myMessages && myMessages.length > 0
-          ? myMessages[myMessages.length - 1].content
-          : "",
-      history:
-        myMessages && myMessages.length > 1
-          ? myMessages.slice(0, myMessages.length - 1)
-          : [],
-      stream: true,
-    };
-    return { requestOptions, requestBody };
+    
 
     // return { requestOptions, requestBody };
   }

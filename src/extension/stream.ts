@@ -12,7 +12,7 @@ export async function streamResponse(request: StreamRequest) {
     const url = `${options.hostname}:${options.port}${options.path}`;
 
     // https://api.devdock.ai:443/bot/d0e809f1-dc89-4c91-8542-4eb9938526d2/api
-    console.log("streamResponse", url);
+    console.log("streamResponse", url, "\nbody", JSON.stringify(body));
     const fetchOptions = {
       method: options.method,
       headers: options.headers,
