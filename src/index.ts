@@ -897,6 +897,11 @@ export async function activate(context: ExtensionContext) {
                   //user has already a private key
                   console.log("user has private key store in localstorage");
                   console.log("fetch user info, load in local storage");
+                  try {
+                    checkAndEnableAxonVault();
+                  } catch (error) {
+                    console.log("checkAndEnableAxonVault error ", error);
+                  }
                   fetchUserInfo(
                     userId, //user id
                     () => {
