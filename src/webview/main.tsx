@@ -13,11 +13,13 @@ interface MainProps {
   // onBountiesClicked: number | null; // This is the function passed from Dashboard
   tabServerMessageValue?: string;
   // topTabClickedProp: boolean;
+  onTabChange?: (newTab: string) => void;
+
 }
 
 
 
-export const Main: React.FC<MainProps> = ({ tabServerMessageValue }) => {
+export const Main: React.FC<MainProps> = ({ tabServerMessageValue, onTabChange }) => {
 
   const tabs: Record<string, JSX.Element> = {
     // [WEBUI_TABS.chat]:
@@ -36,6 +38,8 @@ export const Main: React.FC<MainProps> = ({ tabServerMessageValue }) => {
 
   // console.log(onDevChatClick, onBountiesClicked, isDashboardInView);
   const [tab, setTab] = useState<string | undefined>(WEBUI_TABS.chat)
+
+
 
   const handler = (event: MessageEvent) => {
     const message: ServerMessage<string | undefined> = event.data
@@ -66,7 +70,17 @@ export const Main: React.FC<MainProps> = ({ tabServerMessageValue }) => {
   }
 
   if (tab === WEBUI_TABS.history) {
-    return <ConversationHistory onSelect={() => setTab(WEBUI_TABS.chat)} />
+    function onSelectConversationHistory(): void {
+      console.log('onSelectConversationHistory clicked', tabServerMessageValue);
+      tabServerMessageValue = WEBUI_TABS.history;
+      setTab(WEBUI_TABS.history)
+
+      if (typeof onTabChange === 'function') {
+        onTabChange(WEBUI_TABS.history);
+      }
+    }
+
+    return <ConversationHistory onSelect={onSelectConversationHistory} />
   }
   const element: JSX.Element = tabs[tab]
 

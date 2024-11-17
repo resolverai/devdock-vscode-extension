@@ -361,6 +361,15 @@ const Dashboard: React.FC = () => {
         // setTopTabClicked(false);
 
     };
+    const handleConversationTab = (newTabVal: string) => {
+        console.log('handleConversationTab clicked!');
+
+        setServerMessageForTab(newTabVal);
+        devdockChatButtonClicked();
+        setTopTabClicked(false);
+
+    };
+
 
     const handleProfileIconClick = () => {
         console.log('profile icon clicked');
@@ -454,6 +463,7 @@ const Dashboard: React.FC = () => {
 
                 {topTabsClicked ? <Main
                     tabServerMessageValue={serverMessageForTab}
+                    onTabChange={handleConversationTab}
 
                 ></Main> : <Chat
                     topTabClickedProp={topTabsClicked}
