@@ -1409,12 +1409,14 @@ export async function activate(context: ExtensionContext) {
 
   function fetchBountyCronApi() {
     //This is to notify backend to fetch latest bounties
-    apiService.get(API_END_POINTS.BOUNTY_FETCH_CRON).then((response: any) => {
-      console.log(
-        "/v1/master/cron-bounties response",
-        JSON.stringify(response)
-      );
-    });
+    apiService
+      .getWithFullUrl(`https://dapp.devdock.ai${API_END_POINTS.FETCH_BOUNTIES}`)
+      .then((response: any) => {
+        console.log(
+          "/v1/master/cron-bounties response",
+          JSON.stringify(response)
+        );
+      });
   }
 
   async function initiateFlow() {
