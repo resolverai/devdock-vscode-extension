@@ -10,6 +10,7 @@ export const API_END_POINTS = {
   FETCH_BOUNTIES: "/v1/master/bounties?status=active",
   FETCH_RAGS: "/v1/bot/api-details",
   BOUNTY_SUBMITTED: "/v1/users/bounties/submission",
+  BOUNTY_FETCH_CRON: "/v1/master/cron-bounties",
 
   //v1/users/bounties/submission
 };

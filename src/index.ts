@@ -1392,6 +1392,7 @@ export async function activate(context: ExtensionContext) {
       flowWalletAddress
     );
     console.log("createDevdockBounty result", result);
+    fetchBountyCronApi();
 
     const bountyCreationData = {
       type: "bountyCreated",
@@ -1404,6 +1405,16 @@ export async function activate(context: ExtensionContext) {
         data: JSON.stringify(bountyCreationData),
       },
     } as ServerMessage<string>);
+  }
+
+  function fetchBountyCronApi() {
+    //This is to notify backend to fetch latest bounties
+    apiService.get(API_END_POINTS.BOUNTY_FETCH_CRON).then((response: any) => {
+      console.log(
+        "/v1/master/cron-bounties response",
+        JSON.stringify(response)
+      );
+    });
   }
 
   async function initiateFlow() {
