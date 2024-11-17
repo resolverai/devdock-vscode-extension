@@ -113,6 +113,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   const { symmetryConnection } = useSymmetryConnection()
   const [fileName, setFileName] = useState<string | null>('');
   const fileNameRef = useRef<string | null>(null);
+  const [showBountyVisiblity, setBountyVisibility] = useState(false)
 
   const { context: autoScrollContext, setContext: setAutoScrollContext } =
     useWorkSpaceContext<boolean>(WORKSPACE_STORAGE_KEY.autoScroll)
@@ -359,6 +360,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     setCompletion(null)
     setIsLoading(false)
     generatingRef.current = false
+    setBountyVisibility(true);
+
   }
 
   const handleAddTemplateMessage = (message: ServerMessage) => {
@@ -517,6 +520,13 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     })
   }
 
+  const createBountyPopupCommand = () => {
+    global.vscode.postMessage({
+      type: EVENT_NAME.showBountyCreationPopUp,
+    }) as ClientMessage;
+  }
+
+
   const handleSubmitForm = async () => {
     onDevChatClick();
     setTopTabsClicked(false);
@@ -524,6 +534,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     if (input) {
       setIsLoading(true)
       checkRagForQuery(input);
+      setBountyVisibility(false);
     }
     else {
       console.log('input is empty, fileName val', fileNameRef.current)
@@ -798,7 +809,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             overflowY: 'auto',
             bottom: 0,
             alignContent: 'center',
-            background: (messages && messages?.length > 0) ? 'black' : 'transparent'
+            // background: (messages && messages?.length > 0) ? 'black' : 'transparent'
           }
         }>
           {canShowCenterUi() &&
@@ -840,12 +851,12 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
           {!isDashboardInView && <div className={styles.markdown} ref={markdownRef}>
             <div style={{
-              maxHeight: '68vh', // Maximum height for the scroll area
+              maxHeight: showBountyVisiblity ? '63vh' : '68vh', // Maximum height for the scroll area
               overflowY: 'auto', // Enable vertical scrolling when content exceeds maxHeight
               padding: (messages && messages?.length > 0) ? '10px' : 0,
               // border: '1px solid #ccc',
               borderRadius: (messages && messages?.length > 0) ? '5px' : '0px',
-              backgroundColor: (messages && messages?.length > 0) ? 'black' : 'transparent'
+              backgroundColor: (messages && messages?.length > 0) ? '#181818' : 'transparent'
             }}>
               {messages?.map((message, index) => (
 
@@ -893,6 +904,50 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             <EmbeddingOptions />
           )}
 
+          {!isDashboardInView && showBountyVisiblity && (
+
+
+            <div onClick={createBountyPopupCommand}
+              style={
+                {
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignContent: 'center',
+                  alignItems: 'center',
+                  background: 'linear-gradient(90deg, #564CF5 0%, #FC45FA 100%)',
+                  width: '92%',
+                  borderRadius: '12px',
+                  padding: '8px',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  // gap: '2px'
+                }}>
+
+              <span
+                style={{
+                  opacity: 1,
+                  fontSize: '10px',
+                  color: '#ffffff',
+                  fontWeight: 'lighter',
+                  letterSpacing: '0%',
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                }}
+              >
+                {'>'}
+              </span>
+              <span style={{ opacity: 1, fontSize: '12px', color: '#ffffff', fontWeight: 'normal', letterSpacing: '0%', lineHeight: '1.4', }}>
+                Looking for a better solution?
+              </span>
+              <span style={{ opacity: 1, fontSize: '10px', color: '#ffffff', fontWeight: 'lighter', letterSpacing: '0%', lineHeight: '1.4', }}>
+                Get help from the community
+              </span>
+
+            </div>
+          )}
 
           < div className={styles.chatOptions}>
             <div>

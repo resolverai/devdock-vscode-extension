@@ -85,13 +85,7 @@ export const CodeBlock = (props: CodeBlockProps) => {
             >
               <span className="codicon codicon-new-file"></span>
             </VSCodeButton>
-            <VSCodeButton
-              title="Create bounty"
-              onClick={handleBountyCreation}
-              appearance="icon"
-            >
-              <span className="codicon codicon-broadcast"></span>
-            </VSCodeButton>
+
           </div>
         </>
       )}

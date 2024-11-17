@@ -310,10 +310,39 @@ export class ChatService {
     return "";
   }
 
-  private getProvider = () => {
-    const provider = this._context?.globalState.get<DevdockProvider>(
-      ACTIVE_CHAT_PROVIDER_STORAGE_KEY
+  // private getProvider = () => {
+  //   const provider = this._context?.globalState.get<DevdockProvider>(
+  //     ACTIVE_CHAT_PROVIDER_STORAGE_KEY
+  //   );
+
+  //   return provider;
+  // };
+
+  private getProvider = (): DevdockProvider | undefined => {
+    // Retrieve BotData from global state
+    const myProvider = this._context?.globalState.get<BotData>(
+      "devDockProviderBasedOnUserQuery"
     );
+
+    if (!myProvider) {
+      return undefined; // Return undefined if myProvider is not found
+    }
+
+    // Map BotData to DevdockProvider
+    const provider: DevdockProvider = {
+      apiHostname: myProvider.domain,
+      apiPath: myProvider.uri,
+      apiPort: myProvider.portNumber,
+      apiProtocol: "https", // Note: Ensure correct spelling of "protocol" in the source
+      id: myProvider.bot_id,
+      label: `Provider for ${myProvider.bot_id}`, // You can adjust this mapping as needed
+      modelName: "DefaultModel", // Set a default value or derive from myProvider if applicable
+      provider: apiProviders.devDockProvider,
+      type: myProvider.chain,
+      apiKey: myProvider.api_key,
+      fimTemplate: undefined, // Set a default or derive if applicable
+    };
+
     return provider;
   };
 
@@ -321,12 +350,13 @@ export class ChatService {
     const myProvider = this._context?.globalState.get(
       "devDockProviderBasedOnUserQuery"
     ) as BotData;
+
     if (myProvider != undefined) {
       const requestOptions: StreamRequestOptions = {
         hostname: myProvider.domain,
         port: 443,
         path: myProvider.uri,
-        protocol: myProvider.protocal,
+        protocol: "https",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -352,21 +382,15 @@ export class ChatService {
       };
       return { requestOptions, requestBody };
     } else {
+      console.log(
+        "buildStreamRequest chat-service.ts error myProvider undefined"
+      );
     }
 
     // return { requestOptions, requestBody };
   }
 
-  private updateMessageForDevDockProvider(message: Message): Message {
-    if (message.role === "user") {
-      message.role = "human";
-    } else if (message.role === "assistant") {
-      message.role = "ai";
-    }
-    return message;
-  }
-
-  private updateMessagesForDevDockProvider(messages: Message[]): Message[] {
+  public updateMessagesForDevDockProvider(messages: Message[]): Message[] {
     console.log("updateMessagesForDevDockProvider", JSON.stringify(messages));
     return messages
       .filter((message) => {
@@ -671,7 +695,8 @@ export class ChatService {
       });
     }
     updateLoadingMessage(this._view, "Thinking");
-    const request = this.buildStreamRequest(updatedMessages);
+    const myMessage = this.updateMessagesForDevDockProvider(updatedMessages);
+    const request = this.buildStreamRequest(myMessage);
     if (!request) return;
     const { requestBody, requestOptions } = request;
 
@@ -748,7 +773,8 @@ export class ChatService {
       });
     }
     updateLoadingMessage(this._view, "Thinking"); //this is view for showing loader
-    const request = this.buildStreamRequest(updatedMessages);
+    const myMessage = this.updateMessagesForDevDockProvider(updatedMessages);
+    const request = this.buildStreamRequest(myMessage);
     if (!request) return;
     const { requestBody, requestOptions } = request;
     if (requestBody) {
@@ -833,7 +859,8 @@ export class ChatService {
       context,
       skipMessage
     );
-    const request = this.buildStreamRequest(messages);
+    const myMessage = this.updateMessagesForDevDockProvider(messages);
+    const request = this.buildStreamRequest(myMessage);
 
     if (!request) return;
     const { requestBody, requestOptions } = request;

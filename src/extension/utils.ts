@@ -47,6 +47,7 @@ import {
 import { Logger } from "../common/logger";
 import { SyntaxNode } from "web-tree-sitter";
 import { getParser } from "./parser-utils";
+import { DevdockProvider } from "./provider-manager";
 
 const logger = new Logger();
 
@@ -635,4 +636,81 @@ Number characters in all messages = ${
     }\n\n
     `.trim()
   );
+};
+
+export const updateMessagesForDevDockProvider = (
+  messages: Message[]
+): Message[] => {
+  console.log("updateMessagesForDevDockProvider", JSON.stringify(messages));
+  return messages
+    .filter((message) => {
+      return message.role !== "system";
+    })
+    .map((message) => {
+      const updatedMessage = { ...message, text: message.content };
+      // delete updatedMessage.content;
+
+      if (message.role === "user") {
+        const udpatedVal = { ...updatedMessage, role: "human" };
+        console.log(
+          "updateMessagesForDevDockProvider updatedMessage",
+          JSON.stringify(udpatedVal)
+        );
+        return udpatedVal;
+      } else if (message.role === "assistant") {
+        const udpatedVal = { ...updatedMessage, role: "ai" };
+        console.log(
+          "updateMessagesForDevDockProvider updatedMessage",
+          JSON.stringify(udpatedVal)
+        );
+
+        return udpatedVal;
+      }
+      console.log(
+        "updateMessagesForDevDockProvider updatedMessage",
+        JSON.stringify(updatedMessage)
+      );
+
+      return updatedMessage;
+    });
+};
+
+type BotData = {
+  bot_id: string;
+  api_key: string;
+  domain: string;
+  uri: string;
+  header_key: string;
+  chain: string;
+  protocal: string;
+  portNumber: number;
+};
+export const getProvider = (
+  context: ExtensionContext | undefined
+): DevdockProvider | undefined => {
+  // Retrieve BotData from global state
+  const myProvider = context?.globalState.get<BotData>(
+    "devDockProviderBasedOnUserQuery"
+  );
+
+  if (!myProvider) {
+    return undefined; // Return undefined if myProvider is not found
+  }
+
+  // Map BotData to DevdockProvider
+  const provider: DevdockProvider = {
+    apiHostname: myProvider.domain,
+    apiPath: myProvider.uri,
+    apiPort: myProvider.portNumber,
+    apiProtocol: "https", // Note: Ensure correct spelling of "protocol" in the source
+    id: myProvider.bot_id,
+    label: `Provider for ${myProvider.bot_id}`, // You can adjust this mapping as needed
+    modelName: "DefaultModel", // Set a default value or derive from myProvider if applicable
+    provider: apiProviders.devDockProvider,
+    type: myProvider.chain,
+    apiKey: myProvider.api_key,
+    fimTemplate: undefined, // Set a default or derive if applicable
+  };
+
+  return provider;
 };

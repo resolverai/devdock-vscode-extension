@@ -31,12 +31,12 @@ export const ChatLoader = () => {
 
     <div style={{
 
-      maxHeight: '68vh', // Maximum height for the scroll area
+      maxHeight: '63vh', // Maximum height for the scroll area
       overflowY: 'auto', // Enable vertical scrolling when content exceeds maxHeight
       padding: '10px',
       // border: '1px solid #ccc',
       borderRadius: '5px',
-      backgroundColor: 'black'
+      backgroundColor: '#181818'
 
     }}>
       <Message

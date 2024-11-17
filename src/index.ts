@@ -150,7 +150,7 @@ export async function activate(context: ExtensionContext) {
     console.log("web3Chains", web3Chains);
     const chainKeyBasedOnUserQuery = await apiService.askChatGPT(
       userQuery,
-      "gpt-4",
+      "gpt-4o",
       0.7,
       web3Chains
     );

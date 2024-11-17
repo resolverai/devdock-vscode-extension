@@ -1,78 +1,102 @@
-import axios from "axios";
 import { StreamRequest } from "../common/types";
-import apiService from "../services/apiService";
-import { safeParseJsonResponse } from "./utils";
-import https from "https";
-import http from "http";
+import { logStreamOptions, safeParseJsonResponse } from "./utils";
 
 export async function streamResponse(request: StreamRequest) {
+  logStreamOptions(request);
   const { body, options, onData, onEnd, onError, onStart } = request;
+  const controller = new AbortController();
+  const { signal } = controller;
 
   try {
-    const url = `${options.hostname}:${options.port}${options.path}`;
+    // const url = `${options.protocol}://${options.hostname}:${options.port}${options.path}`;
 
-    // https://api.devdock.ai:443/bot/d0e809f1-dc89-4c91-8542-4eb9938526d2/api
-    console.log("streamResponse", url, "\nbody", JSON.stringify(body));
+    let protocol = options.hostname.startsWith("https")
+      ? ""
+      : `${options.protocol}://`;
+    const url = `${protocol}${options.hostname}:${options.port}${options.path}`;
+
+    console.log(
+      "streamResponse url",
+      url,
+      "responseOptions",
+      JSON.stringify(options)
+    );
+
     const fetchOptions = {
       method: options.method,
       headers: options.headers,
       body: JSON.stringify(body),
+      signal: controller.signal,
     };
 
-    // Configure axios with extended timeout and streaming support
-    const response = await axios({
-      method: "post",
-      url,
-      data: body,
-      headers: options.headers,
-      timeout: 0, // No timeout (wait indefinitely)
-      responseType: "stream", // Stream the response
-      httpsAgent: new https.Agent({ keepAlive: true }),
-      httpAgent: new http.Agent({ keepAlive: true }),
-    });
+    const response = await fetch(url, fetchOptions);
 
-    if (response.status !== 200) {
-      throw new Error(`Server responded with status: ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Server responded with status code: ${response.status}`);
+    }
+
+    if (!response.body) {
+      throw new Error("Failed to get a ReadableStream from the response");
     }
 
     let buffer = "";
 
-    onStart?.();
+    onStart?.(controller);
 
-    // Read the stream data
-    response.data.on("data", (chunk: Buffer) => {
-      buffer += chunk.toString();
-      let position;
-      while ((position = buffer.indexOf("\n")) !== -1) {
-        const line = buffer.substring(0, position);
-        buffer = buffer.substring(position + 1);
-        try {
-          const json = safeParseJsonResponse(line);
-          if (json) onData(json);
-        } catch (e) {
-          onError?.(new Error("Error parsing JSON data from event"));
-        }
-      }
-    });
+    const reader = response.body
+      .pipeThrough(new TextDecoderStream())
+      .pipeThrough(
+        new TransformStream({
+          start() {
+            buffer = "";
+          },
+          transform(chunk) {
+            buffer += chunk;
+            let position;
+            while ((position = buffer.indexOf("\n")) !== -1) {
+              const line = buffer.substring(0, position);
+              buffer = buffer.substring(position + 1);
+              try {
+                const json = safeParseJsonResponse(line);
+                if (json) onData(json);
+              } catch (e) {
+                onError?.(new Error("Error parsing JSON data from event"));
+              }
+            }
+          },
+          flush() {
+            if (buffer) {
+              try {
+                const json = safeParseJsonResponse(buffer);
+                onData(json);
+              } catch (e) {
+                onError?.(new Error("Error parsing JSON data from event"));
+              }
+            }
+          },
+        })
+      )
+      .getReader();
 
-    response.data.on("end", () => {
-      if (buffer) {
-        try {
-          const json = safeParseJsonResponse(buffer);
-          onData(json);
-        } catch (e) {
-          onError?.(new Error("Error parsing JSON data from event"));
-        }
-      }
-      onEnd?.();
-    });
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (signal.aborted) break;
+      const { done } = await reader.read();
+      if (done) break;
+    }
 
-    response.data.on("error", (err: Error) => {
-      onError?.(err);
-    });
+    controller.abort();
+    onEnd?.();
+    reader.releaseLock();
   } catch (error: unknown) {
-    console.error("Fetch error:", error);
-    onError?.(error as Error);
+    controller.abort();
+    if (error instanceof Error) {
+      if (error.name === "AbortError") {
+        onEnd?.();
+      } else {
+        console.error("Fetch error:", error);
+      }
+    }
   }
 }
 
@@ -100,6 +124,7 @@ export async function fetchEmbedding(request: StreamRequest) {
     }
 
     const data = await response.json();
+
     onData(data);
   } catch (error: unknown) {
     if (error instanceof Error) {
