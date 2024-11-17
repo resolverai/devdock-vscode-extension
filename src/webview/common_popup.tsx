@@ -40,7 +40,7 @@ const CommonPopup: React.FC<CommonPopupProps> = ({ isOpen, handleCloseClick, han
 
                         <div style={
                             {
-                                width: '360px',
+                                width: '360px',//this is extra to align cross button slightly righter
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'end',
@@ -65,7 +65,6 @@ const CommonPopup: React.FC<CommonPopupProps> = ({ isOpen, handleCloseClick, han
                             </div>
                         </div>
 
-
                         <div style={{
                             padding: '20px',
                             backgroundColor: '#252527',
@@ -73,8 +72,11 @@ const CommonPopup: React.FC<CommonPopupProps> = ({ isOpen, handleCloseClick, han
                             width: '280px',
                             maxHeight: 'calc(100vh - 100px)', // Limit height to viewport with buffer space
                             overflowY: 'auto', // Enable scrolling when content exceeds max height
+                            display: 'flex',
+                            flexDirection: 'column',
                             alignContent: 'center',
-                            alignItems: 'center'
+                            alignItems: 'center',
+                            justifyContent: 'center',
                         }}>
 
                             <div style={{ alignContent: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column' }}>
