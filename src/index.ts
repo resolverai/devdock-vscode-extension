@@ -338,6 +338,9 @@ export async function activate(context: ExtensionContext) {
         );
       }
     }
+    sidebarProvider.view?.webview.postMessage({
+      type: EVENT_NAME.bountyFilesGenerated,
+    } as ServerMessage<string>);
   }
 
   function parseResponse(response: any) {

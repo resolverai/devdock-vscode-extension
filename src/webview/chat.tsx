@@ -60,6 +60,7 @@ import { getCardData } from '../extension/store'
 import DevdockBountyPopup from './devdock_bounty_popup'
 import apiService from '../services/apiService'
 import { API_END_POINTS } from '../services/apiEndPoints'
+import { useLoader } from './Loader/Loader'
 
 
 interface ChatProps {
@@ -114,6 +115,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   const [fileName, setFileName] = useState<string | null>('');
   const fileNameRef = useRef<string | null>(null);
   const [showBountyVisiblity, setBountyVisibility] = useState(false)
+  const { showLoader, hideLoader } = useLoader();
 
   const { context: autoScrollContext, setContext: setAutoScrollContext } =
     useWorkSpaceContext<boolean>(WORKSPACE_STORAGE_KEY.autoScroll)
@@ -241,6 +243,8 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         role: USER,
         content: bountYdataForId.description
       }
+      showLoader('Please wait!!!, Generating supporting files for you.');
+
       global.vscode.postMessage({
         type: EVENT_NAME.devdockBountyRequest,
         data: [myBountyMessage],
@@ -334,6 +338,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
   const handleCompletionEnd = (message: ServerMessage) => {
     if (message.value) {
       setMessages((prev) => {
+
         const messages = [
           ...(prev || []),
           {
@@ -341,6 +346,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             content: getCompletionContent(message)
           }
         ]
+        setBountyVisibility(true);
 
         if (message.value.type === SYMMETRY_EMITTER_KEY.conversationTitle) {
           return messages
@@ -356,11 +362,12 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         editor?.commands.focus()
         stopRef.current = false
       }, 200)
+
     }
     setCompletion(null)
     setIsLoading(false)
     generatingRef.current = false
-    setBountyVisibility(true);
+
 
   }
 
@@ -443,9 +450,10 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         break;
 
       }
-
-
-
+      case EVENT_NAME.bountyFilesGenerated: {
+        hideLoader();
+        break;
+      }
 
     }
   }

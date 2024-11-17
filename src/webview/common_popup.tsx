@@ -84,7 +84,7 @@ const CommonPopup: React.FC<CommonPopupProps> = ({ isOpen, handleCloseClick, han
 
                             </div>
                             <div style={{ height: '20px' }}></div>
-                            {heading ? <span style={{ color: '#ffffff', fontWeight: 'lighter', fontSize: '16px', alignContent: 'center', fontStyle: 'normal', }}>
+                            {heading ? <span style={{ color: '#ffffff', fontWeight: 'lighter', fontSize: '16px', alignContent: 'center', fontStyle: 'normal', textAlign: 'center' }}>
                                 {heading}</span> : ''}
                             <div style={{ height: '10px' }}></div>
                             {description ? <span style={{ opacity: '0.7', color: '#ffffff', fontWeight: 'lighter', fontSize: '12px', alignContent: 'center', fontStyle: 'normal', }}>

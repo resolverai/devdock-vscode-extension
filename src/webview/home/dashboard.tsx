@@ -14,6 +14,7 @@ import { API_END_POINTS } from '../../services/apiEndPoints';
 import apiService from '../../services/apiService';
 import CommonPopup from '../common_popup';
 import DevdockBountyPopup from '../devdock_bounty_popup';
+import { useLoader } from '../Loader/Loader';
 
 
 
@@ -34,6 +35,7 @@ const Dashboard: React.FC = () => {
     const [isRewardCommonPopup, setRewardCommonPopup] = useState<boolean>(false);
     const [isDevdockBountyPopupOpen, setIsDevdockBountyPopupOpen] = useState(false);//make it false, true is for testing purpose
     const global = globalThis as any
+    const { showLoader, hideLoader } = useLoader();
 
     type UserLoginData = {
         id: string,
@@ -94,6 +96,7 @@ const Dashboard: React.FC = () => {
             if (message?.value.data == WEBUI_TABS.chat) {
                 console.log("Top Tab clicked in dashboard.tsx inside WEBUI_TABS.chat, this is to show chat ui");
                 setTopTabClicked(false);
+
             } else {
                 setTopTabClicked(true);
                 console.log("Top Tab clicked in dashboard.tsx inside WEBUI_TABS.chat, this is to show non chat ui");
@@ -118,6 +121,7 @@ const Dashboard: React.FC = () => {
 
         if (message?.type === EVENT_NAME.showCommonPopup) {
             console.log('show poup for common popup for bounty');
+            hideLoader();
 
             if (!message.value) {
                 console.log("submitBountyRequest bounty id is undefined");
@@ -196,12 +200,14 @@ const Dashboard: React.FC = () => {
 
         console.log('bounty creation flow', content);
         //call backend to create a bounty for the content
-
+        showLoader(`Creating your bounty, please wait ...`);
         const myData = { description: content }
         global.vscode.postMessage({
             type: EVENT_NAME.devdockBountyCreationRequest,
             data: JSON.stringify(myData),
         }) as ClientMessage;
+
+
 
     }
 
@@ -353,6 +359,7 @@ const Dashboard: React.FC = () => {
         // Set both bounties and devdockChat opacity to 0.5 when devdockChat is clicked
         setBountiesClicked(false);
         // setTopTabClicked(false);
+
     };
 
     const handleProfileIconClick = () => {

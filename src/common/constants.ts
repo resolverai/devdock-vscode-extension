@@ -88,6 +88,7 @@ export const EVENT_NAME = {
   showCommonPopup: "devdock-showCommonPopup",
   showBountyCreationPopUp: "devdock-showBountyCreationPopup",
   getRagForQuery: "devdock-ragForQuery",
+  bountyFilesGenerated: "devdock-bountiesFileGenerated",
 };
 
 export const DEVDOCK_COMMAND_NAME = {

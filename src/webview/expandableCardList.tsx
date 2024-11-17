@@ -12,7 +12,8 @@ import { API_END_POINTS } from '../services/apiEndPoints';
 import { EVENT_NAME } from '../common/constants';
 import { ClientMessage, ServerMessage } from '../common/types';
 import BountyPopup from './bounty_popup';
-import DevdockBountyPopup from './devdock_bounty_popup';
+import { useLoader } from './Loader/Loader';
+
 
 
 interface CardItem {
@@ -62,6 +63,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
   const [isGitHubPopupVisible, setGitHubPopupVisible] = useState(false);
   const [isLoggedInPopupVisible, setLoggedInUserPopupVisible] = useState(false);
   const [cardData, setIsDataLoadedAndParsed] = useState<CardItem[]>(myCardData);
+  const { showLoader, hideLoader } = useLoader();
 
   const toggleCard = (id: number) => {
     setExpandedCardId(prevId => (prevId === id ? null : id));
@@ -140,12 +142,17 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
     // }
 
     if (isBountyClicked) {
+
+
       //this is submit bounty flow
       console.log("this is submit bounty flow for id:", id);
       setBountyPoupID(`${id}`);
       handleOpenPopup();
 
     } else {
+
+
+
       localStorage.setItem(`bounty_${id}`, 'true');
       console.log("clicked bounty id:" + id);
 
@@ -178,7 +185,9 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
   async function fetchAllBounties() {
     console.log('called fetchAllBounties');
+    showLoader(`Fetching bounties, please wait ...`);
     const response = await apiService.get(API_END_POINTS.FETCH_BOUNTIES);
+    hideLoader();
     console.log(JSON.stringify(response));
     const [cardItems, myBounties] = mapApiResponseToCardData(response);
     const CardItem = cardItems;
@@ -255,6 +264,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
       // }
       // const postMessageVal = JSON.stringify(myBountyMessage);
       // console.log('postMessageVal', postMessageVal);
+      showLoader(`Submitting bounty, please wait ...`);
       const myData = { id: bountyId, description: message, platform: platform }
       global.vscode.postMessage({
         type: EVENT_NAME.devdockBountySubmitRequest,
