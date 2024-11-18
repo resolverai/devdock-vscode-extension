@@ -12,6 +12,7 @@ interface BountyPopupProps {
 const BountyPopup: React.FC<BountyPopupProps> = ({ isOpen, handleCloseClick, handleSubmit, bountyId }) => {
     const [content, setContent] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [errorMessage, setErrorMessage] = useState(''); // State to manage error message
 
     const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setContent(e.target.value);
@@ -48,7 +49,7 @@ const BountyPopup: React.FC<BountyPopupProps> = ({ isOpen, handleCloseClick, han
 
                         <div style={
                             {
-                                width: '350px',
+                                width: '360px',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'end',
@@ -66,7 +67,7 @@ const BountyPopup: React.FC<BountyPopupProps> = ({ isOpen, handleCloseClick, han
                                     backgroundColor: 'transparent',
                                     alignContent: "center",
                                     alignItems: 'center',
-                                    marginRight: '5px',
+                                    marginRight: '25px',
 
                                 }}>
                                 <WhiteCrossSvg></WhiteCrossSvg>
@@ -78,10 +79,12 @@ const BountyPopup: React.FC<BountyPopupProps> = ({ isOpen, handleCloseClick, han
                             padding: '20px',
                             backgroundColor: '#252527',
                             borderRadius: '16px',
-                            width: '330px',
+                            width: '280px',
 
                             maxHeight: 'calc(100vh - 100px)', // Limit height to viewport with buffer space
                             overflowY: 'auto', // Enable scrolling when content exceeds max height
+                            alignContent: 'center',
+                            alignItems: 'center'
                         }}>
                             <span style={{ color: '#ffffff', lineHeight: '15px', fontWeight: 'bold', fontSize: '16px', alignContent: 'center', fontStyle: 'normal', }}>
                                 Submit entry</span>
@@ -164,9 +167,35 @@ const BountyPopup: React.FC<BountyPopupProps> = ({ isOpen, handleCloseClick, han
                                 `}
                             </style>
 
+                            {errorMessage && (
+                                <div
+                                    style={{
+                                        color: 'red',
+                                        fontSize: '12px',
+                                        marginBottom: '5px',
+
+                                        textAlign: 'center',
+                                        opacity: 0.7
+                                    }}
+                                >
+                                    {errorMessage}
+                                </div>
+                            )}
                             {/* Submit Button */}
                             <div
-                                onClick={() => handleSubmit(bountyId, content)}
+                                onClick={() => {
+                                    if (content.trim().length > 0) {
+                                        setErrorMessage(''); // Set error message empty to hide
+                                        handleSubmit(bountyId, content)
+                                    }
+
+                                    else {
+                                        //content is empty
+                                        setErrorMessage('Please provide details of source code like Github links'); // Set error message empty to hide
+                                    }
+                                }
+
+                                }
                                 style={{
                                     display: 'flex', // Set the div to flex
                                     justifyContent: 'center', // Center content horizontally
