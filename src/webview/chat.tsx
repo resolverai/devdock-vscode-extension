@@ -348,6 +348,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           }
         ]
         setBountyVisibility(true);
+        EventSender.sendEvent(AnalyticsEvents.BOUNTY_VISIBILITY_BANNER_SHOWN);
 
         if (message.value.type === SYMMETRY_EMITTER_KEY.conversationTitle) {
           return messages
@@ -533,6 +534,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
     global.vscode.postMessage({
       type: EVENT_NAME.showBountyCreationPopUp,
     }) as ClientMessage;
+    EventSender.sendEvent(AnalyticsEvents.BOUNTY_VISIBILITY_BANNER_CLICKED);
   }
 
 

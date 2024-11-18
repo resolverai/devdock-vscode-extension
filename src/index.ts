@@ -154,6 +154,17 @@ export async function activate(context: ExtensionContext) {
       0.7,
       web3Chains
     );
+
+    const data = {
+      userQuery: userQuery,
+      ChainAsPerChatGPT: chainKeyBasedOnUserQuery,
+    };
+
+    Analytics.trackEvent(
+      AnalyticsEvents.USER_QUERY_FOR_CHAIN_AND_CONTENT,
+      data
+    );
+
     console.log(
       "getRagForQuery chainKeyBasedOnUserQuery",
       chainKeyBasedOnUserQuery
@@ -273,7 +284,7 @@ export async function activate(context: ExtensionContext) {
 
     let workspaceUri: vscode.Uri;
 
-    // Logic for where to create the devcash folder
+    // Logic for where to create the devdockDir folder
     const workspaceFolders = vscode.workspace.workspaceFolders;
     console.log("workspaceFolders", workspaceFolders);
     // if (!workspaceFolders) {
@@ -286,11 +297,11 @@ export async function activate(context: ExtensionContext) {
       // Ensure workspace folders are available
 
       // Use the current workspace's first folder
-      workspaceUri = vscode.Uri.joinPath(workspaceFolders[0].uri, "devcash");
+      workspaceUri = vscode.Uri.joinPath(workspaceFolders[0].uri, "devdockDir");
     } else {
       // Create a new folder in the user's home directory (or other location)
       const homeDir = require("os").homedir();
-      const newWorkspacePath = path.join(homeDir, "Devcash");
+      const newWorkspacePath = path.join(homeDir, "devdockDir");
 
       // Ensure the new folder exists
       if (!fs.existsSync(newWorkspacePath)) {
@@ -305,19 +316,21 @@ export async function activate(context: ExtensionContext) {
       );
     }
 
-    // Create the 'devcash' folder
-    const devcashFolderUri = vscode.Uri.joinPath(workspaceUri, "devcash");
+    // Create the 'devdockDir' folder
+    const devcashFolderUri = vscode.Uri.joinPath(workspaceUri, "devdockDir");
     try {
       await vscode.workspace.fs.createDirectory(devcashFolderUri);
       vscode.window.showInformationMessage(
-        "Folder 'devcash' created in the specified location."
+        "Folder 'devdockDir' created in the specified location."
       );
     } catch (err) {
-      vscode.window.showErrorMessage(`Error creating folder 'devcash': ${err}`);
+      vscode.window.showErrorMessage(
+        `Error creating folder 'devdockDir': ${err}`
+      );
       return;
     }
 
-    // Loop through file data and create files inside the 'devcash' folder
+    // Loop through file data and create files inside the 'devdockDir' folder
     for (const file of fileData) {
       const filePath = vscode.Uri.joinPath(devcashFolderUri, file.name);
       const fileContent = Buffer.from(file.content, "utf8");
@@ -326,7 +339,7 @@ export async function activate(context: ExtensionContext) {
         // Create or overwrite the file with the content
         await vscode.workspace.fs.writeFile(filePath, fileContent);
         vscode.window.showInformationMessage(
-          `File ${file.name} created successfully in 'devcash' folder`
+          `File ${file.name} created successfully in 'devdockDir' folder`
         );
 
         // Open the newly created file in the editor, without closing previous ones
@@ -341,7 +354,121 @@ export async function activate(context: ExtensionContext) {
     sidebarProvider.view?.webview.postMessage({
       type: EVENT_NAME.bountyFilesGenerated,
     } as ServerMessage<string>);
+    Analytics.trackEvent(
+      AnalyticsEvents.BOUNTY_SUBMISSION_SUPPORTING_FILES_GENERATED
+    );
   }
+
+  // async function generateFilesFromResponse(
+  //   response: string, // Assuming response is a JSON string
+  //   createInCurrentWorkspace: boolean
+  // ) {
+  //   console.log(
+  //     "generateFilesFromResponse called with createInCurrentWorkspace =",
+  //     createInCurrentWorkspace
+  //   );
+
+  //   // Parse the response string to JSON (if it is not already an object)
+  //   let parsedResponse;
+  //   try {
+  //     parsedResponse = JSON.parse(response);
+  //   } catch (error) {
+  //     console.error("Failed to parse response JSON:", error);
+  //     vscode.window.showErrorMessage("Invalid response format");
+  //     return;
+  //   }
+
+  //   const fileData = parseResponse(parsedResponse);
+
+  //   let workspaceUri: vscode.Uri;
+
+  //   // Logic for where to create the devdockDir folder
+  //   const workspaceFolders = vscode.workspace.workspaceFolders;
+  //   console.log("workspaceFolders", workspaceFolders);
+
+  //   if (workspaceFolders) {
+  //     // Use the current workspace's first folder
+  //     workspaceUri = vscode.Uri.joinPath(workspaceFolders[0].uri, "devdockDir");
+  //   } else {
+  //     // Create a new folder in the user's home directory (or other location)
+  //     const homeDir = require("os").homedir();
+  //     const newWorkspacePath = path.join(homeDir, "devdockDir");
+
+  //     // Ensure the new folder exists
+  //     if (!fs.existsSync(newWorkspacePath)) {
+  //       fs.mkdirSync(newWorkspacePath, { recursive: true });
+  //     }
+
+  //     // Set the workspaceUri to the new workspace folder
+  //     workspaceUri = vscode.Uri.file(newWorkspacePath);
+  //     console.log(
+  //       "Creating files in new workspace folder:",
+  //       workspaceUri.fsPath
+  //     );
+  //   }
+
+  //   // Generate a unique sub-directory name
+  //   const uniqueSubDirName = `bounty-${Math.random()
+  //     .toString(36)
+  //     .substring(2, 7)}}`;
+  //   const subDirUri = vscode.Uri.joinPath(workspaceUri, uniqueSubDirName);
+
+  //   try {
+  //     // Create the unique sub-directory
+  //     await vscode.workspace.fs.createDirectory(subDirUri);
+  //     vscode.window.showInformationMessage(
+  //       `Sub-directory '${uniqueSubDirName}' created under 'devdockDir'.`
+  //     );
+  //   } catch (err) {
+  //     vscode.window.showErrorMessage(
+  //       `Error creating sub-directory '${uniqueSubDirName}': ${err}`
+  //     );
+  //     return;
+  //   }
+
+  //   // Loop through file data and create files inside the sub-directory
+  //   for (const file of fileData) {
+  //     const filePath = vscode.Uri.joinPath(subDirUri, file.name);
+  //     const fileContent = Buffer.from(file.content, "utf8");
+
+  //     try {
+  //       // Create or overwrite the file with the content
+  //       await vscode.workspace.fs.writeFile(filePath, fileContent);
+  //       vscode.window.showInformationMessage(
+  //         `File ${file.name} created successfully in '${uniqueSubDirName}' folder`
+  //       );
+
+  //       // Open the newly created file in the editor, without closing previous ones
+  //       // const document = await vscode.workspace.openTextDocument(filePath);
+  //       // await vscode.window.showTextDocument(document, { preview: false });
+  //     } catch (err) {
+  //       vscode.window.showErrorMessage(
+  //         `Error creating or opening file ${file.name}: ${err}`
+  //       );
+  //     }
+  //   }
+
+  //   // Open the sub-directory as the new workspace
+  //   try {
+  //     const newWorkspacePath = subDirUri.fsPath;
+  //     vscode.commands.executeCommand("vscode.openFolder", subDirUri, true);
+  //     vscode.window.showInformationMessage(
+  //       `Workspace switched to '${newWorkspacePath}'.`
+  //     );
+  //   } catch (err) {
+  //     vscode.window.showErrorMessage(
+  //       `Error switching to new workspace: ${err}`
+  //     );
+  //   }
+
+  //   // Notify the webview about the file generation
+  //   sidebarProvider.view?.webview.postMessage({
+  //     type: EVENT_NAME.bountyFilesGenerated,
+  //   } as ServerMessage<string>);
+  //   Analytics.trackEvent(
+  //     AnalyticsEvents.BOUNTY_SUBMISSION_SUPPORTING_FILES_GENERATED
+  //   );
+  // }
 
   function parseResponse(response: any) {
     // Check if response is an array
@@ -809,8 +936,14 @@ export async function activate(context: ExtensionContext) {
                     PointsEvents.DAILYLOGIN,
                     userId
                   );
+                  Analytics.trackEvent(
+                    AnalyticsEvents.UserLoggedInSuccessfully
+                  );
                 } else {
                   //assign signup points and save assign points
+                  Analytics.trackEvent(
+                    AnalyticsEvents.UserSignedUPSuccessfully
+                  );
                   context.globalState.update("signupPointsAlloted", "YES");
                   //allocate signup points
                   devdockPoints.pointsEventDoneFor(PointsEvents.SIGNUP, userId);
@@ -977,6 +1110,7 @@ export async function activate(context: ExtensionContext) {
             //this means user already exist
           }
         } else {
+          Analytics.trackEvent(AnalyticsEvents.UserLoggedInFailed);
           vscode.window.showErrorMessage(
             "Failed to extract access token from URI."
           );
@@ -1234,6 +1368,7 @@ export async function activate(context: ExtensionContext) {
     }
     const data = JSON.parse(response);
     console.log("submitBountyRequest index.ts", response, data);
+
     //get private key from localstorage
     //fetch bounty id from response
     let myPrivateKey;
@@ -1252,6 +1387,8 @@ export async function activate(context: ExtensionContext) {
         const { reciept, hash } = result;
         // use reciept and hash here
         console.log("reciept, hash", reciept, hash);
+        const eventData = { bountyPlatform: "Devcash" };
+        Analytics.trackEvent(AnalyticsEvents.BOUNTY_SUBMITTED, eventData);
 
         // vscode.window.showInformationMessage(
         //   `Submission successful. \n Bounty Id: ${bountyId.toString()} \n Transaction Id: ${hash}`,
@@ -1318,6 +1455,8 @@ export async function activate(context: ExtensionContext) {
         const { transactionHash } = result;
         // use reciept and hash here
         console.log("transactionHash", transactionHash);
+        const eventData = { bountyPlatform: "Devdock" };
+        Analytics.trackEvent(AnalyticsEvents.BOUNTY_SUBMITTED, eventData);
 
         // vscode.window.showInformationMessage(
         //   `Submission successful. \n Bounty Id: ${bountyId.toString()} \n Transaction Id: ${hash}`,
@@ -1395,6 +1534,7 @@ export async function activate(context: ExtensionContext) {
       flowWalletAddress
     );
     console.log("createDevdockBounty result", result);
+
     fetchBountyCronApi();
 
     const bountyCreationData = {
@@ -1402,6 +1542,10 @@ export async function activate(context: ExtensionContext) {
       id: result.bountyId,
       hash: result.transactionHash,
     };
+
+    const eventData = { bountyId: bountyCreationData.id };
+    Analytics.trackEvent(AnalyticsEvents.BOUNTY_CREATED, eventData);
+
     sidebarProvider.view?.webview.postMessage({
       type: EVENT_NAME.showCommonPopup,
       value: {
