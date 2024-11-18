@@ -4,6 +4,9 @@ import { AnalyticsEvents } from "./analyticsEventKeys";
 import axios, { AxiosRequestConfig } from "axios";
 
 import * as vscode from "vscode";
+import { getContext } from "../extension/context";
+import * as path from "path";
+import * as fs from "fs";
 
 class Analytics {
   private static instance: Analytics;
@@ -136,23 +139,72 @@ class Analytics {
   }
 
   private postEventViaApi(data: object) {
-    // Define the axios request configuration
-    const options: AxiosRequestConfig = {
-      method: "POST",
-      url: "https://api.mixpanel.com/track",
-      headers: {
-        Accept: "text/plain",
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify(data), // Convert the data to a JSON string
-    };
-    axios(options)
-      .then((response) => {
-        console.log("Response:", response.data); // Handle the successful response
-      })
-      .catch((error) => {
-        console.error("Error:", error); // Handle any errors
-      });
+    //get location before calling events api
+    getLocationFromIP().then((response: any) => {
+      const { city, country } = response;
+
+      const userProfileInfo = getContext()?.globalState.get("userProfileInfo");
+      const userID = JSON.parse(userProfileInfo as string)?.id;
+      const githubId = JSON.parse(userProfileInfo as string)?.github_id;
+      const commonData = {
+        version: getExtensionVersion(), // Default version number
+        deviceType: "extension", // Default device type
+        city: city, // Default location
+        country: country, // Default location
+        userId: userID ? userID : "",
+        githubId: githubId ? githubId : "",
+      };
+
+      // Merge commonData with the incoming data
+      const mergedData = { ...commonData, ...data };
+      const options: AxiosRequestConfig = {
+        method: "POST",
+        url: "https://api.mixpanel.com/track",
+        headers: {
+          Accept: "text/plain",
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify(mergedData), // Convert the data to a JSON string
+      };
+      axios(options)
+        .then((response) => {
+          console.log("Response:", response.data); // Handle the successful response
+        })
+        .catch((error) => {
+          console.error("Error:", error); // Handle any errors
+        });
+    });
+  }
+}
+
+function getExtensionVersion(): string {
+  try {
+    // Get the path to the extension's `package.json`
+    const packagePath = path.join(__dirname, "..", "package.json");
+
+    // Read and parse `package.json`
+    const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+
+    // Return the version field
+    return packageJson.version;
+  } catch (error) {
+    console.error("Failed to read extension version:", error);
+    return "unknown";
+  }
+}
+
+async function getLocationFromIP() {
+  try {
+    // Step 1: Use ip-api to get location data directly (no need to fetch IP separately)
+    const locationResponse = await axios.get("http://ip-api.com/json/");
+
+    const locationData = locationResponse.data;
+
+    // Step 2: Parse and return location data
+    return { city: locationData.city, country: locationData.country };
+  } catch (error: any) {
+    console.error(`Failed to fetch location: ${error.message}`);
+    return { city: "", country: "" };
   }
 }
 

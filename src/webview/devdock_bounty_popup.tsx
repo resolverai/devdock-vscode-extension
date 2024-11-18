@@ -12,6 +12,7 @@ interface DevdockBountyPopupProps {
 const DevdockBountyPopup: React.FC<DevdockBountyPopupProps> = ({ isDevdockBountyPopupOpen, handleCloseClick, handleSubmit }) => {
     const [content, setContent] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [errorMessage, setErrorMessage] = useState(''); // State to manage error message
 
     const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setContent(e.target.value);
@@ -129,7 +130,7 @@ const DevdockBountyPopup: React.FC<DevdockBountyPopupProps> = ({ isDevdockBounty
                                         paddingRight: '10dp',
                                         boxSizing: 'border-box',
                                         fontSize: '12px',
-                                        marginBottom: '20px',
+                                        marginBottom: errorMessage ? '10px' : '20px',
                                         backgroundColor: '#1F1F22',
                                         color: '#fff', // Text color inside textarea
                                         scrollbarWidth: 'none', // Firefox
@@ -140,6 +141,20 @@ const DevdockBountyPopup: React.FC<DevdockBountyPopupProps> = ({ isDevdockBounty
                                     rows={1}
                                 />
                             </div>
+                            {errorMessage && (
+                                <div
+                                    style={{
+                                        color: 'red',
+                                        fontSize: '12px',
+                                        marginBottom: '5px',
+
+                                        textAlign: 'center',
+                                        opacity: 0.7
+                                    }}
+                                >
+                                    {errorMessage}
+                                </div>
+                            )}
                             {/* Style for WebKit browsers to hide scrollbar */}
                             <style>
                                 {`
@@ -173,11 +188,22 @@ const DevdockBountyPopup: React.FC<DevdockBountyPopupProps> = ({ isDevdockBounty
                                         {100}</span>
                                 </div>
                             </div>
+                            {/* Error Message */}
+
 
                             {/* Submit Button */}
                             <div style={{ height: '20px' }}></div>
                             <div
-                                onClick={() => handleSubmit(content)}
+                                onClick={() => {
+                                    if (content.trim().length > 0) {
+                                        setErrorMessage(''); // Set error message empty to hide
+                                        handleSubmit(content);
+                                    }
+                                    else {
+                                        setErrorMessage('Please enter your query to create a bounty'); // Set error message
+
+                                    }
+                                }}
                                 style={{
                                     display: 'flex', // Set the div to flex
                                     justifyContent: 'center', // Center content horizontally
