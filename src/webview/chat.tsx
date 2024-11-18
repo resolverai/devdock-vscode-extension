@@ -68,6 +68,7 @@ interface ChatProps {
   onBountiesClicked: number | null; // This is the function passed from Dashboard
   isDashboardInView: boolean;
   topTabClickedProp?: boolean | null;
+  isUserLoggedIn?: boolean;
 
 }
 
@@ -101,7 +102,7 @@ const CustomKeyMap = Extension.create({
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const global = globalThis as any
-export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, isDashboardInView, topTabClickedProp }) => {
+export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, isDashboardInView, topTabClickedProp, isUserLoggedIn }) => {
   // console.log("ChatProps received onBountiesClicked::", onBountiesClicked);
   const generatingRef = useRef(false)
   const editorRef = useRef<Editor | null>(null)
@@ -756,7 +757,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
           bottom: '30px', // Position it at the bottom
           left: '30px',   // Position it at the left
           width: '155px', // Customize width
-          height: '150px',
+          height: '60px',
           backgroundColor: '#252527', // Custom background color
           color: 'white', // Text color
           padding: '12px 0px 0px 0px', // Padding inside the popup
@@ -779,23 +780,9 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
         </div>
 
         <div style={{ marginTop: '10px' }}></div>
-        <div
-          onClick={handleGitDiffClick}
-          style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer' }}>
-          <GitDiffSVG></GitDiffSVG>
-          <div style={{ marginLeft: '5px' }}></div>
-          <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px' }}>Git diff</span>
-        </div>
-        <div style={{ marginTop: '10px' }}></div>
-        <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Extra context</span>
-        <div style={{ marginTop: '10px' }}></div>
-        <div
-          onClick={handleAttachmentClick}
-          style={{ display: 'flex', flexDirection: 'row', marginLeft: '10px', cursor: 'pointer', }}>
-          <AttachmentSVG></AttachmentSVG>
-          <div style={{ marginLeft: '5px' }}></div>
-          <span style={{ color: 'white', fontSize: '12px', marginLeft: '10px', }}>Add a file or folder</span>
-        </div>
+
+
+
 
       </div> : null;
   }
@@ -912,7 +899,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             <EmbeddingOptions />
           )}
 
-          {!isDashboardInView && showBountyVisiblity && (
+          {!isDashboardInView && showBountyVisiblity && isUserLoggedIn && (
 
 
             <div onClick={createBountyPopupCommand}
@@ -959,39 +946,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
           < div className={styles.chatOptions}>
             <div>
-              <VSCodeButton
-                onClick={handleToggleAutoScroll}
-                title="Toggle auto scroll on/off"
-                appearance="icon"
-              >
-                {autoScrollContext ? (
-                  <EnabledAutoScrollIcon />
-                ) : (
-                  <DisabledAutoScrollIcon />
-                )}
-              </VSCodeButton>
-              <VSCodeButton
-                onClick={handleGetGitChanges}
-                title="Generate commit message from staged changes"
-                appearance="icon"
-              >
-                <span className="codicon codicon-git-pull-request"></span>
-              </VSCodeButton>
-              <VSCodeButton
-                title="Scroll down to the bottom"
-                appearance="icon"
-                onClick={handleScrollBottom}
-              >
-                <span className="codicon codicon-arrow-down"></span>
-              </VSCodeButton>
-              <VSCodeButton
-                title="Enable/disable RAG context for all messages"
-                appearance="icon"
-                onClick={handleToggleRag}
-              >
-                {enableRagContext ? <EnabledRAGIcon /> : <DisabledRAGIcon />}
-              </VSCodeButton>
-              <VSCodeBadge>{selection?.length}</VSCodeBadge>
+              Chat with Devdock Copilot
             </div>
             <div>
               {generatingRef.current && (

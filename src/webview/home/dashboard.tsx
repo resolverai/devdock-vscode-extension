@@ -466,6 +466,7 @@ const Dashboard: React.FC = () => {
                     onTabChange={handleConversationTab}
 
                 ></Main> : <Chat
+                    isUserLoggedIn={isUserLoggedIn}
                     topTabClickedProp={topTabsClicked}
                     onDevChatClick={devdockChatButtonClicked}
                     onBountiesClicked={bountyClickedId}

@@ -157,9 +157,10 @@ export class DevdockPoints {
       const userDetails = DevdockPoints?.myExtensioncontext?.globalState.get(
         "userProfileInfo"
       ) as any;
-
-      const userDetailsObject = JSON.parse(userDetails as string);
-      myUserId = userDetailsObject?.id;
+      if (userDetails) {
+        const userDetailsObject = JSON.parse(userDetails as string);
+        myUserId = userDetailsObject?.id;
+      }
     }
     console.log("myUserId", myUserId);
     if (myUserId && myUserId != null && myUserId != undefined) {

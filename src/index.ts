@@ -223,7 +223,7 @@ export async function activate(context: ExtensionContext) {
     } as ServerMessage<string>);
   }
 
-  createAndShowTerminal();
+  // createAndShowTerminal();
   fetchDevDockRags();
 
   // fetchUserActionsList();
@@ -445,7 +445,7 @@ export async function activate(context: ExtensionContext) {
 
     commands.registerCommand(DEVDOCK_COMMAND_NAME.enable, () => {
       statusBar.show();
-      createAndShowTerminal();
+      // createAndShowTerminal();
     }),
     commands.registerCommand(DEVDOCK_COMMAND_NAME.disable, () => {
       statusBar.hide();
@@ -702,7 +702,7 @@ export async function activate(context: ExtensionContext) {
      * This script will now listen to any command fired while using the terminal
      */
     commands.registerCommand(DEVDOCK_COMMAND_NAME.listenTerminal, () => {
-      createAndShowTerminal();
+      // createAndShowTerminal();
     }),
 
     window.registerWebviewViewProvider("devdock.sidebar", sidebarProvider),
