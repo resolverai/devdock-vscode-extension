@@ -50,8 +50,7 @@
     "Linters"
   ],
   "activationEvents": [
-    "onStartupFinished",
-    "onCommand:devdock.listenTerminal"
+    "onStartupFinished"
   ],
   "author": {
     "name": "rjmacarthy"
@@ -198,11 +197,8 @@
         "shortTitle": "Login with GitHub",
         "title": "Login with GitHub",
         "icon": "$(github)"
-      },
-      {
-        "command": "devdock.listenTerminal",
-        "title": "Start Listening to Terminal"
       }
+
     ],
     "keybindings": [
       {
