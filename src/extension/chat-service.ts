@@ -50,7 +50,7 @@ import { SymmetryService } from "./symmetry-service";
 import { Logger } from "../common/logger";
 import { SessionManager } from "./session-manager";
 import { DevdockPoints, PointsEvents } from "../common/devdockPoints";
-import { apiProviders } from "symmetry-client";
+import { apiProviders } from "../common/types";
 
 const logger = new Logger();
 type BotData = {
