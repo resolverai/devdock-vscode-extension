@@ -183,7 +183,7 @@ class ApiService {
           content:
             "You are a web3 helper, based on the user query you have to tell from which chain it belongs. The list of chains is as follows: " +
             listOfChains +
-            ". You have to reply in just one word, and the answer should be one from the array of chains provided. If you think that the answer is not in the list, reply with 'FLOW'.",
+            ". You have to reply in just one word, and the answer should be one from the array of chains provided. If you think that the answer is not in the list, reply with 'OTHER'.",
         },
         { role: "user", content: question },
       ],

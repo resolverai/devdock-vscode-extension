@@ -157,13 +157,14 @@ pre code {
 }
 
 .assistantMessage {
-  background-color: var(--vscode-editor-background);
+  background-color: #272626;
   align-self: flex-start;
 }
 
 .assistantMessage::after {
   left: 10px;
-  background-color: var(--vscode-editor-background);
+  /* background-color: var(--vscode-editor-background); */
+  background-color: #272626;
 }
 
 .messageOptions {

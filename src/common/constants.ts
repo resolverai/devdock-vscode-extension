@@ -3,7 +3,7 @@ import { defaultTemplates } from "../extension/templates";
 export const EXTENSION_NAME = "@ext:rjmacarthy.devdock";
 export const ASSISTANT = "assistant";
 export const USER = "user";
-export const TWINNY = "🤖 devdock";
+export const TWINNY = "🤖 Devdock";
 export const SYSTEM = "system";
 export const YOU = "👤 You";
 export const EMPTY_MESAGE = "Sorry, I don’t understand. Please try again.";
