@@ -508,3 +508,12 @@ export const SYMMETRY_EMITTER_KEY = {
   conversationTitle: "conversationTitle",
   inference: "inference",
 };
+export const apiProviders = {
+  LiteLLM: "litellm",
+  LlamaCpp: "llamacpp",
+  LMStudio: "lmstudio",
+  Ollama: "ollama",
+  Oobabooga: "oobabooga",
+  OpenWebUI: "openwebui",
+  devDockProvider: "devDock",
+} as const;
