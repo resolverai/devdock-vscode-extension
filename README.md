@@ -1,74 +1,62 @@
-# devdock
-Free and private AI extension for Visual Studio Code.
+The first tokenized AI coding assistant for web3 developers. Build dApps in minutes, earn tokens for contributions, and join a community of web3 builders.
 
-- [Ollama](https://github.com/jmorganca/ollama)
-- [llama.cpp](https://github.com/ggerganov/llama.cpp)
-- [oobabooga/text-generation-webui](https://github.com/oobabooga/text-generation-webui)
-- [LM Studio](https://github.com/lmstudio-ai)
-- [LiteLLM](https://github.com/BerriAI/litellm)
-- [Open WebUI](https://github.com/open-webui/open-webui)
+## ⚡ Build dApps in Minutes
+
+- 🏃‍♂️ Go from idea to dApp in 20 minutes
+- 📦 Pre-built, secure smart contract templates
+- 🔄 Automatic frontend integration
+- 🛠️ Framework-specific scaffolding (Next.js, Hardhat, Foundry)
+
+## 🛡️ Web3-Native Intelligence
+
+- Smart contract vulnerability detection
+- Protocol-aware code suggestions
+- Gas optimization recommendations
+- Pre-audit checks before deployment
+- Support for Ethereum, Solana, Flow, and more
+
+## 💰 Earn While You Code
+
+- 🪙 Receive tokens for code contributions
+- ⭐ Build reputation in the ecosystem
+- 📈 Share in platform growth
+- 🏆 Weekly rewards for top contributors
+
+## 🎯 Bounty Marketplace
+
+### Complete Bounties
+
+- Browse available tasks
+- Earn rewards for solutions
+- Build portfolio and reputation
+- Get direct feedback from protocols
+
+### Post Bounties
+
+- Get help from expert developers
+- Set custom reward amounts
+- Define clear acceptance criteria
+- Fast turnaround times
 
 ## 🚀 Getting Started
-Visit the [quick start guide](https://devdockdotdev.github.io/devdock-docs/general/quick-start/) to get started.
 
-## Main Features
+1. Install from VS Code Marketplace
+2. Claim your free beta access at [devdock.ai](https://devdock.ai/)
+3. Start building and earning!
 
-### Fill in the Middle Code Completion
-Get AI-based suggestions in real time. Let Devdock autocomplete your code as you type.
-![Fill in the Middle Example](https://github.com/rjmacarthy/devdock/assets/5537428/69f567c0-2700-4474-b621-6099255bc87b)
+## 🎁 Beta Program
 
-### Chat with AI About Your Code
-Discuss your code via the sidebar: get function explanations, generate tests, request refactoring, and more.
-<img src="https://github.com/rjmacarthy/devdock/assets/5537428/a5c5bb34-60f6-41f6-8226-c62cf4c17c1d" width="760"/>
+- Free for first 500 developers
+- 2x token rewards for early adopters
+- Exclusive access to premium features
+- Priority support
 
-### Additional Features
-- Operates online or offline
-- Highly customizable API endpoints for FIM and chat
-- Chat conversations are preserved
-- Conforms to the OpenAI API standard
-- Supports single or multiline fill-in-middle completions
-- Customizable prompt templates
-- Generate git commit messages from staged changes
-- Easy installation via the Visual Studio Code extensions marketplace
-- Customizable settings for API provider, model name, port number, and path
-- Compatible with Ollama, llama.cpp, oobabooga, and LM Studio APIs
-- Accepts code solutions directly in the editor
-- Creates new documents from code blocks
-- Copies generated code solution blocks
-- Workspace embeddings for context-aware AI assistance
-- Connect to the Symmetry network for P2P AI inference
-- Become a provider on the Symmetry network and share your computational resources with the world
-  
-### Workspace Embeddings
-Enhance your coding experience with context-aware AI assistance using workspace embeddings.
-- **Embed Your Workspace**: Easily embed your entire workspace with a single click.
-- **Context-Aware Responses**: devdock uses relevant parts of your codebase to provide more accurate and contextual answers.
-- **Customizable Embedding Provider**: By default, uses Ollama Embedding (all-minilm:latest), but supports various providers.
-- **Adjustable Relevance**: Fine-tune the rerank probability threshold to control the inclusion of context in AI responses.
-- **Toggle Embedded Context**: Easily switch between using embedded context or not for each message.
+## 🤝 Join Our Community
 
-### Symmetry network
-[Symmetry](https://twinny.dev/symmetry) is a decentralized peer-to-peer network tool designed to democratize access to computational resources for AI inference. Key features include:
+- [Discord](https://discord.gg/RJzSktmU)
+- [Twitter](https://twitter.com/devdockai)
 
-- Resource Sharing: Users can offer or seek computational power for various AI tasks.
-- Direct Connections: Enables secure, peer-to-peer connections between users.
-- Visual Studio Code Integration: Devdock has built-in functionality to connect as a peer or provider directly within VS Code.
-- Public Provider Access: Users can leverage models from other users who are public providers on the Symmetry network.
+---
 
-Symmetry aims to make AI inference more accessible and efficient for developers and researchers.
-
-The client source code is open source and can be found [here](https://github.com/devdockdotdev/symmetry-core).
-
-## Known Issues
-Visit the GitHub [issues page](https://github.com/rjmacarthy/devdock/issues) for known problems and troubleshooting.
-
-## Contributing
-Interested in contributing? Reach out on [Twitter](https://x.com/devdockdotdev), describe your changes in an issue, and submit a PR when ready. Devdock is open-source under the MIT license. See the [LICENSE](https://github.com/rjmacarthy/devdock/blob/master/LICENSE) for more details.
-
-## Support Devdock
-Thanks for using Devdock! 
-This project is and will always be free and open source. If you find it helpful, please consider showing your appreciation with a small donation <3
-Bitcoin: `1PVavNkMmBmUz8nRYdnVXiTgXrAyaxfehj`
-
-## Disclaimer
-Devdock is actively developed and provided "as is". Functionality may vary between updates.
+Build faster. Earn tokens. Stay secure.
+Made by web3 developers, for web3 developers. 🌟
