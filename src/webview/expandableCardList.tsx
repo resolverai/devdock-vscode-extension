@@ -16,7 +16,7 @@ import { useLoader } from './Loader/Loader';
 
 
 
-interface CardItem {
+export interface CardItem {
   id: number;
   title: string;
   description: string;
@@ -27,7 +27,7 @@ interface CardItem {
   bountiesLeft: string;
 }
 
-interface MyBounty {
+export interface MyBounty {
   card?: CardItem;
   platform?: string;
   smart_contract_address?: string;

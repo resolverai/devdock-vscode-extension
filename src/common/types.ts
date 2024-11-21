@@ -91,6 +91,7 @@ export interface Message {
   language?: LanguageType;
   error?: boolean;
   isInFocusFile?: boolean;
+  platform?: string;
 }
 
 export interface Conversation {

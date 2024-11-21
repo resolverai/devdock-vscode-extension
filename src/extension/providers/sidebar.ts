@@ -18,7 +18,7 @@ import {
   SYSTEM,
   LOGIN_EVENT_NAME,
 } from "../../common/constants";
-import { ChatService } from "../chat-service";
+import { BotData, ChatService } from "../chat-service";
 import {
   ClientMessage,
   Message,
@@ -262,6 +262,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
   public streamBountyRequestCompletion = async (
     data: ClientMessage<Message[]>
   ) => {
+    // const myBountyMessage: any = {
+    //   role: USER,
+    //   content: bountYdataForId.description,
+    //   platform: myBounty.platform,
+
+    // }
+    // data: [myBountyMessage],
+
     const symmetryConnected = this._sessionManager?.get(
       EXTENSION_SESSION_NAME.devdockSymmetryConnection
     );

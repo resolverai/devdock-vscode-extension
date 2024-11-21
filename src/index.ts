@@ -180,18 +180,46 @@ export async function activate(context: ExtensionContext) {
       devdockRagData?.data,
       chainKeyBasedOnUserQuery
     );
-    console.log("devdockRagData based on Query ", providerBasedOnQuery);
+
+    if (providerBasedOnQuery != undefined) {
+      console.log("devdockRagData based on Query ", providerBasedOnQuery);
+      context.globalState.update(
+        "devDockProviderBasedOnUserQuery",
+        providerBasedOnQuery
+      );
+      sidebarProvider.view?.webview.postMessage({
+        type: EVENT_NAME.getRagForQuery,
+        value: {
+          data: chainKeyBasedOnUserQuery,
+        },
+      } as ServerMessage<string>);
+    } else {
+      //hit rag data api and then run script again
+      fetchDevDockRags();
+
+      setTimeout(() => {
+        setProviderBasedOnQuery(chainKeyBasedOnUserQuery);
+        sidebarProvider.view?.webview.postMessage({
+          type: EVENT_NAME.getRagForQuery,
+          value: {
+            data: chainKeyBasedOnUserQuery,
+          },
+        } as ServerMessage<string>);
+      }, 1000);
+    }
+  }
+
+  function setProviderBasedOnQuery(chainKeyBasedOnUserQuery: string) {
+    const devdockRagData = context.globalState.get("devdockRagData") as any;
+
+    const providerBasedOnQuery = getBotByChain(
+      devdockRagData?.data,
+      chainKeyBasedOnUserQuery
+    );
     context.globalState.update(
       "devDockProviderBasedOnUserQuery",
       providerBasedOnQuery
     );
-
-    sidebarProvider.view?.webview.postMessage({
-      type: EVENT_NAME.getRagForQuery,
-      value: {
-        data: chainKeyBasedOnUserQuery,
-      },
-    } as ServerMessage<string>);
   }
 
   function getCurrentFileOpenedName() {

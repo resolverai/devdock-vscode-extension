@@ -61,6 +61,7 @@ import DevdockBountyPopup from './devdock_bounty_popup'
 import apiService from '../services/apiService'
 import { API_END_POINTS } from '../services/apiEndPoints'
 import { useLoader } from './Loader/Loader'
+import { MyBounty } from './expandableCardList'
 
 
 interface ChatProps {
@@ -71,6 +72,8 @@ interface ChatProps {
   isUserLoggedIn?: boolean;
 
 }
+
+
 
 const CustomKeyMap = Extension.create({
   name: 'chatKeyMap',
@@ -236,21 +239,40 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
       console.log('getCardData', cardData);
 
 
-      const bountYdataForId = {
-        description: cardData?.description
+      //------------
+
+
+      const storedMyBounties = localStorage.getItem('myBounties');
+
+      if (storedMyBounties) {
+        const myBountiesArray = JSON.parse(storedMyBounties);
+        const myBounty = myBountiesArray.find((myBounty: MyBounty) => myBounty?.card?.id === bountyId);
+        if (myBounty) {
+          console.log('MyBounty found: chat.tsx', myBounty);
+
+          const bountYdataForId = {
+            description: cardData?.description
+          }
+
+          const myBountyMessage: any = {
+            role: USER,
+            content: bountYdataForId.description,
+            platform: myBounty.platform,
+
+          }
+          showLoader('Please wait!!!, Generating supporting files for you.');
+
+          global.vscode.postMessage({
+            type: EVENT_NAME.devdockBountyRequest,
+            data: [myBountyMessage],
+
+          } as ClientMessage)
+
+        }
       }
+      //-----------
 
-      const myBountyMessage: MessageType = {
-        role: USER,
-        content: bountYdataForId.description
-      }
-      showLoader('Please wait!!!, Generating supporting files for you.');
 
-      global.vscode.postMessage({
-        type: EVENT_NAME.devdockBountyRequest,
-        data: [myBountyMessage],
-
-      } as ClientMessage)
 
 
     }

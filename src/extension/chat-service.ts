@@ -36,6 +36,7 @@ import {
 import {
   getChatDataFromProvider,
   getLanguage,
+  setProvider,
   updateLoadingMessage,
 } from "./utils";
 import { CodeLanguageDetails } from "../common/languages";
@@ -53,7 +54,7 @@ import { DevdockPoints, PointsEvents } from "../common/devdockPoints";
 import { apiProviders } from "../common/types";
 
 const logger = new Logger();
-type BotData = {
+export type BotData = {
   bot_id: string;
   api_key: string;
   domain: string;
@@ -711,17 +712,47 @@ export class ChatService {
       // You can throw an error, log a message, or return a default value
     }
   }
+  private async setProviderForBountyFileCreation(
+    lastMessage: Message
+  ): Promise<any> {
+    console.log("streamBountyCompletion2", lastMessage?.platform);
+    let chainName: string = "FLOW";
+    if (lastMessage?.platform == "Devcash") {
+      chainName = "ETHEREUM";
+      // setProvider("ETHEREUM", this._context);
+      console.log("streamBountyCompletion3", chainName);
+    } else if (lastMessage?.platform == "Devdock") {
+      chainName = "FLOW";
+      // setProvider("FLOW", this._context);
+      console.log("streamBountyCompletion4", chainName);
+    }
 
+    const devdockRagData = this._context?.globalState.get(
+      "devdockRagData"
+    ) as any;
+    console.log("streamBountyCompletion5", devdockRagData);
+    const providerBasedOnQuery = devdockRagData?.data.find(
+      (bot: BotData) => bot.chain === chainName
+    );
+    console.log("streamBountyCompletion6", providerBasedOnQuery);
+    const result = await this._context?.globalState.update(
+      "devDockProviderBasedOnUserQuery",
+      providerBasedOnQuery
+    );
+    console.log("streamBountyCompletion7", result);
+    return result;
+  }
   public async streamBountyCompletion(
     messages: Message[],
     onEnd?: (completion: string) => void
   ) {
     this._completion = "";
-
+    console.log("streamBountyCompletion1");
     const lastMessage = messages[messages.length - 1];
-    // console.log("streamChatCompletion isFileInFocus", isFileInFocus);
+    // console.log("devDockProviderBasedOnUserQuery key fetch", lastMessage);
 
     const text = lastMessage.content;
+    await this.setProviderForBountyFileCreation(lastMessage);
 
     const systemMessage = {
       role: SYSTEM,

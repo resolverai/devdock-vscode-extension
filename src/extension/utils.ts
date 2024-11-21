@@ -48,6 +48,7 @@ import { Logger } from "../common/logger";
 import { SyntaxNode } from "web-tree-sitter";
 import { getParser } from "./parser-utils";
 import { DevdockProvider } from "./provider-manager";
+import { getContext } from "./context";
 
 const logger = new Logger();
 
@@ -713,4 +714,22 @@ export const getProvider = (
   };
 
   return provider;
+};
+
+export const setProvider = (
+  chainName: string,
+  context: ExtensionContext | undefined
+) => {
+  //get rags
+  //set rag based on chainName
+
+  const devdockRagData = context?.globalState.get("devdockRagData") as any;
+
+  const providerBasedOnQuery = devdockRagData?.data.find(
+    (bot: BotData) => bot.chain === chainName
+  );
+  context?.globalState.update(
+    "devDockProviderBasedOnUserQuery",
+    providerBasedOnQuery
+  );
 };
