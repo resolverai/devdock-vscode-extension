@@ -294,14 +294,14 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                 {card.title}
               </span>
 
-              <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '258px' }}>
+              <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', maxWidth: '258px' }}>
                 <div style={
                   {
                     display: 'flex',
                     flexDirection: 'row',
                     backgroundColor: '#7A71F3',
                     borderRadius: '24px',
-                    width: '110px',
+                    maxWidth: '110px',
                     padding: '4px',
                     marginBottom: '10px',
                     marginTop: '10px',
@@ -321,7 +321,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                     flexDirection: 'row',
                     backgroundColor: '#252527',
                     borderRadius: '24px',
-                    width: '110px',
+                    maxWidth: '110px',
                     padding: '4px',
                     marginBottom: '10px',
                     marginTop: '10px',
@@ -388,7 +388,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                   }}
                   style={{
 
-                    width: '258px',
+                    maxWidth: '258px',
                     height: '25px',
                     borderRadius: '30px',
                     padding: "8px 16px",
