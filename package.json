@@ -2,7 +2,7 @@
   "name": "devdock",
   "displayName": "devdock - AI Web3 Code Completion and Chat",
   "description": "Locally hosted AI code completion plugin for vscode",
-  "version": "3.16.28",
+  "version": "3.16.30",
   "icon": "assets/extension_icon.png",
   "keywords": [
     "code-inference",
