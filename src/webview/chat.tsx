@@ -821,7 +821,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             display: 'flex',
             flexDirection: 'column',
             height: 'auto',
-            width: '97%',
+            minWidth: '95%',
             // margin: '4px',
             position: 'fixed',
             // flexGrow: 1, // Allow this container to grow and push container 3 to the bottom
