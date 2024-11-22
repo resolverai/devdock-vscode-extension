@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { getContext } from "../extension/context";
 import * as path from "path";
 import * as fs from "fs";
+import { on } from "events";
 
 class Analytics {
   private static instance: Analytics;
@@ -138,16 +139,26 @@ class Analytics {
     }
   }
 
-  private postEventViaApi(data: object) {
+  private postEventViaApi(axiosData: any) {
+    // const axiosData = [
+    //   {
+    //     properties: {
+    //       token: process.env.MIXPANEL_TOKEN, // Replace with your Mixpanel project token
+    //       data: data,
+    //     },
+    //     event: eventName,
+    //   },
+    // ];
     //get location before calling events api
-    getLocationFromIP().then((response: any) => {
-      const { city, country } = response;
-
+    this.getLocationFromIP((successCallbackResponse) => {
+      console.log("successCallbackResponse", successCallbackResponse);
+      const { city, country } = successCallbackResponse;
+      console.log("successCallbackResponse city, country", city, country);
       const userProfileInfo = getContext()?.globalState.get("userProfileInfo");
       const userID = JSON.parse(userProfileInfo as string)?.id;
       const githubId = JSON.parse(userProfileInfo as string)?.github_id;
       const commonData = {
-        version: getExtensionVersion(), // Default version number
+        version: this.getExtensionVersion(), // Default version number
         deviceType: "extension", // Default device type
         city: city, // Default location
         country: country, // Default location
@@ -155,8 +166,24 @@ class Analytics {
         githubId: githubId ? githubId : "",
       };
 
+      let data = axiosData[0]?.properties?.data;
+      if (data != undefined) {
+        data = { ...commonData, ...data };
+      } else {
+        data = { ...commonData };
+      }
       // Merge commonData with the incoming data
-      const mergedData = { ...commonData, ...data };
+      // data = { ...commonData, ...data };
+
+      const axiosDataVal = [
+        {
+          properties: {
+            token: process.env.MIXPANEL_TOKEN, // Replace with your Mixpanel project token
+            data: data,
+          },
+          event: axiosData[0].event,
+        },
+      ];
       const options: AxiosRequestConfig = {
         method: "POST",
         url: "https://api.mixpanel.com/track",
@@ -164,47 +191,53 @@ class Analytics {
           Accept: "text/plain",
           "Content-Type": "application/json",
         },
-        data: JSON.stringify(mergedData), // Convert the data to a JSON string
+        data: axiosDataVal, // Convert the data to a JSON string
       };
       axios(options)
         .then((response) => {
-          console.log("Response:", response.data); // Handle the successful response
+          console.log("postEventViaApi Response:", response);
         })
         .catch((error) => {
           console.error("Error:", error); // Handle any errors
         });
     });
   }
-}
+  private getExtensionVersion(): string {
+    try {
+      // Get the path to the extension's `package.json`
+      const packagePath = path.join(__dirname, "..", "package.json");
 
-function getExtensionVersion(): string {
-  try {
-    // Get the path to the extension's `package.json`
-    const packagePath = path.join(__dirname, "..", "package.json");
+      // Read and parse `package.json`
+      const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
 
-    // Read and parse `package.json`
-    const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
-
-    // Return the version field
-    return packageJson.version;
-  } catch (error) {
-    console.error("Failed to read extension version:", error);
-    return "unknown";
+      // Return the version field
+      return packageJson.version;
+    } catch (error) {
+      console.error("Failed to read extension version:", error);
+      return "unknown";
+    }
   }
-}
 
-async function getLocationFromIP() {
-  try {
-    // Step 1: Use ip-api to get location data directly (no need to fetch IP separately)
-    const locationResponse = await axios.get("http://ip-api.com/json/");
+  private getLocationFromIP(onSuccess: (response: any) => void) {
+    try {
+      // Step 1: Use ip-api to get location data directly (no need to fetch IP separately)
+      // const locationResponse = await
+      axios.get("http://ip-api.com/json/").then((locationResponse) => {
+        const locationData = locationResponse.data;
 
-    const locationData = locationResponse.data;
+        // Step 2: Parse and return location data
+        const resultVal = {
+          city: locationData.city,
+          country: locationData.country,
+        };
+        onSuccess(resultVal);
+      });
 
-    // Step 2: Parse and return location data
-    return { city: locationData.city, country: locationData.country };
-  } catch (error: any) {
-    console.error(`Failed to fetch location: ${error.message}`);
-    return { city: "", country: "" };
+      // return resultVal;
+    } catch (error: any) {
+      console.error(`Failed to fetch location: ${error.message}`);
+      // return { city: "", country: "" };
+    }
   }
 }
 
