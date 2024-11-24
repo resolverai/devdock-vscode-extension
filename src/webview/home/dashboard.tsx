@@ -96,6 +96,7 @@ const Dashboard: React.FC = () => {
             if (message?.value.data == WEBUI_TABS.chat) {
                 console.log("Top Tab clicked in dashboard.tsx inside WEBUI_TABS.chat, this is to show chat ui");
                 setTopTabClicked(false);
+                devdockChatButtonClicked();
 
             } else {
                 setTopTabClicked(true);
@@ -105,6 +106,7 @@ const Dashboard: React.FC = () => {
         if (message?.type === EVENT_NAME.devdockStopGeneration) {
             console.log("devdockStopGeneration devdockStopGeneration");
             setTopTabClicked(false);
+            devdockChatButtonClicked();
         }
         if (message?.type === EVENT_NAME.githubLoginDone) {
             console.log("githubLoginDone dashboard.tsx", message.value, typeof message.value);
