@@ -20,7 +20,7 @@ import { useLoader } from '../Loader/Loader';
 
 const Dashboard: React.FC = () => {
 
-    const [bountiesClicked, setBountiesClicked] = useState<boolean>(true);
+    const [bountiesClicked, setBountiesClicked] = useState<boolean>(false);
     const [topTabsClicked, setTopTabClicked] = useState<boolean | null>(false);
     const [bountyClickedId, setBountyClickedId] = useState<number | null>(0);
     const [isUserLoggedIn, setUserLoggedin] = useState<boolean>(false);
