@@ -140,46 +140,28 @@ class Analytics {
   }
 
   private postEventViaApi(axiosData: any) {
-    // const axiosData = [
-    //   {
-    //     properties: {
-    //       token: process.env.MIXPANEL_TOKEN, // Replace with your Mixpanel project token
-    //       data: data,
-    //     },
-    //     event: eventName,
-    //   },
-    // ];
-    //get location before calling events api
     this.getLocationFromIP((successCallbackResponse) => {
       console.log("successCallbackResponse", successCallbackResponse);
-      const { city, country } = successCallbackResponse;
+      const { city, country, ip } = successCallbackResponse;
       console.log("successCallbackResponse city, country", city, country);
       const userProfileInfo = getContext()?.globalState.get("userProfileInfo");
       const userID = JSON.parse(userProfileInfo as string)?.id;
       const githubId = JSON.parse(userProfileInfo as string)?.github_id;
-      const commonData = {
-        version: this.getExtensionVersion(), // Default version number
-        deviceType: "extension", // Default device type
-        city: city, // Default location
-        country: country, // Default location
-        userId: userID ? userID : "",
-        githubId: githubId ? githubId : "",
-      };
 
       let data = axiosData[0]?.properties?.data;
-      if (data != undefined) {
-        data = { ...commonData, ...data };
-      } else {
-        data = { ...commonData };
-      }
-      // Merge commonData with the incoming data
-      // data = { ...commonData, ...data };
 
       const axiosDataVal = [
         {
           properties: {
             token: process.env.MIXPANEL_TOKEN, // Replace with your Mixpanel project token
             data: data,
+            version: this.getExtensionVersion(), // Default version number
+            deviceType: "extension", // Default device type
+            $city: city, // Default location
+            $country_code: country, // Default location
+            distinct_id: userID ? userID : "",
+            githubId: githubId ? githubId : "",
+            $ip: ip,
           },
           event: axiosData[0].event,
         },
@@ -227,8 +209,9 @@ class Analytics {
 
         // Step 2: Parse and return location data
         const resultVal = {
-          city: locationData.city,
-          country: locationData.country,
+          city: locationData?.city,
+          country: locationData?.country,
+          ip: locationData?.query,
         };
         onSuccess(resultVal);
       });
@@ -238,6 +221,60 @@ class Analytics {
       console.error(`Failed to fetch location: ${error.message}`);
       // return { city: "", country: "" };
     }
+  }
+
+  public setMixpanelProfile(
+    distinctId: string,
+    gitHubId: string,
+    email: string
+  ) {
+    this.getLocationFromIP((successCallbackResponse) => {
+      const { city, country, ip } = successCallbackResponse;
+
+      try {
+        const url = "https://api.mixpanel.com/engage#profile-set";
+
+        // Payload for the API request
+        const data = [
+          {
+            $token: process.env.MIXPANEL_TOKEN,
+            $distinct_id: distinctId,
+            $set: {
+              $ip: ip,
+              $city: city,
+              $country_code: country,
+              githubId: gitHubId,
+              $email: email ? email : "",
+            },
+          },
+        ];
+
+        // Make the POST request
+        const options: AxiosRequestConfig = {
+          method: "POST",
+          url: url,
+          headers: {
+            Accept: "text/plain",
+            "Content-Type": "application/json",
+          },
+          data: JSON.stringify(data), // Convert the data to a JSON string
+        };
+        axios(options)
+          .then((response) => {
+            console.log("Mixpanel setMixpanelProfile response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Mixpanel setMixpanelProfile Error:", error); // Handle any errors
+          });
+      } catch (error: any) {
+        // Handle errors
+        console.error(
+          "Error calling Mixpanel API:",
+          error.response?.data || error.message
+        );
+        throw error;
+      }
+    });
   }
 }
 

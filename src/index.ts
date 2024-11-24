@@ -952,6 +952,12 @@ export async function activate(context: ExtensionContext) {
                 const userId = response.data.id;
                 context.globalState.update("userID", userId);
 
+                Analytics.setMixpanelProfile(
+                  userId,
+                  gitHubUserInfo?.nickname,
+                  gitHubUserInfo?.email
+                );
+
                 const signupPointsAllotedEarlier = context.globalState.get(
                   "signupPointsAlloted"
                 );

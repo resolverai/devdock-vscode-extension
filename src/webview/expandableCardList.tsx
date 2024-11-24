@@ -312,7 +312,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                   <DevCashSVG></DevCashSVG>
                   <div style={{ width: '10px', }}></div>
                   <span style={{ color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: 'normal' }}>{card.bountyPrice}</span>
-
+                  <div style={{ width: '10px' }}></div>
                 </div>
                 <div style={{ width: '30px' }}></div>
                 <div style={
@@ -332,7 +332,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
                   <BountiesLeftIcon></BountiesLeftIcon>
                   <div style={{ width: '10px' }}></div>
                   <span style={{ opacity: '0.8', color: '#ffffff', fontSize: '10px', alignContent: 'center', fontStyle: 'normal', fontWeight: '400' }}>{card.bountiesLeft}</span>
-
+                  <div style={{ width: '10px' }}></div>
                 </div>
 
               </div>
