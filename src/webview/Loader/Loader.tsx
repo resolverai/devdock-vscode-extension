@@ -48,6 +48,7 @@ export const LoaderProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                             textAlign: 'center',
                             color: '#ffffff',
                             fontSize: '16px',
+                            padding: '32px',
                         }}
                     >
                         <div
