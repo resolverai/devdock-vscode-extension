@@ -144,12 +144,20 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
 
   // Handle clicks outside the popup
+  const popupRef = useRef<HTMLDivElement>(null);
   const handleClickOutside = (event: MouseEvent) => {
-    console.log("handleClickOutside clicked");
-    setIsAddFocusPopupVisible(false); // Close the popup
+    if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+      console.log("Clicked outside the popup");
+      setIsAddFocusPopupVisible(false); // Close the popup
+    }
   };
 
   useEffect(() => {
+    if (isAddFocusPopupVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -775,24 +783,28 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
   const showAddFocusPopup = () => {
     return isAddFocusPopupVisible ?
-      <div style={
-        {
-          position: 'absolute' as 'absolute',
-          bottom: '30px', // Position it at the bottom
-          left: '30px',   // Position it at the left
-          width: '155px', // Customize width
-          height: '60px',
-          backgroundColor: '#252527', // Custom background color
-          color: 'white', // Text color
-          padding: '12px 0px 0px 0px', // Padding inside the popup
-          boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)', // Optional: Add a shadow for better visibility
-          borderRadius: '8px',
-          zIndex: 1000, // Ensure it appears on top of other elements
-          border: '1px 0px 0px 0px',
-          opacity: '0px'
+      <div
+        ref={popupRef}
+        onClick={(e) => e.stopPropagation()}
+        style={
+          {
+            position: 'absolute' as 'absolute',
+            bottom: '30px', // Position it at the bottom
+            left: '30px',   // Position it at the left
+            width: '155px', // Customize width
+            height: '60px',
+            backgroundColor: '#252527', // Custom background color
+            color: 'white', // Text color
+            padding: '12px 0px 0px 0px', // Padding inside the popup
+            boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.5)', // Optional: Add a shadow for better visibility
+            borderRadius: '8px',
+            zIndex: 1000, // Ensure it appears on top of other elements
+            border: '1px 0px 0px 0px',
+            opacity: '0px'
 
-        }
-      }>
+          }
+
+        }>
         <span style={{ color: 'white', opacity: 0.5, fontSize: '12px', marginLeft: '10px' }}>Focus on</span>
         <div style={{ marginTop: '10px' }}></div>
         <div
@@ -808,7 +820,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
 
 
 
-      </div> : null;
+      </div > : null;
   }
 
   const items = ['Auto-completes code', 'Answers queries', 'Deploy contracts'];
