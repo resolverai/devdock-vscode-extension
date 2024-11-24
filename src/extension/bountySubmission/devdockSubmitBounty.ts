@@ -23,15 +23,11 @@ export const submitDevdockBounty = async (
       const tx_id = await fcl.mutate({
         cadence: `
         import BountyContract from 0x9d2ade18cb6bea1a
-
-        transaction(id: UInt, submit_string: String) {
+        transaction(id:UInt,submit_string:String) {
 
           prepare(acct: &Account) {
             log(acct.address)
-          }
-
-          execute {
-            BountyContract.submit_bounty(id: id, submit_string: submit_string)
+            BountyContract.submit_bounty(id:id,submit_string:submit_string,signer:acct)
           }
         }
         `,

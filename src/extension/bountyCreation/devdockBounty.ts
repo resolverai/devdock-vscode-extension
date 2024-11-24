@@ -17,9 +17,9 @@ export const createDevdockBounty = async (
   const title: string = "Do a bounty";
 
   const authZVal = authz(
-    flowWalletAddress, // public address of master account on Flow
+    flowWalletAddress, //wallet address of user
     "0", // key id
-    privateKey // flow account private key of master account
+    privateKey // private key of user
   );
 
   try {
@@ -31,11 +31,8 @@ export const createDevdockBounty = async (
 
           prepare(acct: &Account) {
             log(acct.address)
-          }
-
-          execute {
-            let loggable=BountyContract.create_bounty(description:description,title:title,bounty_amount:total_bounty,allowed_bounties:allowed_bounties)
-            log(loggable)
+              let loggable=BountyContract.create_bounty(description:description,title:title,bounty_amount:total_bounty,allowed_bounties:allowed_bounties,signer:acct)
+              log(loggable)
           }
         }
       `,

@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { getContext } from "../extension/context";
 import * as path from "path";
 import * as fs from "fs";
-import { on } from "events";
+import * as os from "os";
 
 class Analytics {
   private static instance: Analytics;
@@ -140,6 +140,12 @@ class Analytics {
   }
 
   private postEventViaApi(axiosData: any) {
+    const platform = os.platform(); // e.g., 'win32', 'darwin', 'linux'
+    const release = os.release(); // e.g., '10.0.19043', '20.4.0'
+
+    const osInfo = `${platform} ${release}`;
+
+    console.log(`Operating System: ${osInfo}`);
     this.getLocationFromIP((successCallbackResponse) => {
       console.log("successCallbackResponse", successCallbackResponse);
       const { city, country, ip } = successCallbackResponse;
@@ -162,6 +168,7 @@ class Analytics {
             distinct_id: userID ? userID : "",
             githubId: githubId ? githubId : "",
             $ip: ip,
+            $os: osInfo,
           },
           event: axiosData[0].event,
         },
