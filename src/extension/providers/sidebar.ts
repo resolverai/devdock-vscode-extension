@@ -320,25 +320,24 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     inputString: string
   ): Array<{ fileName: string; content: string }> {
     const fileObjects: Array<{ fileName: string; content: string }> = [];
+    const regex =
+      /{\s*"filename":\s*"([^"]+)",\s*"content":\s*"((?:[^\\"]|\\.)*?)"\s*}/gs;
 
-    // Regex to capture fileName and content, with improved handling for special characters
-    const regex = /{\s*"filename":\s*"([^"]+)",\s*"content":\s*"(.*?)"\s*}/gs;
     let match: RegExpExecArray | null;
 
-    // Iterate through each match in the input string
     while ((match = regex.exec(inputString)) !== null) {
-      const fileName = match[1]; // Capture the filename
-      let fileContent = match[2]; // Capture the content
+      const fileName = match[1]; // Extract the filename
+      let fileContent = match[2]; // Extract the content
 
-      // Decode escape sequences in the content (especially for newlines, quotes, etc.)
+      // Decode common escaped characters
       fileContent = fileContent
-        .replace(/\\n/g, "\n")
-        .replace(/\\"/g, '"')
-        .replace(/\\\\/g, "\\"); // Unescape common characters
+        .replace(/\\n/g, "\n") // Newlines
+        .replace(/\\"/g, '"') // Double quotes
+        .replace(/\\\\/g, "\\"); // Backslashes
 
-      // Push the result as an object
+      // Add to the result array
       fileObjects.push({
-        fileName: fileName,
+        fileName,
         content: fileContent,
       });
     }
