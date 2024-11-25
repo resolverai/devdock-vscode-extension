@@ -214,7 +214,11 @@ class Analytics {
     const ipBasedDetails = getContext()?.globalState.get(
       "ipBasedDetails"
     ) as any;
-    if (ipBasedDetails !== undefined && ipBasedDetails !== null) {
+    if (
+      ipBasedDetails !== undefined &&
+      ipBasedDetails !== null &&
+      ipBasedDetails !== ""
+    ) {
       // const val = JSON.parse(ipBasedDetails);
       console.log("ipBasedDetails found", ipBasedDetails);
       const resultVal = {
