@@ -164,7 +164,7 @@ class Analytics {
             version: this.getExtensionVersion(), // Default version number
             deviceType: "extension", // Default device type
             $city: city, // Default location
-            $country_code: country, // Default location
+            $country: country, // Default location
             distinct_id: userID ? userID : "",
             githubId: githubId ? githubId : "",
             $ip: ip,
@@ -208,25 +208,48 @@ class Analytics {
   }
 
   private getLocationFromIP(onSuccess: (response: any) => void) {
-    try {
-      // Step 1: Use ip-api to get location data directly (no need to fetch IP separately)
-      // const locationResponse = await
-      axios.get("http://ip-api.com/json/").then((locationResponse) => {
-        const locationData = locationResponse.data;
+    // Step 1: Use ip-api to get location data directly (no need to fetch IP separately)
+    // const locationResponse = await
 
-        // Step 2: Parse and return location data
+    const ipBasedDetails = getContext()?.globalState.get(
+      "ipBasedDetails"
+    ) as any;
+    if (ipBasedDetails !== undefined && ipBasedDetails !== null) {
+      // const val = JSON.parse(ipBasedDetails);
+      console.log("ipBasedDetails found", ipBasedDetails);
+      const resultVal = {
+        city: ipBasedDetails?.city,
+        country: ipBasedDetails?.country,
+        ip: ipBasedDetails?.query,
+      };
+      onSuccess(resultVal);
+    } else {
+      try {
+        axios.get("http://ip-api.com/json/").then((locationResponse) => {
+          const locationData = locationResponse.data;
+
+          // Step 2: Parse and return location data
+          const resultVal = {
+            city: locationData?.city,
+            country: locationData?.country,
+            ip: locationData?.query,
+          };
+          getContext()?.globalState.update("ipBasedDetails", resultVal);
+          onSuccess(resultVal);
+        });
+
+        // return resultVal;
+      } catch (error: any) {
+        console.error(`Failed to fetch location: ${error.message}`);
+        // return { city: "", country: "" };
+
         const resultVal = {
-          city: locationData?.city,
-          country: locationData?.country,
-          ip: locationData?.query,
+          city: "",
+          country: "",
+          ip: "",
         };
         onSuccess(resultVal);
-      });
-
-      // return resultVal;
-    } catch (error: any) {
-      console.error(`Failed to fetch location: ${error.message}`);
-      // return { city: "", country: "" };
+      }
     }
   }
 

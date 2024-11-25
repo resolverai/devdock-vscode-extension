@@ -268,7 +268,7 @@ export const Chat: React.FC<ChatProps> = ({ onDevChatClick, onBountiesClicked, i
             platform: myBounty.platform,
 
           }
-          showLoader('Please wait!!!, Generating supporting files for you.');
+          showLoader('Please wait!!! Generating supporting files for you.');
 
           global.vscode.postMessage({
             type: EVENT_NAME.devdockBountyRequest,
