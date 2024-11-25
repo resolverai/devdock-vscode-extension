@@ -52,6 +52,7 @@ import { Logger } from "../common/logger";
 import { SessionManager } from "./session-manager";
 import { DevdockPoints, PointsEvents } from "../common/devdockPoints";
 import { apiProviders } from "../common/types";
+import apiService from "../services/apiService";
 
 const logger = new Logger();
 export type BotData = {
@@ -716,16 +717,16 @@ export class ChatService {
     lastMessage: Message
   ): Promise<any> {
     console.log("streamBountyCompletion2", lastMessage?.platform);
-    let chainName: string = "FLOW";
-    if (lastMessage?.platform == "Devcash") {
-      chainName = "ETHEREUM";
-      // setProvider("ETHEREUM", this._context);
-      console.log("streamBountyCompletion3", chainName);
-    } else if (lastMessage?.platform == "Devdock") {
-      chainName = "FLOW";
-      // setProvider("FLOW", this._context);
-      console.log("streamBountyCompletion4", chainName);
-    }
+    let chainName: string = "OTHER";
+    const web3Chains = this._context?.globalState.get("web3Chains") as string;
+    console.log("web3Chains chat-service.ts", web3Chains);
+    const chainKeyBasedOnUserQuery = await apiService.askChatGPT(
+      lastMessage?.content as string,
+      "gpt-4o",
+      0.1,
+      web3Chains
+    );
+    chainName = chainKeyBasedOnUserQuery;
 
     const devdockRagData = this._context?.globalState.get(
       "devdockRagData"
