@@ -59,7 +59,11 @@ const BountyPopup: React.FC<BountyPopupProps> = ({ isOpen, handleCloseClick, han
 
                             }}>
 
-                            <div onClick={handleCloseClick} style={
+                            <div onClick={() => {
+                                handleCloseClick();
+                                setContent('');
+                            }} style={
+
                                 {
                                     display: 'flex',
                                     flexDirection: 'column',
@@ -186,6 +190,7 @@ const BountyPopup: React.FC<BountyPopupProps> = ({ isOpen, handleCloseClick, han
                                 onClick={() => {
                                     if (content.trim().length > 0) {
                                         setErrorMessage(''); // Set error message empty to hide
+                                        setContent('');
                                         handleSubmit(bountyId, content)
                                     }
 

@@ -59,7 +59,10 @@ const DevdockBountyPopup: React.FC<DevdockBountyPopupProps> = ({ isDevdockBounty
 
                             }}>
 
-                            <div onClick={handleCloseClick} style={
+                            <div onClick={() => {
+                                setContent('');
+                                handleCloseClick();
+                            }} style={
                                 {
                                     display: 'flex',
                                     flexDirection: 'column',
@@ -197,6 +200,7 @@ const DevdockBountyPopup: React.FC<DevdockBountyPopupProps> = ({ isDevdockBounty
                                 onClick={() => {
                                     if (content.trim().length > 0) {
                                         setErrorMessage(''); // Set error message empty to hide
+                                        setContent('');
                                         handleSubmit(content);
                                     }
                                     else {
