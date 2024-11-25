@@ -14,7 +14,7 @@ export const createDevdockBounty = async (
   privateKey: string,
   flowWalletAddress: string
 ) => {
-  const title: string = "Do a bounty";
+  const title: string = "Dev bounty";
 
   const authZVal = authz(
     flowWalletAddress, //wallet address of user

@@ -219,7 +219,7 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
         const cardItem: CardItem = {
           id: item.id, // Assuming `item.id` is unique for each bounty
-          title: `[${item.platform.toUpperCase()} BOUNTY] ${item.title}`,
+          title: `[${item.platform.toUpperCase()}] ${item.title}`,
           bulletsArray: item.bulletsArray ? item.bulletsArray : [item.platform, item.category, item.scope_result],
           bottomDescription: item.num_submissions_left > 0 ? 'You can make multiple submissions' : 'No more submissions allowed',
           bottomHeading: item.num_submissions_left > 0 ? `${item.num_submissions_left} Submissions left` : 'Submissions closed',
