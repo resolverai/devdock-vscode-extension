@@ -16,6 +16,9 @@ import CommonPopup from '../common_popup';
 import DevdockBountyPopup from '../devdock_bounty_popup';
 import { useLoader } from '../Loader/Loader';
 
+import RightArrowSVG from './svgs/arrow_svg';
+import BackArrowSvG from './svgs/back_arrow_svg';
+import MyBountiesTabView from './myBounties/myBountiesTabView';
 
 
 const Dashboard: React.FC = () => {
@@ -36,6 +39,12 @@ const Dashboard: React.FC = () => {
     const [isDevdockBountyPopupOpen, setIsDevdockBountyPopupOpen] = useState(false);//make it false, true is for testing purpose
     const global = globalThis as any
     const { showLoader, hideLoader } = useLoader();
+    const [hasBountiesUpdate, setHasBountiesUpdate] = useState(true);
+    const [myBountiesClicked, setMyBountiesClicked] = useState(false);
+    const [showMyBounties, setShowMyBounties] = useState(false);
+    // const arrowPngUri = global.vscode.Uri.file(arrowPng).with({ scheme: 'vscode-resource' }).toString();
+
+
 
     type UserLoginData = {
         id: string,
@@ -86,6 +95,10 @@ const Dashboard: React.FC = () => {
         console.log('useEffect showCommonPopup', showCommonPopup);
     }, [showCommonPopup]);
 
+    useEffect(() => {
+        console.log('useEffect hasBountiesUpdate', hasBountiesUpdate);
+        console.log('Call an API to fetch bounties for approval');
+    }, []);
     const handler = (event: MessageEvent) => {
         const message: ServerMessage<string | undefined> = event.data
         // console.log("Message received from server in dashboard.tsx: ", message?.type, message?.value?.data)
@@ -175,17 +188,8 @@ const Dashboard: React.FC = () => {
         }
         if (message?.type === EVENT_NAME.showBountyCreationPopUp) {
             console.log("showBountyCreationPopUp dashboard.tsx");
-
             setIsDevdockBountyPopupOpen(true);
-
-
         }
-
-
-
-
-
-
         return () => window.removeEventListener('message', handler)
     }
 
@@ -393,19 +397,8 @@ const Dashboard: React.FC = () => {
     };
 
     {
-        return (
-            <div
-                style={{
-                    display: 'flex',
-                    backgroundColor: '#181818',
-                    height: 'auto',
-                    flexDirection: 'column',
-                    flexGrow: 1, // Allow this container to grow and push container 3 to the bottom
-                    overflowY: 'auto',
-                }} >
-
-                {showPopupForUser()}
-                <div style={{ height: 10, width: '100%' }}></div>
+        function getProfileHeader() {
+            return (
                 <div className="horizontal-container">
 
 
@@ -421,11 +414,12 @@ const Dashboard: React.FC = () => {
 
 
                 </div>
-                <div style={{ height: 10, width: '100%' }}></div>
-                <div style={{ height: 1, width: '100%', backgroundColor: "#212121" }}></div>
-                <div style={{ height: 10, width: '100%' }}></div>
+            );
+        }
 
-                {!topTabsClicked && <div>
+        function getTopTabs() {
+            return (
+                !topTabsClicked && <div>
                     <div style={{ display: 'flex', flexDirection: 'row', alignContent: "start", }}>
                         <div
                             style={{
@@ -457,23 +451,122 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
 
-                </div>}
+                </div>
+            );
+        }
+
+        const myBountiesTabClicked = () => {
+            console.log('Go to my bounties');
+            setMyBountiesClicked(true);
+            setShowMyBounties(true);
+
+        }
+        const handleBackBountiesClick = () => {
+            console.log('Back button clicked');
+            setMyBountiesClicked(false);
+            setShowMyBounties(false);
+
+        }
+
+
+        function myBountiesView() {
+            return (
+                bountiesClicked &&
+                <div
+                    style={{
+                        height: '30px',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        backgroundColor: '#292929',
+                        alignContent: 'center',
+                        marginTop: '10px',
+                        marginBottom: '5px',
+
+                    }}
+                >
+
+                    <div style={{ float: 'left', display: 'flex', flexDirection: 'row', cursor: 'pointer' }}>
+                        {bountiesClicked && myBountiesClicked ? <div onClick={handleBackBountiesClick} style={{ alignContent: 'center', alignItems: 'center', textAlign: 'center', marginRight: '10px' }}>
+                            <BackArrowSvG></BackArrowSvG>
+                        </div> : null}
+
+                        <div onClick={myBountiesTabClicked} style={{ alignContent: 'center', alignItems: 'center', textAlign: 'center', marginRight: '80px', cursor: 'pointer' }}>
+                            <span style={{ textAlign: 'center' }}>My Bounties</span>
+                        </div>
+
+                    </div>
+
+
+
+                    <div onClick={myBountiesTabClicked} style={{ float: 'right', display: 'flex', flexDirection: 'row', cursor: 'pointer' }}>
+                        <div style={{ background: 'green', borderRadius: '16px', height: '20px', width: '20px', marginRight: '20px', alignContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                            <span style={{ color: 'black', fontSize: '10px' }}>2</span>
+                        </div>
+                        <div style={{ alignContent: 'center', alignItems: 'center', textAlign: 'center' }}>
+                            <RightArrowSVG></RightArrowSVG>
+                        </div>
+
+
+
+                    </div>
+                </div>
+            );
+        }
+
+        function getBountiesListView() {
+            return (
+                !topTabsClicked && bountiesClicked ? <ExpandableCardList isUserLoggedIn={isUserLoggedIn} onBountiesClickedFromList={handleBountyClickId} /> : null
+
+            );
+        }
+
+        function showMyBountiesView(): boolean {
+            const showMyBounties = bountiesClicked && hasBountiesUpdate && myBountiesClicked;
+            return showMyBounties;
+        }
+
+
+
+        return (
+            <div
+                style={{
+                    display: 'flex',
+                    backgroundColor: '#181818',
+                    height: 'auto',
+                    flexDirection: 'column',
+                    flexGrow: 1, // Allow this container to grow and push container 3 to the bottom
+                    overflowY: 'auto',
+                }} >
+
+                {showPopupForUser()}
+                <div style={{ height: 10, width: '100%' }}></div>
+                {getProfileHeader()}
+                <div style={{ height: 10, width: '100%' }}></div>
+                <div style={{ height: 1, width: '100%', backgroundColor: "#212121" }}></div>
+                <div style={{ height: 10, width: '100%' }}></div>
+
+                {!showMyBountiesView() && getTopTabs()}
+                <div style={{ height: 5 }}></div>
+                {hasBountiesUpdate ? myBountiesView() : null}
+                {showMyBountiesView() ? <MyBountiesTabView></MyBountiesTabView> : null}
 
                 <div style={{ height: 5 }}></div>
-                {!topTabsClicked && bountiesClicked ? <ExpandableCardList isUserLoggedIn={isUserLoggedIn} onBountiesClickedFromList={handleBountyClickId} /> : null}
+                {!showMyBountiesView() && getBountiesListView()}
 
 
-                {topTabsClicked ? <Main
+
+                {!showMyBountiesView() && topTabsClicked ? <Main
                     tabServerMessageValue={serverMessageForTab}
                     onTabChange={handleConversationTab}
 
-                ></Main> : <Chat
-                    isUserLoggedIn={isUserLoggedIn}
-                    topTabClickedProp={topTabsClicked}
-                    onDevChatClick={devdockChatButtonClicked}
-                    onBountiesClicked={bountyClickedId}
-                    isDashboardInView={bountiesClicked}
-                />}
+                ></Main> :
+                    !showMyBountiesView() && <Chat
+                        isUserLoggedIn={isUserLoggedIn}
+                        topTabClickedProp={topTabsClicked}
+                        onDevChatClick={devdockChatButtonClicked}
+                        onBountiesClicked={bountyClickedId}
+                        isDashboardInView={bountiesClicked}
+                    />}
 
                 {showCommonPopup && <CommonPopup isReward={isRewardCommonPopup} handleSubmit={handleSubmit} isOpen={isPopupOpen} handleCloseClick={handleClosePopup} ctaText='ok' description={descriptionCommonPopup} heading={headingCommonPopup} ></CommonPopup>}
                 {/* {<CommonPopup isReward={false} handleSubmit={() => { }} isOpen={true} handleCloseClick={() => { }} ctaText='ok' description='You will receive Devcash in your wallet, once your submission is approved' heading='Your submission has been completed' centered={true}></CommonPopup>} */}

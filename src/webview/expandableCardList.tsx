@@ -288,8 +288,10 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
               <span style={
                 {
                   color: '#ffffff',
-                  fontSize: '12px', alignContent: 'center',
-                  fontStyle: 'normal', fontWeight: 'normal'
+                  fontSize: '12px',
+                  alignContent: 'center',
+                  fontStyle: 'normal',
+                  fontWeight: 'normal'
                 }}>
                 {card.title}
               </span>
@@ -457,7 +459,8 @@ const styles = {
   card: {
     border: '1px solid #37373C',
     borderRadius: '8px',
-    margin: '10px',
+    marginTop: '10px',
+    marginBottom: '10px',
     padding: '10px',
     backgroundColor: '#292929',
   },
