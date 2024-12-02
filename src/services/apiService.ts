@@ -3,6 +3,7 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
+import lighthouse from '@lighthouse-web3/sdk'
 
 class ApiService {
   private apiClient: AxiosInstance;
@@ -166,7 +167,7 @@ class ApiService {
   // Method to send a question to ChatGPT-4 and get an answer
   async askChatGPT(
     question: string,
-    model: string = "gpt-4",
+    model: string = "gpt-4o",
     temperature: number = 0.7,
     listOfChains: string
   ): Promise<string> {
@@ -210,7 +211,70 @@ class ApiService {
       throw error;
     }
   }
+
+  // Method to send a generic query to ChatGPT-4o API
+  async checkwithLLM(
+    question: string,
+    model: string = "gpt-4o",
+    temperature: number = 0.1,
+  ): Promise<string> {
+    const url = "https://api.openai.com/v1/chat/completions";
+
+    // Log API key and post body for debugging
+    console.log("API Key:", process.env.CHATGPT_API_KEY); // Ensure API key is printed correctly (remove after testing)
+
+    const postBody = {
+      model,
+      messages: [
+        {
+          role: "system",
+          content: 
+          "You are a web3 AI assisstant that takes the last command executed on user's terminal and its associated output and subsequently infer the category of command from the list provided. \n" +
+          " The list from which command category can be infered is as follows: \n a) DEPLOY b) COMPILE c) START d) BUILD e) OTHER \n" +  
+          " You will also check from the output of the command whether this executed command was related to web3/blockchain or not. You will be provided with following inputs: \n" + 
+          " 1) Last Command: This will be the last executed command \n 2) Command Output: This will be the output of the last command. You will generate an output in json format containing following keys: \n" + 
+          "1) command_category: This is the category of the command, 2) web3: This is a boolean flag which can be true or false depending upon if the command and its associated output reflect any affiliation with web3/blockchain or not \n" + 
+          " Never output null for any key in the json output. If you can't infer command category, mark it as OTHER",
+        },
+        { role: "user", content: question },
+      ],
+      temperature,
+    };
+
+    console.log("Post Body:", JSON.stringify(postBody, null, 2)); // Log post body to ensure correct structure
+
+    try {
+      const response: AxiosResponse = await axios.post(url, postBody, {
+        headers: {
+          Authorization: `Bearer ${process.env.CHATGPT_API_KEY}`, // Ensure API key is set in environment
+          "Content-Type": "application/json",
+        },
+      });
+
+      let answer = response.data.choices[0].message.content.trim();
+      answer = answer.replaceAll("```", "").replace("json", "")
+      console.log("Answer from LLM: ", answer)
+      return answer;
+    } catch (error: any) {
+      console.error("Error querying ChatGPT-4 API:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+      }
+      throw error;
+    }
+  }
+
+  async uploadDataBlockChain(
+    text: string,
+    userId: string
+  ): Promise<string> {
+    const response = await lighthouse.uploadText(text, process.env.LIGHTHOUSE_API_KEY || '', userId)
+    console.log(response)
+    return JSON.stringify(response)
+  }
 }
+
+
 
 // Example usage:
 const BASE_URL = "https://dapp.devdock.ai";

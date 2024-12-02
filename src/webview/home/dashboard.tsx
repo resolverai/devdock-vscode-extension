@@ -140,7 +140,7 @@ const Dashboard: React.FC = () => {
                     const id = data?.id;
                     const hash = data?.hash;
                     setHeadingCommonPopup('Your submission has been completed');
-                    setDescriptionCommonPopup('You will receive Devcash in your wallet, once your submission is approved');
+                    setDescriptionCommonPopup('You will receive tokens in your wallet, once your submission is approved');
                     setRewardCommonPopup(false);
                     setShowCommonPopup(true);
                     setIsPopupOpen(true);

@@ -5,7 +5,7 @@ import {
   StatusBarAlignment,
   window,
   workspace,
-} from "vscode";
+} from 'vscode';
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
@@ -56,10 +56,16 @@ import { getFileExtensionMapping } from "./common/extensionsMapping";
 import { createDevdockBounty } from "./extension/bountyCreation/devdockBounty";
 import { submitDevdockBounty } from "./extension/bountySubmission/devdockSubmitBounty";
 import { enable_axon_vault_for_user } from "./extension/axon_vault_enable/axon_vault_creation";
+import { exec } from 'child_process';
 
 let sidebarProvider: SidebarProvider;
 export async function activate(context: ExtensionContext) {
   setContext(context);
+  const allKeys = context.globalState.keys(); // Get all stored keys
+  for (const key of allKeys) {
+      await context.globalState.update(key, undefined); // Remove each key
+  }
+  
   const enabApiForTrackingEvents = true;
   Analytics.init(enabApiForTrackingEvents);
   const config = workspace.getConfiguration("devdock");
@@ -72,6 +78,10 @@ export async function activate(context: ExtensionContext) {
   const homeDir = os.homedir();
   const dbDir = path.join(homeDir, ".devdock/embeddings");
   let db;
+  let diffFileContents = '';
+  let lastCommitId = '';
+  let gitPublicUrl = '';
+  const devdockPoints = DevdockPoints.getInstance(context);
 
   if (workspace.name) {
     const dbPath = path.join(dbDir, workspace.name as string);
@@ -100,10 +110,106 @@ export async function activate(context: ExtensionContext) {
 
   let terminal: vscode.Terminal | undefined;
 
+  function getShellPath(): string {
+      // For example, you can specify a custom shell like PowerShell or Bash here
+      // Return `undefined` to use the default shell
+      if (process.platform === 'win32') {
+          return 'C:\\Windows\\System32\\cmd.exe'; // Default Windows Command Prompt
+      } else {
+          return '/bin/bash'; // Default Bash on Unix-based systems
+      }
+  }
+
+  function getGitLastCommit(){
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage('No workspace folder is open.');
+        return;
+    }
+
+    const gitLogCommand = `git log -1 --format=%H`;
+
+    exec(gitLogCommand, { cwd: workspaceFolder }, (error, stdout, stderr) => {
+        if (error) {
+            vscode.window.showErrorMessage(`Error executing git diff: ${stderr}`);
+            console.error('Error:', stderr);
+            return;
+        }
+        lastCommitId = stdout;
+        console.log("Last Commit Id: ", lastCommitId)
+    });
+
+  }
+
+  function getgitPublicURL(){
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage('No workspace folder is open.');
+        return;
+    }
+
+    const command = 'git remote get-url origin';
+
+    exec(command, { cwd: workspaceFolder }, (error, stdout, stderr) => {
+        if (error) {
+            // Check if the error is because no remote URL is configured
+            if (stderr.includes('fatal: No configured push destination')) {
+                vscode.window.showErrorMessage('No remote URL is configured for this repository.');
+            } else {
+                vscode.window.showErrorMessage(`Error retrieving remote URL: ${stderr}`);
+            }
+            return;
+        }
+
+        const remoteUrl = stdout.trim();
+        if (remoteUrl) {
+            gitPublicUrl = remoteUrl.replace(/\.git$/, ''); // Remove the `.git` part of the URL
+        } else {
+            vscode.window.showErrorMessage('No remote URL found.');
+        }
+    });
+
+  }
+
+  function logGitDiffForFolder() {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage('No workspace folder is open.');
+        return;
+    }
+
+    // Path to store the diff output
+    const diffFilePath = path.join(workspaceFolder, 'git_diff_output.txt');
+
+    // Command to get the git diff for the entire folder
+    //const command = 'git log -1 && git diff HEAD~1 HEAD';
+    const gitDiffCommand = `git diff ':(exclude)command_output.log' > ${diffFilePath}`;
+
+    exec(gitDiffCommand, { cwd: workspaceFolder }, (error, stdout, stderr) => {
+        if (error) {
+            // vscode.window.showErrorMessage(`Error executing git diff: ${stderr}`);
+            console.error('Error:', stderr);
+            return;
+        }
+
+        // try {
+        //   // fs.writeFileSync(diffFilePath, "\n--------")
+        //   vscode.window.showInformationMessage(`Git commit and diff saved to ${diffFilePath}`);
+        // } catch (err) {
+        //     vscode.window.showErrorMessage(`Error writing to file: ${(err as Error).message}`);
+        // }
+        diffFileContents = fs.readFileSync(diffFilePath as string, 'utf8');
+        //vscode.window.showInformationMessage(`Git diff saved to ${diffFilePath}`);
+    });
+  }
+  
   function createAndShowTerminal() {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
     if (!workspaceFolder) {
-      vscode.window.showErrorMessage("No workspace folder open.");
+      //vscode.window.showErrorMessage("No workspace folder open.");
       return;
     }
 
@@ -111,36 +217,96 @@ export async function activate(context: ExtensionContext) {
       terminal.dispose();
     }
 
+    const shellScript = Utils.joinPath(context.extensionUri, "wrapper.sh");
+    
     const terminalOptions: vscode.TerminalOptions = {
       name: "Devdock Terminal",
       cwd: workspaceFolder,
+      shellPath: getShellPath(),
+      shellArgs: [shellScript.fsPath]
     };
 
     terminal = vscode.window.createTerminal(terminalOptions);
-    const shellScript = Utils.joinPath(context.extensionUri, "wrapper.sh");
-
-    terminal.sendText(`sh ${shellScript.fsPath}`);
+    //terminal.sendText(`sh ${shellScript.fsPath}`);
     terminal.show();
 
-    const watcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(workspaceFolder, "command_output.log")
-    );
-    watcher.onDidChange((uri) => {
-      vscode.workspace.openTextDocument(uri).then(() => {
-        const lastLine = readLastLine(
-          path.join(workspaceFolder, "command_output.log")
-        );
-        vscode.window.showInformationMessage(`Terminal output: ${lastLine}`);
-        if (lastLine?.toString() == "0") {
-          //fetchWithStream("How to deploy a NFT SmartContract on Starknet")
-          //assignReward("0x741267166ff2a1721f140B819B6f844F8C7D8d74", 10)
-          vscode.window.showInformationMessage("You've Earned 10 DEV Tokens", {
-            modal: true,
-          });
+    // const changeWatcher = vscode.workspace.onDidChangeTextDocument((event) => {
+    //   // Check if the file is tracked (add your conditions here)
+    //   const filePath = event.document.uri.fsPath;
+    
+    //   // Log the changes if the file is tracked
+    //   if (filePath.endsWith('.tsx') || filePath.endsWith('.ts') || filePath.endsWith('.js')
+    //    || filePath.endsWith('.jsx') || filePath.endsWith('.py') || filePath.endsWith('.java') ||
+    //   filePath.endsWith('.cdc') || filePath.endsWith('.sol') || filePath.endsWith('.rs') || 
+    //   filePath.endsWith('.cairo') || filePath.endsWith('.json')) {
+    //     logGitDiffForFolder();
+    //   }
+    // });
+
+    const logfilePath = path.join(workspaceFolder, 'command_output.log');
+    const watcher = vscode.workspace.createFileSystemWatcher(logfilePath);
+
+    watcher.onDidChange(async () => {
+      try {
+        const logContent = fs.readFileSync(logfilePath, 'utf8');
+        const logs = logContent.split('----\n').filter((log) => log.trim()); // Separate log entries
+
+        // Parse the latest command
+        const lastLog = logs[logs.length - 1];
+        const lines = lastLog.split('\n');
+        const command = lines.find((line) => line.startsWith('Command:'))?.replace('Command: ', '').trim();
+        const output = lines.slice(1, lines.indexOf('Exit Code:')).join('\n').replace('Output:', '').trim();
+        const exitCode = parseInt(lines.find((line) => line.startsWith('Exit Code:'))?.replace('Exit Code: ', '').trim() || '0');
+
+        // Display the parsed details
+        //vscode.window.showInformationMessage(`Last Command: ${command}\nExit Code: ${exitCode}\nOutput:\n${output}`);
+
+        let response = await apiService.checkwithLLM("Last Command: " + command + " \n" + " Command Output: " + output)
+        response = JSON.parse(response)
+        if (typeof response === 'object' && response !== null && 'command_category' in response) {
+          let command_category = (response as any)['command_category'];
+          let web3 = (response as any)['web3'];
+          // Successful deployment
+          if (command_category == 'DEPLOY'){
+            // Send to Lighthouse in all the cases whether error or success
+            logGitDiffForFolder();
+            getGitLastCommit();
+            getgitPublicURL();
+            let status = exitCode == 0 ? "success" : "failed"
+            setTimeout(() => {
+              console.log(`Diff file contents:  ${diffFileContents}`);
+              let userId = null;
+              const userDetails = context.globalState.get(
+                "userProfileInfo"
+              ) as any;
+              if (userDetails) {
+                const userDetailsObject = JSON.parse(userDetails as string);
+                console.log("User Details during DEPLOY: ", JSON.stringify(userDetailsObject))
+                // const ethAccountData = userDetailsObject.filter(item => item.chain === 'ETHEREUM');
+                userId = userDetailsObject?.github_id;
+              }
+              const jsonString = {'diff': diffFileContents as string, 'userid': userId, 'status': status, 'lastCommitId': lastCommitId.trim(), 'github_repo_url': gitPublicUrl}
+              apiService.uploadDataBlockChain(JSON.stringify(jsonString), userId)
+            }, 1000);
+
+            if (exitCode == 0){
+              // Allocate points on successful deployment
+              console.log("Allocating points for successful data contribution");
+              devdockPoints.pointsEventDoneFor(PointsEvents.DATACONTRIBUTION)
+            }
+          }
+
         }
-        //const content = doc.getText();
-      });
+
+      } catch (error) {
+        // if (error instanceof Error) {
+        //   vscode.window.showErrorMessage(`Error reading log file: ${error.message}`);
+        // } else {
+        //     vscode.window.showErrorMessage(`An unknown error occurred.`);
+        // }
+      }
     });
+    //context.subscriptions.push(changeWatcher);
     context.subscriptions.push(watcher);
   }
 
@@ -233,7 +399,7 @@ export async function activate(context: ExtensionContext) {
       const fileName = path.basename(fullPath);
       const fileContent = editor.document.getText();
       // Show the file name in a message
-      vscode.window.showInformationMessage(`File name: ${fileName}`);
+     // vscode.window.showInformationMessage(`File name: ${fileName}`);
       console.log(`File name: ${fileName}`);
       // console.log(`File content: ${fileContent}`);
 
@@ -262,7 +428,7 @@ export async function activate(context: ExtensionContext) {
     } as ServerMessage<string>);
   }
 
-  // createAndShowTerminal();
+  createAndShowTerminal();
   fetchDevDockRags();
 
   // fetchUserActionsList();
@@ -285,8 +451,6 @@ export async function activate(context: ExtensionContext) {
     console.log("getFileExtensionMapping", fileMappings);
     context.globalState.update("getFileExtensionMapping", fileMappings);
   });
-
-  const devdockPoints = DevdockPoints.getInstance(context);
   // context.globalState.update("signupPointsAlloted", "NO");
 
   // async function generateFilesFromResponse(
@@ -600,7 +764,7 @@ export async function activate(context: ExtensionContext) {
 
     commands.registerCommand(DEVDOCK_COMMAND_NAME.enable, () => {
       statusBar.show();
-      // createAndShowTerminal();
+      createAndShowTerminal();
     }),
     commands.registerCommand(DEVDOCK_COMMAND_NAME.disable, () => {
       statusBar.hide();
@@ -862,7 +1026,7 @@ export async function activate(context: ExtensionContext) {
      * This script will now listen to any command fired while using the terminal
      */
     commands.registerCommand(DEVDOCK_COMMAND_NAME.listenTerminal, () => {
-      // createAndShowTerminal();
+      createAndShowTerminal();
     }),
 
     window.registerWebviewViewProvider("devdock.sidebar", sidebarProvider),

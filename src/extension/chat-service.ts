@@ -718,15 +718,15 @@ export class ChatService {
   ): Promise<any> {
     console.log("streamBountyCompletion2", lastMessage?.platform);
     let chainName: string = "OTHER";
-    const web3Chains = this._context?.globalState.get("web3Chains") as string;
-    console.log("web3Chains chat-service.ts", web3Chains);
-    const chainKeyBasedOnUserQuery = await apiService.askChatGPT(
-      lastMessage?.content as string,
-      "gpt-4o",
-      0.1,
-      web3Chains
-    );
-    chainName = chainKeyBasedOnUserQuery;
+    // const web3Chains = this._context?.globalState.get("web3Chains") as string;
+    // console.log("web3Chains chat-service.ts", web3Chains);
+    // const chainKeyBasedOnUserQuery = await apiService.askChatGPT(
+    //   lastMessage?.content as string,
+    //   "gpt-4o",
+    //   0.1,
+    //   web3Chains
+    // );
+    // chainName = chainKeyBasedOnUserQuery;
 
     const devdockRagData = this._context?.globalState.get(
       "devdockRagData"
@@ -743,6 +743,8 @@ export class ChatService {
     console.log("streamBountyCompletion7", result);
     return result;
   }
+
+  
   public async streamBountyCompletion(
     messages: Message[],
     onEnd?: (completion: string) => void

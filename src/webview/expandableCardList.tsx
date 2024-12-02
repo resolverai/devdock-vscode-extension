@@ -215,27 +215,28 @@ const ExpandableCardList: React.FC<CardProps> = ({ isUserLoggedIn, onBountiesCli
 
     apiResponse.data.forEach(
       (item: any) => {
-        const myBounty: MyBounty = {};
+        if (item.platform.toUpperCase() == 'DEVDOCK'){
+          const myBounty: MyBounty = {};
+          const cardItem: CardItem = {
+            id: item.id, // Assuming `item.id` is unique for each bounty
+            title: `${item.title}`, //[${item.platform.toUpperCase()}]
+            bulletsArray: item.bulletsArray ? item.bulletsArray : [item.platform, item.category, item.scope_result],
+            bottomDescription: item.num_submissions_left > 0 ? 'You can make multiple submissions' : 'No more submissions allowed',
+            bottomHeading: item.num_submissions_left > 0 ? `${item.num_submissions_left} Submissions left` : 'Submissions closed',
+            description: `<b>Mission</b></br>${item.description}</br><b>Bounty amount:</b> ${item.amount || 'Not specified'}</br><b>Bounty Description:</b> ${item.description}</br><b>public/private bounty:</b> ${item.scope_result}</br><b>bounty smart contract address:</b> ${item.smart_contract_address}</br><b>Created By:</b> ${item.created_by}</br><b>Bounties left:</b> ${item.num_submissions_left} and <b>deadline:</b> ${new Date(item.updated_at).toLocaleDateString()}\n`,
+            bountyPrice: `${item.amount || '0'} ${item.token || 'Devcash'}`,
+            bountiesLeft: `${item.num_submissions_left || '0'} Bounties left`
+          };
 
-        const cardItem: CardItem = {
-          id: item.id, // Assuming `item.id` is unique for each bounty
-          title: `[${item.platform.toUpperCase()}] ${item.title}`,
-          bulletsArray: item.bulletsArray ? item.bulletsArray : [item.platform, item.category, item.scope_result],
-          bottomDescription: item.num_submissions_left > 0 ? 'You can make multiple submissions' : 'No more submissions allowed',
-          bottomHeading: item.num_submissions_left > 0 ? `${item.num_submissions_left} Submissions left` : 'Submissions closed',
-          description: `<b>Mission</b></br>${item.description}</br><b>Bounty amount:</b> ${item.amount || 'Not specified'}</br><b>Bounty Description:</b> ${item.description}</br><b>public/private bounty:</b> ${item.scope_result}</br><b>bounty smart contract address:</b> ${item.smart_contract_address}</br><b>Created By:</b> ${item.created_by}</br><b>Bounties left:</b> ${item.num_submissions_left} and <b>deadline:</b> ${new Date(item.updated_at).toLocaleDateString()}\n`,
-          bountyPrice: `${item.amount || '0'} ${item.token || 'Devcash'}`,
-          bountiesLeft: `${item.num_submissions_left || '0'} Bounties left`
-        };
+          myBounty.card = cardItem;
+          myBounty.platform = item.platform;
+          myBounty.smart_contract_address = item.smart_contract_address;
+          myBounty.created_by = item.created_by;
+          myBounty.expiry = item.expiry;
 
-        myBounty.card = cardItem;
-        myBounty.platform = item.platform;
-        myBounty.smart_contract_address = item.smart_contract_address;
-        myBounty.created_by = item.created_by;
-        myBounty.expiry = item.expiry;
-
-        cardItems.push(cardItem);
-        myBounties.push(myBounty);
+          cardItems.push(cardItem);
+          myBounties.push(myBounty);
+        }
       });
 
     return [cardItems, myBounties];
