@@ -61,10 +61,10 @@ import { exec } from 'child_process';
 let sidebarProvider: SidebarProvider;
 export async function activate(context: ExtensionContext) {
   setContext(context);
-  const allKeys = context.globalState.keys(); // Get all stored keys
-  for (const key of allKeys) {
-      await context.globalState.update(key, undefined); // Remove each key
-  }
+  // const allKeys = context.globalState.keys(); // Get all stored keys
+  // for (const key of allKeys) {
+  //     await context.globalState.update(key, undefined); // Remove each key
+  // }
   
   const enabApiForTrackingEvents = true;
   Analytics.init(enabApiForTrackingEvents);
