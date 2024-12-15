@@ -25,7 +25,27 @@ dotenv.config();
       "process.env.ALCHEMY_AUTH0_REDIRECT_URI": JSON.stringify(process.env.ALCHEMY_AUTH0_REDIRECT_URI || ""),
       "process.env.ALCHEMY_CLIENT_SECRET": JSON.stringify(process.env.ALCHEMY_CLIENT_SECRET || ""),
       "process.env.ALCHEMY_API_KEY": JSON.stringify(process.env.ALCHEMY_API_KEY || ""),
-      "process.env.CHATGPT_API_KEY": JSON.stringify(process.env.CHATGPT_API_KEY || "")
+      "process.env.CHATGPT_API_KEY": JSON.stringify(process.env.CHATGPT_API_KEY || ""),
+      "process.env.AUTH0_DOMAIN": JSON.stringify(process.env.AUTH0_DOMAIN || ""),
+      "process.env.AUTH0_CLIENT_ID": JSON.stringify(process.env.AUTH0_CLIENT_ID || ""),
+      "process.env.AUTH0_REDIRECT_URI": JSON.stringify(process.env.AUTH0_REDIRECT_URI || ""),
+      "process.env.MIXPANEL_TOKEN": JSON.stringify(process.env.MIXPANEL_TOKEN || ""),
+      "process.env.LIGHTHOUSE_API_KEY": JSON.stringify(process.env.LIGHTHOUSE_API_KEY || ""),
+      "process.env.CONTRACT_ADDRESS": JSON.stringify(process.env.CONTRACT_ADDRESS || ""),
+      "process.env.FLOWTESTNET": JSON.stringify(process.env.FLOWTESTNET || ""),
+      "process.env.AccessNodeTestAPI": JSON.stringify(process.env.AccessNodeTestAPI || ""),
+      "process.env.GITHUB_REDIRECT_URI": JSON.stringify(process.env.GITHUB_REDIRECT_URI || ""),
+      "process.env.GITHUB_CLIENT_SECRET": JSON.stringify(process.env.GITHUB_CLIENT_SECRET || ""),
+      "process.env.GITHUB_CLIENT_ID": JSON.stringify(process.env.GITHUB_CLIENT_ID || ""),
+      "process.env.DEVDOCK_SCAFFOLD_URL": JSON.stringify(process.env.DEVDOCK_SCAFFOLD_URL || ""),
+      "process.env.IPFS_JWT": JSON.stringify(process.env.IPFS_JWT || ""),
+      "process.env.CONTRACT_DEPLOYER_PRIVATE_KEY": JSON.stringify(process.env.CONTRACT_DEPLOYER_PRIVATE_KEY || ""),
+      "process.env.ZERODEV_PASSKEY_URL": JSON.stringify(process.env.ZERODEV_PASSKEY_URL || ""),
+      "process.env.ZERODEV_PAYMASTER_RPC": JSON.stringify(process.env.ZERODEV_PAYMASTER_RPC || ""),
+      "process.env.ZERODEV_BUNDLER_RPC": JSON.stringify(process.env.ZERODEV_BUNDLER_RPC || ""),
+      "process.env.ZERODEV_PROJECT_ID": JSON.stringify(process.env.ZERODEV_PROJECT_ID || ""),
+      "process.env.WEB3AUTH_SAPPHIRE_DEVNET_CLIENT_ID": JSON.stringify(process.env.WEB3AUTH_SAPPHIRE_DEVNET_CLIENT_ID || ""),
+      "process.env.RPC_URL_SEPOLIA": JSON.stringify(process.env.RPC_URL_SEPOLIA || "")
     },
     plugins: [
       copy({
