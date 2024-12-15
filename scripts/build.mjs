@@ -2,6 +2,10 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import esbuild from 'esbuild'
 import { copy } from 'esbuild-plugin-copy';
+import dotenv from "dotenv";
+
+// Load environment variables from the .env file
+dotenv.config();
 
 (async () => {
   const extensionConfig = {
@@ -11,9 +15,18 @@ import { copy } from 'esbuild-plugin-copy';
     format: 'cjs',
     outdir: 'out',
     platform: 'node',
+    minify: true,
     sourcemap: true,
     loader: { '.node': 'file' },
     assetNames: '[name]',
+    define: {
+      "process.env.ALCHEMY_AUTH0_DOMAIN": JSON.stringify(process.env.ALCHEMY_AUTH0_DOMAIN || ""),
+      "process.env.ALCHEMY_AUTH0_CLIENT_ID": JSON.stringify(process.env.ALCHEMY_AUTH0_CLIENT_ID || ""),
+      "process.env.ALCHEMY_AUTH0_REDIRECT_URI": JSON.stringify(process.env.ALCHEMY_AUTH0_REDIRECT_URI || ""),
+      "process.env.ALCHEMY_CLIENT_SECRET": JSON.stringify(process.env.ALCHEMY_CLIENT_SECRET || ""),
+      "process.env.ALCHEMY_API_KEY": JSON.stringify(process.env.ALCHEMY_API_KEY || ""),
+      "process.env.CHATGPT_API_KEY": JSON.stringify(process.env.CHATGPT_API_KEY || "")
+    },
     plugins: [
       copy({
         resolveFrom: 'cwd',
@@ -40,7 +53,7 @@ import { copy } from 'esbuild-plugin-copy';
           }
         ],
         watch: true,
-      }),
+      })
     ]
   }
 

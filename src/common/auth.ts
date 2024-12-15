@@ -129,7 +129,7 @@ const handleAuthentication = async (uri: vscode.Uri) => {
   console.log(uri);
   if (
     uri.scheme === vscode.env.uriScheme &&
-    uri.authority === "copilot.devdock" &&
+    uri.authority === "agent.devdock" &&
     uri.path === "/auth/callback"
   ) {
     const fragment = uri.fragment;

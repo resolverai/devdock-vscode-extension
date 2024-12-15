@@ -1,8 +1,8 @@
 {
   "name": "devdock",
-  "displayName": "devdock - AI Web3 Code Completion and Chat",
-  "description": "Locally hosted AI code completion plugin for vscode",
-  "version": "0.1.0",
+  "displayName": "Devdock - AI Web3 Code Completion and Chat",
+  "description": "Web3 Developer copilot supporting EVM, Rust, Cairo and cadence",
+  "version": "0.1.4",
   "icon": "assets/extension_icon.png",
   "keywords": [
     "code-inference",
@@ -30,9 +30,9 @@
     "url": "https://github.com/devdockdotdev/devdock"
   },
   "license": "MIT",
-  "publisher": "copilot",
+  "publisher": "agent",
   "engines": {
-    "vscode": "^1.84.0"
+    "vscode": "^1.75.0"
   },
   "bugs": {
     "url": "https://github.com/devdockdotdev/devdock/issues"
@@ -53,7 +53,7 @@
     "onStartupFinished"
   ],
   "author": {
-    "name": "rjmacarthy"
+    "name": "copilot"
   },
   "main": "./out/index.js",
   "browser": "./out/index.js",
@@ -501,12 +501,9 @@
     "zerog-da-sdk": "^0.2.2"
   },
   "os": [
-    "darwin",
-    "linux",
-    "win32"
+    "darwin"
   ],
   "cpu": [
-    "x64",
     "arm64"
   ],
   "capabilities": {

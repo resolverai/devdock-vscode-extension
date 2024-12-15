@@ -34,3 +34,4 @@ out/
 
 *.vsix
 *.log
+git_diff_output.txt
